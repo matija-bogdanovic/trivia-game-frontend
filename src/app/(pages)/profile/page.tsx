@@ -1,12 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
 import React, { useEffect, useState } from "react";
 
 function Page() {
   const [decodedToken, setDecodedToken] = useState<any>(null);
-
   useEffect(() => {
     const rawToken = getCookie("token");
     if (rawToken) {
@@ -17,9 +16,8 @@ function Page() {
   return (
     <section className="section">
       <div className="container">
-        <p>
-          {decodedToken ? `Hello ${decodedToken.username}!` : "No token found."}
-        </p>
+        <h5>Achievements</h5>
+        <h1 className="text-[32px] font-bold">{decodedToken ? `${decodedToken.username}` : ""}</h1>
       </div>
     </section>
   );

@@ -1,13 +1,15 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 function EndScreenHooks() {
   const winner = useRef<HTMLHeadingElement>(null);
-  const websocket = new WebSocket(`ws://localhost:3000/endscreen`);
+  const websocket = new WebSocket(`ws://localhost:3001/endscreen`);
+  const router = useRouter();
   const playAgain = () => {
     websocket.send(JSON.stringify({ playAgain: true }));
-    window.location.href = "/";
+    router.push("/");
   };
   useEffect(() => {
     if (websocket.readyState === WebSocket.CONNECTING) {

@@ -1,17 +1,22 @@
-import { httpFunction } from "@/app/helpers/http_function";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getPort } from "@/app/helpers/port";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { getCookie } from "@/app/helpers/token_operations";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 function IndexHooks() {
   const websocketRef = useRef<WebSocket | null>(null);
 
   const buttonElement = useRef<HTMLButtonElement | null>(null);
+  const [email, setEmail] = useState<string>("");
   const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [repeatPass, setRepeatPass] = useState<string>("");
   const [activeUsers, setActiveUsers] = useState<string>("");
-  const [alert, setAlert] = useState<string>("");
   const [error, setError] = useState("");
-  const handleClick = async () => {
+  const router = useRouter();
+  const handleClick = async (e: FormEvent) => {
+    e.preventDefault();
     if (username.length < 3) {
       setError("Name's too short.");
       return;
@@ -21,20 +26,42 @@ function IndexHooks() {
     } else if (/[<>#!]/.test(username)) {
       setError("Name can't contain special characters (<,>,#,!)");
       return;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Email must have an @ sign and a . sign.");
+      return;
+    } else if (
+      !/^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(password)
+    ) {
+      setError(
+        "Password must have 8 characters, one special character, one uppercase letter and at least one number."
+      );
+      return;
+    } else if (password !== repeatPass) {
+      setError("Passwords don't match.");
+      return;
     } else {
       setError("");
       try {
         const port = getPort();
-        await httpFunction(`${port}/login`, {
+        const response = await fetch(`${port}/signup`, {
           method: "POST",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ username: username }),
+          body: JSON.stringify({
+            username: username,
+            mail: email,
+            password: password,
+          }),
         });
         websocketRef.current?.send(JSON.stringify({ retrieveUsers: true }));
-        window.location.href = "game";
+        const data = await response.json();
+        if (response.status === 409) {
+          setError("Username or mail already taken.");
+        } else if (response.status === 201) {
+          router.push("/");
+        }
       } catch (error) {
         console.error("Something went wrong: ", error);
       }
@@ -43,51 +70,16 @@ function IndexHooks() {
   //   const tokenReference = useRef(null);
 
   useEffect(() => {
-    const websocket = new WebSocket("ws://localhost:3000/");
-    console.log(websocket);
+    const token = getCookie("token");
 
-    websocketRef.current = websocket;
-    websocket.onopen = () => {
-      const timeout = setTimeout(() => {
-        websocket.send(JSON.stringify({ getCookie: true }));
-        clearTimeout(timeout);
-      }, 1000);
-    };
-    websocket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      console.log(message);
-      if (message.cookies) {
-        console.log(message.cookies);
-      }
-      if (message.type === "retrievedUsername") {
-        if (buttonElement.current) {
-          buttonElement.current.disabled = true;
-          buttonElement.current.style.opacity = "0.5";
-          buttonElement.current.style.cursor = "not-allowed";
-        }
-        setAlert(
-          `${
-            message.username
-          } you are already signed in, no need to do so again. ${(
-            <Link href="">Go </Link>
-          )}`
-        );
-      } else if (message.noCookie) {
-        setAlert("");
-      }
-      if (message.parsedUsernames) {
-        const arrayLength = message.parsedUsernames.length;
-        if (arrayLength === 0) {
-          setActiveUsers("No active users in the lobby currently");
-        } else if (arrayLength > 0) {
-          setActiveUsers(`${arrayLength} currently active player/s`);
-        }
-      }
-    };
-    return () => {
-      websocket.close();
-    };
-  }, []);
+    if (token) {
+      router.push("/");
+      alert("You're already signed in.");
+      return;
+    } else {
+      return;
+    }
+  }, [router]);
 
   return {
     username,
@@ -96,7 +88,12 @@ function IndexHooks() {
     buttonElement,
     handleClick,
     activeUsers,
-    alert,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    repeatPass,
+    setRepeatPass,
   };
 }
 
