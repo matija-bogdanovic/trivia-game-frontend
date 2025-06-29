@@ -42,6 +42,9 @@ const roomOperations = createSlice({
       state.roomNameText = `Room name: ${action.payload.roomName}`;
       state.roomCodeText = `Room code: ${action.payload.code}`;
     },
+    setUsername: (state, action) => {
+      state.username = action.payload;
+    },
     setTokenDetails: (state) => {
       const cookie = getCookie("token");
       const token = decodeJwt(cookie);
@@ -75,6 +78,7 @@ export const {
   setRoomData,
   cancelLeave,
   toggleCancel,
+  setUsername,
   setLoading,
   answerCorrect,
   setRoomCode,

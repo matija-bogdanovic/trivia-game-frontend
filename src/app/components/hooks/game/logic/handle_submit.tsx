@@ -30,6 +30,19 @@ export const handleSubmit = async (
         (opt) => opt.question_option_text === selectedOption
       )?.question_option_text,
     });
+    const firstTimer = setTimeout(() => {
+      const roomCode = window.location.pathname.split("/")[2];
+
+      sendJsonMessage({ message: "question_retrieval", code: roomCode });
+      clearTimeout(firstTimer);
+    }, 1000);
+    const secondTimer = setTimeout(() => {
+      sendJsonMessage({
+        message: "change_current_player",
+        code: roomCode,
+      });
+      clearTimeout(secondTimer)
+    }, 3000);
   } catch (error) {
     console.error("Something went wrong", error);
     dispatch(submittedText("Error connecting to the server."));

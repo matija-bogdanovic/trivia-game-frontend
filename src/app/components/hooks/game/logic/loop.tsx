@@ -42,7 +42,7 @@ export default function loopPlayers(params: LoopParams) {
     timeoutRef.current = setTimeout(async () => {
       dispatch(overlayFalse());
       dispatch(overlayText(""));
-
+      console.log(lastJsonMessage)
       const selectedPlayerByName = lastJsonMessage.selected_player;
       const matchingName = Array.from(children).find(
         (e: any) => e.querySelector("h4").innerText === selectedPlayerByName

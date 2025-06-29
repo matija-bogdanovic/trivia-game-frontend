@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, {
@@ -23,6 +24,7 @@ import {
   setLoading,
   setRoomData,
   setTokenDetails,
+  setUsername,
 } from "@/app/redux/slicers/room_opeations";
 import loopPlayers from "../logic/loop";
 import { setQuestions } from "../logic/set_question";
@@ -63,6 +65,7 @@ export default function GameProvider({
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startButtonBox = useRef<HTMLDivElement | null>(null);
   const questionIdReference = useRef<string | null>(null);
+  const questionReference = useRef<boolean | null>(null);
 
   useEffect(() => {
     const code = window.location.pathname.split("/")[2];
@@ -74,7 +77,6 @@ export default function GameProvider({
       username: token.username,
       id: cookie,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -96,6 +98,8 @@ export default function GameProvider({
         });
         break;
       case "question_retrieval":
+        if (questionReference.current) return;
+        questionReference.current = true;
         setQuestions({ dispatch, lastJsonMessage, questionIdReference });
         break;
       case "submit_answer":
@@ -129,13 +133,6 @@ export default function GameProvider({
               } answered correctly. Rolling onto the next player.`
             )
           );
-          const loopTimerLogic = setTimeout(() => {
-            sendJsonMessage({
-              message: "number_of_players",
-              code: code,
-            });
-            clearTimeout(loopTimerLogic);
-          }, 4000);
         } else {
           const correctAnswer = (lastJsonMessage as Submit).correctAnswer;
           dispatch(setQuestionOptionsStatus({ correctAnswer }));
@@ -212,7 +209,8 @@ export default function GameProvider({
           }, 3000);
         }
         break;
-      case "number_of_players":
+      case "change_current_player":
+        // This changes the players 
         if (message.players.length === 2) {
           const children = playerParent.current!.children;
           dispatch(overlayFalse());
@@ -221,37 +219,27 @@ export default function GameProvider({
           for (let i = 0; i < children.length; i++) {
             (children[i] as HTMLElement).style.backgroundColor = "";
           }
-          const currentRound = message.rounds.find(
-            (data: {
-              status: string;
-              currentQuestionId: string;
-              currentlyAnswering: string;
-            }) => data.status === "started"
-          );
-          const lastSelected = currentRound.currentlyAnswering;
+          const currentlyAnswering = (lastJsonMessage as any).activeRound
+            .currentlyAnswering;
 
           const opposite = Array.from(children).find(
             (e): e is HTMLDivElement => {
               return (
                 e instanceof HTMLDivElement &&
-                e.querySelector("h4")?.innerText !== lastSelected
-              );
+                e.querySelector("h4")?.innerText !== currentlyAnswering
+              )
             }
           );
-          const index = message.rounds.find(
-            (data: {
-              status: string;
-              currentQuestionId: string;
-              currentlyAnswering: string;
-            }) => data.status === "started"
-          );
-          if (username === index.currentlyAnswering) {
+          console.log(message)
+          console.log(opposite)
+
+          if (username === currentlyAnswering) {
             dispatch(overlayTrue());
           }
+
+          dispatch(setUsername(currentlyAnswering));
+
           opposite!.style.backgroundColor = "red";
-          sendJsonMessage({ message: "question_retrieval" });
-          const roomCode = window.location.pathname.split("/")[2];
-          sendJsonMessage({ message: "change_current_player", code: roomCode });
         } else {
           loopPlayers({
             playerParent,
@@ -286,18 +274,8 @@ export default function GameProvider({
           startButton.current!.style.opacity = "1";
         }
         break;
-      case "change_current_player":
-        async function currentlyAnsweringPlayerChange() {
-          await fetch(`${port}/currentlyAnsweringPlayer`, {
-            method: "POST",
-            headers: { "Content-type": "Application/json" },
-            body: JSON.stringify({}),
-          });
-        }
-        currentlyAnsweringPlayerChange();
-        break;
     }
-  }, [dispatch, lastJsonMessage, sendJsonMessage]);
+  }, [lastJsonMessage, dispatch, sendJsonMessage]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {

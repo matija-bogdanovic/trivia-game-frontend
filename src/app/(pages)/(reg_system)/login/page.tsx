@@ -30,11 +30,11 @@ function Page() {
     const port = getPort();
     const res = await fetch(`${port}/login`, {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ username, password }),
-      credentials: "include",
     });
     if (res.ok) {
       setError("");
