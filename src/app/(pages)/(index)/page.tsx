@@ -22,6 +22,8 @@ interface LeaderboardRow {
   wins: number;
   gamesPlayed: number;
   coins: number;
+  points: number;
+  currentStreak: number;
 }
 
 function Page() {
@@ -128,10 +130,20 @@ function Page() {
                       {i + 1}.
                     </span>
                     <Avatar name={row.username} size={32} />
-                    <span className="flex-1 truncate">{row.username}</span>
-                    <span className="text-sm text-gray-500">
-                      {t('home.wins', { n: row.wins })} ·{' '}
-                      {t('home.games', { n: row.gamesPlayed })}
+                    <span className="flex-1 truncate">
+                      {row.username}
+                      {row.currentStreak > 0 && (
+                        <span className="ml-1 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
+                          🔥{row.currentStreak}
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-sm text-gray-500 text-right">
+                      <strong className="text-gray-800">
+                        {t('home.points', { n: row.points })}
+                      </strong>
+                      <br />
+                      {t('home.wins', { n: row.wins })}
                     </span>
                   </div>
                 ))}

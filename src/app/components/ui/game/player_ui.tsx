@@ -10,6 +10,11 @@ interface PlayerProps {
   showLifeState: boolean;
   /** currently answering — highlighted */
   active?: boolean;
+  /** 'can' shows an add-friend button, 'requested' a pending marker */
+  friendState?: 'none' | 'can' | 'requested' | 'friend';
+  onAddFriend?: () => void;
+  /** host-only: kick this player from the lobby */
+  onKick?: () => void;
 }
 
 export function Player({
@@ -17,6 +22,9 @@ export function Player({
   isCurrentUser,
   showLifeState,
   active = false,
+  friendState = 'none',
+  onAddFriend,
+  onKick,
 }: PlayerProps) {
   const { t } = useT();
   const eliminated = showLifeState && !player.alive;
@@ -31,12 +39,20 @@ export function Player({
       }`}
     >
       <Avatar name={player.username} avatar={player.avatar} />
-      <div className="flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-center gap-1">
           <h4 className="font-medium truncate">{player.username}</h4>
           {player.isHost && (
             <span title="Host" aria-label="Host">
               👑
+            </span>
+          )}
+          {player.streak > 0 && (
+            <span
+              className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded"
+              title={t('profile.streakNow')}
+            >
+              🔥{player.streak}
             </span>
           )}
           {isCurrentUser && (
@@ -51,6 +67,29 @@ export function Player({
           {!player.connected && <span>{t('game.offline')}</span>}
         </div>
       </div>
+      {friendState === 'can' && (
+        <button
+          className="text-sm border rounded px-2 py-1 hover:bg-gray-50 cursor-pointer shrink-0"
+          onClick={onAddFriend}
+          title={t('game.addFriend')}
+        >
+          ➕
+        </button>
+      )}
+      {friendState === 'requested' && (
+        <span className="text-xs text-gray-400 shrink-0">
+          {t('game.friendRequested')}
+        </span>
+      )}
+      {onKick && (
+        <button
+          className="text-sm border border-red-300 text-red-500 rounded px-2 py-1 hover:bg-red-50 cursor-pointer shrink-0"
+          onClick={onKick}
+          title={t('game.kick')}
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }

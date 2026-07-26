@@ -25,6 +25,11 @@ interface WalletInfo {
   ownedAvatars: string[];
   wins: number;
   gamesPlayed: number;
+  points: number;
+  currentStreak: number;
+  bestStreak: number;
+  achievements: string[];
+  achievementCatalog: { id: string; name: string }[];
 }
 
 function Page() {
@@ -169,6 +174,50 @@ function Page() {
               <p>
                 {t('profile.games')}: <strong>{wallet.gamesPlayed}</strong>
               </p>
+              <p>
+                {t('profile.points')}: <strong>{wallet.points}</strong>
+              </p>
+              <p>
+                {t('profile.streakNow')}:{' '}
+                <strong>
+                  {wallet.currentStreak > 0
+                    ? `🔥 ${wallet.currentStreak}`
+                    : wallet.currentStreak}
+                </strong>
+              </p>
+              <p>
+                {t('profile.streakBest')}: <strong>{wallet.bestStreak}</strong>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {wallet && (
+          <div className="flex flex-col gap-3 max-w-xl">
+            <h3 className="font-semibold">
+              {t('profile.achievements')} ({wallet.achievements.length}/
+              {wallet.achievementCatalog.length})
+            </h3>
+            <div className="flex flex-col gap-2">
+              {wallet.achievementCatalog.map((a) => {
+                const unlocked = wallet.achievements.includes(a.id);
+                const translated = t(`ach.${a.id}`);
+                const label =
+                  translated === `ach.${a.id}` ? a.name : translated;
+                return (
+                  <div
+                    key={a.id}
+                    className={`border rounded p-3 flex items-center gap-3 ${
+                      unlocked
+                        ? 'border-amber-400 bg-amber-50'
+                        : 'opacity-50 grayscale'
+                    }`}
+                  >
+                    <span className="text-2xl">{unlocked ? '🏅' : '🔒'}</span>
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

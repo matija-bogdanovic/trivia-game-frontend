@@ -5,12 +5,43 @@ import ChatUI from '@/app/components/ui/game/chat_ui';
 import { Player } from '@/app/components/ui/game/player_ui';
 import { RootState } from '@/app/redux/store';
 import { useT } from '@/app/lib/i18n';
-import React from 'react';
+import { getPort } from '@/app/helpers/port';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 function SideBar() {
   const { t } = useT();
-  const { username } = useGame();
+  const { username, kickPlayer, terminateLobby } = useGame();
+  const [confirmTerminate, setConfirmTerminate] = useState(false);
+  const [friends, setFriends] = useState<Set<string>>(new Set());
+  const [requested, setRequested] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!username) return;
+    fetch(`${getPort()}/friends/list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data)
+          setFriends(
+            new Set(data.friends.map((f: { username: string }) => f.username))
+          );
+      })
+      .catch(() => {});
+  }, [username]);
+
+  const addFriend = (target: string) => {
+    if (!username) return;
+    setRequested((prev) => new Set(prev).add(target));
+    fetch(`${getPort()}/friends/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, target, action: 'request' }),
+    }).catch(() => {});
+  };
   const { players, roomName, code, phase, minPlayers, round, answering } =
     useSelector((state: RootState) => state.game);
 
@@ -20,6 +51,9 @@ function SideBar() {
   });
   const showLifeState = phase !== 'lobby' && phase !== 'connecting';
   const connectedCount = players.filter((p) => p.connected).length;
+  const iAmHost =
+    players.find((p) => p.username === username)?.isHost ?? false;
+  const canModerate = iAmHost && (phase === 'lobby' || phase === 'gameover');
 
   return (
     <div className="flex flex-col gap-4 min-h-0">
@@ -43,6 +77,21 @@ function SideBar() {
                 isCurrentUser={p.username === username}
                 showLifeState={showLifeState}
                 active={p.username === answering}
+                friendState={
+                  p.username === username || !username
+                    ? 'none'
+                    : friends.has(p.username)
+                      ? 'friend'
+                      : requested.has(p.username)
+                        ? 'requested'
+                        : 'can'
+                }
+                onAddFriend={() => addFriend(p.username)}
+                onKick={
+                  canModerate && p.username !== username
+                    ? () => kickPlayer(p.username)
+                    : undefined
+                }
               />
             ))}
             {phase === 'lobby' && connectedCount < minPlayers && (
@@ -62,6 +111,35 @@ function SideBar() {
         <p>{t('game.roomName', { name: roomName || '—' })}</p>
         <p>{t('game.roomCode', { code: code ?? '—' })}</p>
         {round > 0 && <p>{t('game.round', { n: round })}</p>}
+        {canModerate &&
+          (confirmTerminate ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-red-600">
+                {t('game.terminateConfirm')}
+              </p>
+              <div className="flex gap-2">
+                <button
+                  className="bg-red-600 text-white text-sm px-3 py-1 rounded cursor-pointer"
+                  onClick={terminateLobby}
+                >
+                  {t('game.terminate')}
+                </button>
+                <button
+                  className="border text-sm px-3 py-1 rounded cursor-pointer"
+                  onClick={() => setConfirmTerminate(false)}
+                >
+                  {t('game.stay')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              className="text-sm text-red-500 border border-red-300 rounded px-3 py-1 hover:bg-red-50 cursor-pointer self-start"
+              onClick={() => setConfirmTerminate(true)}
+            >
+              {t('game.terminate')}
+            </button>
+          ))}
       </div>
     </div>
   );

@@ -10,7 +10,14 @@ export type GamePhase =
   | 'betting'
   | 'reveal'
   | 'picking'
+  | 'duel'
   | 'gameover';
+
+export interface DuelGuess {
+  username: string;
+  guess: number | null;
+  diff: number | null;
+}
 
 export interface GamePlayer {
   username: string;
@@ -19,6 +26,13 @@ export interface GamePlayer {
   alive: boolean;
   connected: boolean;
   isHost: boolean;
+  streak: number;
+}
+
+export interface AchievementNotice {
+  username: string;
+  ids: string[];
+  names: string[];
 }
 
 export interface ChatMessage {
@@ -84,6 +98,18 @@ export interface GameState {
   totalRounds: number;
   standings: GamePlayer[];
   chatMessages: ChatMessage[];
+  achievementNotice: AchievementNotice | null;
+  // duel
+  duelPlayers: string[];
+  myGuessSubmitted: boolean;
+  correctValue: number | null;
+  duelGuesses: DuelGuess[];
+  duelWinner: string | null;
+  duelLoser: string | null;
+  duelTie: boolean;
+  duelLoserDelta: number;
+  kicked: boolean;
+  terminated: boolean;
   error: string | null;
 }
 
@@ -125,6 +151,17 @@ const initialState: GameState = {
   totalRounds: 0,
   standings: [],
   chatMessages: [],
+  achievementNotice: null,
+  duelPlayers: [],
+  myGuessSubmitted: false,
+  correctValue: null,
+  duelGuesses: [],
+  duelWinner: null,
+  duelLoser: null,
+  duelTie: false,
+  duelLoserDelta: 0,
+  kicked: false,
+  terminated: false,
   error: null,
 };
 
@@ -180,6 +217,39 @@ const gameSlice = createSlice({
           state.correctAnswer = null;
           state.myBet = null;
           break;
+        case 'duel_question':
+          state.phase = 'duel';
+          state.round = message.round;
+          state.questionText = message.questionText;
+          state.duelPlayers = message.players;
+          state.answerDurationMs = message.answerTimeMs;
+          state.answerEndsAt = receivedAt + message.answerTimeMs;
+          state.myGuessSubmitted = false;
+          state.correctValue = null;
+          state.duelGuesses = [];
+          state.duelWinner = null;
+          state.duelLoser = null;
+          state.duelTie = false;
+          state.options = [];
+          state.answering = null;
+          state.correctAnswer = null;
+          state.spinTarget = null;
+          state.spinEndsAt = null;
+          state.eliminatedNow = [];
+          state.betOutcomes = [];
+          break;
+        case 'duel_result':
+          state.phase = 'reveal';
+          state.correctValue = message.correctValue;
+          state.duelGuesses = message.guesses;
+          state.duelWinner = message.winner;
+          state.duelLoser = message.loser;
+          state.duelTie = message.tie;
+          state.duelLoserDelta = message.loserDelta;
+          state.eliminatedNow = message.eliminated ?? [];
+          state.players = message.players;
+          state.answerEndsAt = null;
+          break;
         case 'turn_question':
           state.phase = 'question';
           state.round = message.round;
@@ -203,6 +273,10 @@ const gameSlice = createSlice({
           state.spinTarget = null;
           state.spinEndsAt = null;
           state.countdown = null;
+          state.duelPlayers = [];
+          state.correctValue = null;
+          state.duelGuesses = [];
+          state.myGuessSubmitted = false;
           break;
         case 'bet_start':
           state.phase = 'betting';
@@ -258,6 +332,19 @@ const gameSlice = createSlice({
             );
           }
           break;
+        case 'achievements_unlocked':
+          state.achievementNotice = {
+            username: message.username,
+            ids: message.achievements.map((a: { id: string }) => a.id),
+            names: message.achievements.map((a: { name: string }) => a.name),
+          };
+          break;
+        case 'kicked':
+          state.kicked = true;
+          break;
+        case 'lobby_terminated':
+          state.terminated = true;
+          break;
         case 'error':
           state.error = message.message;
           break;
@@ -276,13 +363,26 @@ const gameSlice = createSlice({
         state.myBet = action.payload;
       }
     },
+    markGuessSubmitted: (state) => {
+      if (state.phase === 'duel') state.myGuessSubmitted = true;
+    },
     clearError: (state) => {
       state.error = null;
+    },
+    clearAchievementNotice: (state) => {
+      state.achievementNotice = null;
     },
     resetGame: () => initialState,
   },
 });
 
-export const { serverMessage, selectAnswer, setMyBet, clearError, resetGame } =
-  gameSlice.actions;
+export const {
+  serverMessage,
+  selectAnswer,
+  setMyBet,
+  markGuessSubmitted,
+  clearError,
+  clearAchievementNotice,
+  resetGame,
+} = gameSlice.actions;
 export default gameSlice.reducer;

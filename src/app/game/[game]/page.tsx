@@ -5,7 +5,10 @@ import Avatar from '@/app/components/ui/game/avatar';
 import QuestionUI from '@/app/components/ui/game/question_ui';
 import SpinWheel from '@/app/components/ui/game/spin_wheel';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
-import { clearError } from '@/app/redux/slicers/game_slice';
+import {
+  clearAchievementNotice,
+  clearError,
+} from '@/app/redux/slicers/game_slice';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -21,8 +24,24 @@ function Page() {
   const { t } = useT();
   const { leaveRoom, playAgain, username } = useGame();
   const dispatch = useDispatch<AppDispatch>();
-  const { phase, countdown, winner, standings, totalRounds, error } =
-    useSelector((state: RootState) => state.game);
+  const {
+    phase,
+    countdown,
+    winner,
+    standings,
+    totalRounds,
+    error,
+    achievementNotice,
+    kicked,
+    terminated,
+  } = useSelector((state: RootState) => state.game);
+
+  // achievement toasts dismiss themselves
+  React.useEffect(() => {
+    if (!achievementNotice) return;
+    const id = setTimeout(() => dispatch(clearAchievementNotice()), 6000);
+    return () => clearTimeout(id);
+  }, [achievementNotice, dispatch]);
 
   return (
     <div className="p-4 grid grid-cols-[0.3fr_1fr] grid-rows-1 w-full gap-4 h-[100vh]">
@@ -31,7 +50,16 @@ function Page() {
       <LeaveButton />
       <StartButton />
 
-      {phase === 'spin' && <SpinWheel />}
+      {(kicked || terminated) && (
+        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.6)] flex justify-center items-center">
+          <div className="flex flex-col gap-4 bg-white rounded-md p-6 max-w-md text-center">
+            <p>{kicked ? t('game.kickedInfo') : t('game.terminatedInfo')}</p>
+            <Button text={t('game.ok')} onClick={leaveRoom} />
+          </div>
+        </div>
+      )}
+
+      {phase === 'spin' && !kicked && !terminated && <SpinWheel />}
 
       {phase === 'countdown' && countdown !== null && (
         <div className="fixed inset-0 z-10 bg-[rgba(0,0,0,0.5)] flex flex-col justify-center items-center gap-4">
@@ -88,6 +116,22 @@ function Page() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {achievementNotice && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-20 bg-amber-500 text-white px-4 py-2 rounded shadow max-w-[90vw]">
+          {t('game.achUnlocked', {
+            name: achievementNotice.username,
+            items: achievementNotice.ids
+              .map((id, i) => {
+                const translated = t(`ach.${id}`);
+                return translated === `ach.${id}`
+                  ? achievementNotice.names[i]
+                  : translated;
+              })
+              .join(', '),
+          })}
         </div>
       )}
 

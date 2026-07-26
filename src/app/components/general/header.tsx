@@ -56,6 +56,7 @@ function Header() {
               <Link href="/playgame">{t('nav.play')}</Link>
               <Link href="/joingame">{t('nav.join')}</Link>
               <Link href="/shop">{t('nav.shop')}</Link>
+              <Link href="/friends">{t('nav.friends')}</Link>
             </>
           ) : (
             <>

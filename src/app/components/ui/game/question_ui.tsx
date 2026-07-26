@@ -6,6 +6,7 @@ import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
 import BettingPanel from './betting_panel';
+import DuelUI from './duel_ui';
 
 export function useCountdown(endsAt: number | null) {
   const [remainingMs, setRemainingMs] = useState<number | null>(null);
@@ -100,6 +101,11 @@ function QuestionUI() {
         <span>{t('game.spinning')}</span>
       </div>
     );
+  }
+
+  // duels (and their reveal) render their own guess-based UI
+  if (phase === 'duel' || (phase === 'reveal' && game.correctValue !== null)) {
+    return <DuelUI />;
   }
 
   const isAnswerer = username === answering;

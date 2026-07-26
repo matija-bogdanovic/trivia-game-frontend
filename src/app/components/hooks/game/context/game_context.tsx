@@ -17,6 +17,7 @@ import { getUsername } from '@/app/helpers/token_operations';
 import { getMyAvatar } from '@/app/helpers/avatar';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import {
+  markGuessSubmitted,
   resetGame,
   selectAnswer,
   serverMessage,
@@ -27,8 +28,11 @@ export interface GameActions {
   username: string | null;
   startGame: () => void;
   submitAnswer: (answer: string) => void;
+  submitGuess: (value: number) => void;
   placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
   pickPlayer: (target: string) => void;
+  kickPlayer: (target: string) => void;
+  terminateLobby: () => void;
   sendChat: (text: string) => void;
   playAgain: () => void;
   leaveRoom: () => void;
@@ -111,6 +115,14 @@ export default function GameProvider({
     [dispatch, sendJsonMessage]
   );
 
+  const submitGuess = useCallback(
+    (value: number) => {
+      dispatch(markGuessSubmitted());
+      sendJsonMessage({ type: 'submit_guess', value });
+    },
+    [dispatch, sendJsonMessage]
+  );
+
   const placeBet = useCallback(
     (bet: 'correct' | 'wrong' | 'neutral', amount: number) => {
       if (bet === 'neutral') {
@@ -129,6 +141,17 @@ export default function GameProvider({
     },
     [sendJsonMessage]
   );
+
+  const kickPlayer = useCallback(
+    (target: string) => {
+      sendJsonMessage({ type: 'kick_player', target });
+    },
+    [sendJsonMessage]
+  );
+
+  const terminateLobby = useCallback(() => {
+    sendJsonMessage({ type: 'terminate_lobby' });
+  }, [sendJsonMessage]);
 
   const sendChat = useCallback(
     (text: string) => {
@@ -162,8 +185,11 @@ export default function GameProvider({
       username,
       startGame,
       submitAnswer,
+      submitGuess,
       placeBet,
       pickPlayer,
+      kickPlayer,
+      terminateLobby,
       sendChat,
       playAgain,
       leaveRoom,
@@ -172,8 +198,11 @@ export default function GameProvider({
       username,
       startGame,
       submitAnswer,
+      submitGuess,
       placeBet,
       pickPlayer,
+      kickPlayer,
+      terminateLobby,
       sendChat,
       playAgain,
       leaveRoom,
