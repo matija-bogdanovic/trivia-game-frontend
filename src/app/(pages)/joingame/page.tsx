@@ -1,5 +1,4 @@
 'use client';
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';

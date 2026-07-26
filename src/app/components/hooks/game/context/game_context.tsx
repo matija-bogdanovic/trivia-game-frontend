@@ -29,6 +29,7 @@ export interface GameActions {
   startGame: () => void;
   submitAnswer: (answer: string) => void;
   submitGuess: (value: number) => void;
+  submitCode: (guess: string[]) => void;
   placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
   pickPlayer: (target: string) => void;
   kickPlayer: (target: string) => void;
@@ -123,6 +124,13 @@ export default function GameProvider({
     [dispatch, sendJsonMessage]
   );
 
+  const submitCode = useCallback(
+    (guess: string[]) => {
+      sendJsonMessage({ type: 'submit_code', guess });
+    },
+    [sendJsonMessage]
+  );
+
   const placeBet = useCallback(
     (bet: 'correct' | 'wrong' | 'neutral', amount: number) => {
       if (bet === 'neutral') {
@@ -186,6 +194,7 @@ export default function GameProvider({
       startGame,
       submitAnswer,
       submitGuess,
+      submitCode,
       placeBet,
       pickPlayer,
       kickPlayer,
@@ -199,6 +208,7 @@ export default function GameProvider({
       startGame,
       submitAnswer,
       submitGuess,
+      submitCode,
       placeBet,
       pickPlayer,
       kickPlayer,

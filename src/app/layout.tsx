@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Slagalica',
-  description: 'Slagalica by Matija Bogdanovic',
+  title: 'Ipak se okreće',
+  description:
+    'Ipak se okreće — real-time trivia roulette by Matija Bogdanovic',
 };
 export default function RootLayout({
   children,

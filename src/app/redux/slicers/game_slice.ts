@@ -100,8 +100,17 @@ export interface GameState {
   chatMessages: ChatMessage[];
   achievementNotice: AchievementNotice | null;
   // duel
+  duelKind: 'guess' | 'code' | null;
   duelPlayers: string[];
   myGuessSubmitted: boolean;
+  // code duel
+  codeSymbols: string[];
+  codeLength: number;
+  maxCodeAttempts: number;
+  myCodeAttempts: { guess: string[]; exact: number; partial: number }[];
+  codeProgress: Record<string, { attempt: number; exact: number; partial: number }[]>;
+  secretCode: string[] | null;
+  codeCracked: boolean;
   correctValue: number | null;
   duelGuesses: DuelGuess[];
   duelWinner: string | null;
@@ -152,8 +161,16 @@ const initialState: GameState = {
   standings: [],
   chatMessages: [],
   achievementNotice: null,
+  duelKind: null,
   duelPlayers: [],
   myGuessSubmitted: false,
+  codeSymbols: [],
+  codeLength: 4,
+  maxCodeAttempts: 6,
+  myCodeAttempts: [],
+  codeProgress: {},
+  secretCode: null,
+  codeCracked: false,
   correctValue: null,
   duelGuesses: [],
   duelWinner: null,
@@ -217,8 +234,67 @@ const gameSlice = createSlice({
           state.correctAnswer = null;
           state.myBet = null;
           break;
+        case 'code_duel_start':
+          state.phase = 'duel';
+          state.duelKind = 'code';
+          state.round = message.round;
+          state.duelPlayers = message.players;
+          state.codeSymbols = message.symbols;
+          state.codeLength = message.codeLength;
+          state.maxCodeAttempts = message.maxAttempts;
+          state.answerDurationMs = message.answerTimeMs;
+          state.answerEndsAt = receivedAt + message.answerTimeMs;
+          state.myCodeAttempts = [];
+          state.codeProgress = {};
+          state.secretCode = null;
+          state.codeCracked = false;
+          state.questionText = '';
+          state.options = [];
+          state.answering = null;
+          state.correctAnswer = null;
+          state.correctValue = null;
+          state.duelGuesses = [];
+          state.spinTarget = null;
+          state.spinEndsAt = null;
+          state.eliminatedNow = [];
+          state.betOutcomes = [];
+          state.duelWinner = null;
+          state.duelLoser = null;
+          state.duelTie = false;
+          break;
+        case 'code_feedback':
+          state.myCodeAttempts.push({
+            guess: message.guess,
+            exact: message.exact,
+            partial: message.partial,
+          });
+          break;
+        case 'code_progress': {
+          const list = state.codeProgress[message.username] ?? [];
+          list.push({
+            attempt: message.attempt,
+            exact: message.exact,
+            partial: message.partial,
+          });
+          state.codeProgress[message.username] = list;
+          break;
+        }
+        case 'code_duel_result':
+          state.phase = 'reveal';
+          state.duelKind = 'code';
+          state.secretCode = message.code;
+          state.codeCracked = message.cracked;
+          state.duelWinner = message.winner;
+          state.duelLoser = message.loser;
+          state.duelTie = message.tie;
+          state.duelLoserDelta = message.loserDelta;
+          state.eliminatedNow = message.eliminated ?? [];
+          state.players = message.players;
+          state.answerEndsAt = null;
+          break;
         case 'duel_question':
           state.phase = 'duel';
+          state.duelKind = 'guess';
           state.round = message.round;
           state.questionText = message.questionText;
           state.duelPlayers = message.players;
@@ -274,9 +350,13 @@ const gameSlice = createSlice({
           state.spinEndsAt = null;
           state.countdown = null;
           state.duelPlayers = [];
+          state.duelKind = null;
           state.correctValue = null;
           state.duelGuesses = [];
           state.myGuessSubmitted = false;
+          state.secretCode = null;
+          state.myCodeAttempts = [];
+          state.codeProgress = {};
           break;
         case 'bet_start':
           state.phase = 'betting';

@@ -6,6 +6,7 @@ import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
 import BettingPanel from './betting_panel';
+import CodeDuelUI from './code_duel_ui';
 import DuelUI from './duel_ui';
 
 export function useCountdown(endsAt: number | null) {
@@ -103,8 +104,9 @@ function QuestionUI() {
     );
   }
 
-  // duels (and their reveal) render their own guess-based UI
-  if (phase === 'duel' || (phase === 'reveal' && game.correctValue !== null)) {
+  // duels (and their reveals) render their own UI
+  if (phase === 'duel' || (phase === 'reveal' && game.duelKind !== null)) {
+    if (game.duelKind === 'code') return <CodeDuelUI />;
     return <DuelUI />;
   }
 
