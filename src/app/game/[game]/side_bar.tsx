@@ -1,6 +1,7 @@
 'use client';
 
 import { useGame } from '@/app/components/hooks/game/context/game_context';
+import ChatUI from '@/app/components/ui/game/chat_ui';
 import { Player } from '@/app/components/ui/game/player_ui';
 import { RootState } from '@/app/redux/store';
 import React from 'react';
@@ -8,20 +9,12 @@ import { useSelector } from 'react-redux';
 
 function SideBar() {
   const { username } = useGame();
-  const {
-    players,
-    roomName,
-    code,
-    phase,
-    minPlayers,
-    round,
-    answeredCount,
-    aliveCount,
-  } = useSelector((state: RootState) => state.game);
+  const { players, roomName, code, phase, minPlayers, round, answering } =
+    useSelector((state: RootState) => state.game);
 
   const sorted = [...players].sort((a, b) => {
     if (a.alive !== b.alive) return a.alive ? -1 : 1;
-    return b.points - a.points;
+    return b.money - a.money;
   });
   const showLifeState = phase !== 'lobby' && phase !== 'connecting';
   const connectedCount = players.filter((p) => p.connected).length;
@@ -31,11 +24,6 @@ function SideBar() {
       <aside className="border border-gray p-4 gap-3 flex flex-col flex-1 overflow-auto">
         <div className="flex items-center justify-between">
           <h4 className="font-semibold">Players ({players.length})</h4>
-          {phase === 'question' && (
-            <span className="text-sm text-gray-500">
-              {answeredCount}/{aliveCount} answered
-            </span>
-          )}
         </div>
         {phase === 'connecting' ? (
           <div className="flex items-center justify-center flex-1">
@@ -50,6 +38,7 @@ function SideBar() {
                 player={p}
                 isCurrentUser={p.username === username}
                 showLifeState={showLifeState}
+                active={p.username === answering}
               />
             ))}
             {phase === 'lobby' && connectedCount < minPlayers && (
@@ -61,6 +50,7 @@ function SideBar() {
           </>
         )}
       </aside>
+      <ChatUI />
       <div className="flex flex-col gap-2 h-auto p-4 border">
         <h4 className="font-semibold">Room information</h4>
         <p>Room name: {roomName || '—'}</p>

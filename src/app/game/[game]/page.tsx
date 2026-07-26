@@ -3,6 +3,7 @@
 import Button from '@/app/components/general/button';
 import Avatar from '@/app/components/ui/game/avatar';
 import QuestionUI from '@/app/components/ui/game/question_ui';
+import SpinWheel from '@/app/components/ui/game/spin_wheel';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { clearError } from '@/app/redux/slicers/game_slice';
 import { AppDispatch, RootState } from '@/app/redux/store';
@@ -28,6 +29,8 @@ function Page() {
       <LeaveButton />
       <StartButton />
 
+      {phase === 'spin' && <SpinWheel />}
+
       {phase === 'countdown' && countdown !== null && (
         <div className="fixed inset-0 z-10 bg-[rgba(0,0,0,0.5)] flex flex-col justify-center items-center gap-4">
           <p className="text-white text-xl">The game starts in</p>
@@ -48,7 +51,7 @@ function Page() {
                 : 'Game over'}
             </h2>
             <p className="text-center text-gray-500">
-              Survived {totalRounds} round{totalRounds === 1 ? '' : 's'}
+              {totalRounds} question{totalRounds === 1 ? '' : 's'} asked
             </p>
             <div className="flex flex-col gap-2">
               {standings.map((p, i) => (
@@ -66,7 +69,7 @@ function Page() {
                       <span className="text-sm text-gray-500"> (you)</span>
                     )}
                   </span>
-                  <span className="text-gray-600">{p.points} pts</span>
+                  <span className="text-gray-600">${p.money}</span>
                 </div>
               ))}
             </div>

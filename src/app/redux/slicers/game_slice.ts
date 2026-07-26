@@ -5,25 +5,38 @@ export type GamePhase =
   | 'connecting'
   | 'lobby'
   | 'countdown'
+  | 'spin'
   | 'question'
+  | 'betting'
   | 'reveal'
+  | 'picking'
   | 'gameover';
 
 export interface GamePlayer {
   username: string;
-  points: number;
+  money: number;
   alive: boolean;
   connected: boolean;
   isHost: boolean;
 }
 
-export interface RoundResultEntry {
+export interface ChatMessage {
+  /** null for system messages (joins, eliminations, ...) */
+  username: string | null;
+  text: string;
+  at: number;
+}
+
+export type MyBet =
+  | { kind: 'placed'; bet: 'correct' | 'wrong'; amount: number }
+  | { kind: 'neutral' };
+
+export interface BetOutcome {
   username: string;
-  answer: string | null;
-  correct: boolean;
-  timeMs: number | null;
-  pointsDelta: number;
-  eliminated: boolean;
+  bet: 'correct' | 'wrong';
+  amount: number;
+  won: boolean;
+  moneyDelta: number;
 }
 
 export interface GameState {
@@ -34,19 +47,42 @@ export interface GameState {
   players: GamePlayer[];
   round: number;
   countdown: number | null;
+  // spin
+  spinTarget: string | null;
+  spinEndsAt: number | null;
+  spinDurationMs: number;
+  // current turn
+  answering: string | null;
+  chainDepth: number;
+  difficulty: number;
   questionText: string;
   options: string[];
   answerEndsAt: number | null;
   answerDurationMs: number;
-  aliveCount: number;
-  answeredCount: number;
   selectedAnswer: string | null;
+  // betting
+  betEndsAt: number | null;
+  betDurationMs: number;
+  myBet: MyBet | null;
+  betCount: number;
+  // reveal
   correctAnswer: string | null;
-  results: RoundResultEntry[];
-  everyoneSpared: boolean;
+  lastAnswer: string | null;
+  lastCorrect: boolean | null;
+  timedOut: boolean;
+  answererDelta: number;
+  betOutcomes: BetOutcome[];
+  eliminatedNow: string[];
+  // picking
+  picker: string | null;
+  pickChoices: string[];
+  pickEndsAt: number | null;
+  pickDurationMs: number;
+  // game over
   winner: string | null;
   totalRounds: number;
   standings: GamePlayer[];
+  chatMessages: ChatMessage[];
   error: string | null;
 }
 
@@ -58,21 +94,40 @@ const initialState: GameState = {
   players: [],
   round: 0,
   countdown: null,
+  spinTarget: null,
+  spinEndsAt: null,
+  spinDurationMs: 0,
+  answering: null,
+  chainDepth: 0,
+  difficulty: 1,
   questionText: '',
   options: [],
   answerEndsAt: null,
   answerDurationMs: 0,
-  aliveCount: 0,
-  answeredCount: 0,
   selectedAnswer: null,
+  betEndsAt: null,
+  betDurationMs: 0,
+  myBet: null,
+  betCount: 0,
   correctAnswer: null,
-  results: [],
-  everyoneSpared: false,
+  lastAnswer: null,
+  lastCorrect: null,
+  timedOut: false,
+  answererDelta: 0,
+  betOutcomes: [],
+  eliminatedNow: [],
+  picker: null,
+  pickChoices: [],
+  pickEndsAt: null,
+  pickDurationMs: 0,
   winner: null,
   totalRounds: 0,
   standings: [],
+  chatMessages: [],
   error: null,
 };
+
+const CHAT_DISPLAY_LIMIT = 100;
 
 const gameSlice = createSlice({
   name: 'game',
@@ -97,48 +152,110 @@ const gameSlice = createSlice({
             state.answerEndsAt = null;
             state.selectedAnswer = null;
             state.correctAnswer = null;
-            state.results = [];
             state.winner = null;
             state.standings = [];
             state.countdown = null;
+            state.spinTarget = null;
+            state.answering = null;
+            state.picker = null;
+            state.myBet = null;
+            state.betOutcomes = [];
+            state.eliminatedNow = [];
           }
           break;
         case 'game_countdown':
           state.phase = 'countdown';
           state.countdown = message.seconds;
           break;
-        case 'round_start':
+        case 'spin':
+          state.phase = 'spin';
+          state.spinTarget = message.target;
+          state.spinDurationMs = message.spinTimeMs;
+          state.spinEndsAt = receivedAt + message.spinTimeMs;
+          state.answering = null;
+          state.picker = null;
+          state.questionText = '';
+          state.options = [];
+          state.correctAnswer = null;
+          state.myBet = null;
+          break;
+        case 'turn_question':
           state.phase = 'question';
           state.round = message.round;
+          state.chainDepth = message.chainDepth;
+          state.difficulty = message.difficulty;
+          state.answering = message.answering;
           state.questionText = message.questionText;
           state.options = message.options;
           state.answerDurationMs = message.answerTimeMs;
           state.answerEndsAt = receivedAt + message.answerTimeMs;
-          state.aliveCount = message.aliveCount;
-          state.answeredCount = 0;
           state.selectedAnswer = null;
           state.correctAnswer = null;
-          state.results = [];
-          state.everyoneSpared = false;
+          state.lastAnswer = null;
+          state.lastCorrect = null;
+          state.timedOut = false;
+          state.myBet = null;
+          state.betCount = 0;
+          state.betOutcomes = [];
+          state.eliminatedNow = [];
+          state.picker = null;
+          state.spinTarget = null;
+          state.spinEndsAt = null;
           state.countdown = null;
           break;
-        case 'player_answered':
-          state.answeredCount = message.answeredCount;
-          state.aliveCount = message.aliveCount;
+        case 'bet_start':
+          state.phase = 'betting';
+          state.betDurationMs = message.betTimeMs;
+          state.betEndsAt = receivedAt + message.betTimeMs;
+          state.answerEndsAt = null;
+          break;
+        case 'player_bet':
+          state.betCount = message.betCount;
           break;
         case 'round_result':
           state.phase = 'reveal';
           state.correctAnswer = message.correctAnswer;
-          state.results = message.results;
-          state.everyoneSpared = message.everyoneSpared;
+          state.lastAnswer = message.answer;
+          state.lastCorrect = message.correct;
+          state.timedOut = message.timedOut;
+          state.answererDelta = message.answererDelta;
+          state.betOutcomes = message.bets ?? [];
+          state.eliminatedNow = message.eliminated ?? [];
           state.players = message.players;
           state.answerEndsAt = null;
+          state.betEndsAt = null;
+          break;
+        case 'pick_start':
+          state.phase = 'picking';
+          state.picker = message.picker;
+          state.pickChoices = message.choices;
+          state.pickDurationMs = message.pickTimeMs;
+          state.pickEndsAt = receivedAt + message.pickTimeMs;
+          break;
+        case 'picked':
+          state.chainDepth = message.chainDepth;
           break;
         case 'game_over':
           state.phase = 'gameover';
           state.winner = message.winner;
           state.totalRounds = message.rounds;
           state.standings = message.standings;
+          break;
+        case 'chat_history':
+          state.chatMessages = message.messages;
+          break;
+        case 'chat_message':
+          state.chatMessages.push({
+            username: message.username,
+            text: message.text,
+            at: message.at,
+          });
+          if (state.chatMessages.length > CHAT_DISPLAY_LIMIT) {
+            state.chatMessages.splice(
+              0,
+              state.chatMessages.length - CHAT_DISPLAY_LIMIT
+            );
+          }
           break;
         case 'error':
           state.error = message.message;
@@ -150,6 +267,14 @@ const gameSlice = createSlice({
         state.selectedAnswer = action.payload;
       }
     },
+    setMyBet: (state, action: PayloadAction<MyBet>) => {
+      if (
+        (state.phase === 'question' || state.phase === 'betting') &&
+        state.myBet === null
+      ) {
+        state.myBet = action.payload;
+      }
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -157,6 +282,6 @@ const gameSlice = createSlice({
   },
 });
 
-export const { serverMessage, selectAnswer, clearError, resetGame } =
+export const { serverMessage, selectAnswer, setMyBet, clearError, resetGame } =
   gameSlice.actions;
 export default gameSlice.reducer;

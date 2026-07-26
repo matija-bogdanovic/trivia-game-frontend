@@ -19,12 +19,16 @@ import {
   resetGame,
   selectAnswer,
   serverMessage,
+  setMyBet,
 } from '@/app/redux/slicers/game_slice';
 
 export interface GameActions {
   username: string | null;
   startGame: () => void;
   submitAnswer: (answer: string) => void;
+  placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
+  pickPlayer: (target: string) => void;
+  sendChat: (text: string) => void;
   playAgain: () => void;
   leaveRoom: () => void;
 }
@@ -83,7 +87,7 @@ export default function GameProvider({
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const p = phaseRef.current;
-      if (p === 'countdown' || p === 'question' || p === 'reveal') {
+      if (p !== 'connecting' && p !== 'lobby' && p !== 'gameover') {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -102,6 +106,33 @@ export default function GameProvider({
       sendJsonMessage({ type: 'submit_answer', answer });
     },
     [dispatch, sendJsonMessage]
+  );
+
+  const placeBet = useCallback(
+    (bet: 'correct' | 'wrong' | 'neutral', amount: number) => {
+      if (bet === 'neutral') {
+        dispatch(setMyBet({ kind: 'neutral' }));
+        return;
+      }
+      dispatch(setMyBet({ kind: 'placed', bet, amount }));
+      sendJsonMessage({ type: 'place_bet', bet, amount });
+    },
+    [dispatch, sendJsonMessage]
+  );
+
+  const pickPlayer = useCallback(
+    (target: string) => {
+      sendJsonMessage({ type: 'pick_player', target });
+    },
+    [sendJsonMessage]
+  );
+
+  const sendChat = useCallback(
+    (text: string) => {
+      const trimmed = text.trim();
+      if (trimmed) sendJsonMessage({ type: 'chat', text: trimmed });
+    },
+    [sendJsonMessage]
   );
 
   const playAgain = useCallback(() => {
@@ -124,8 +155,26 @@ export default function GameProvider({
   }, [sendJsonMessage, username, dispatch, router]);
 
   const value = useMemo<GameActions>(
-    () => ({ username, startGame, submitAnswer, playAgain, leaveRoom }),
-    [username, startGame, submitAnswer, playAgain, leaveRoom]
+    () => ({
+      username,
+      startGame,
+      submitAnswer,
+      placeBet,
+      pickPlayer,
+      sendChat,
+      playAgain,
+      leaveRoom,
+    }),
+    [
+      username,
+      startGame,
+      submitAnswer,
+      placeBet,
+      pickPlayer,
+      sendChat,
+      playAgain,
+      leaveRoom,
+    ]
   );
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
