@@ -4,7 +4,7 @@
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
 import { getPort } from '@/app/helpers/port';
-import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
+import { getUsername } from '@/app/helpers/token_operations';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
@@ -13,12 +13,11 @@ amplifyConfigure();
 
 function Page() {
   const [roomName, setRoomName] = useState('');
-  const [decodedToken, setDecodedToken] = useState<any>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [currentMessage, setCurrentMessage] = useState('');
   const [error, setError] = useState('');
 
-  const token = getCookie('token');
   const loadingMessages = [
     'Creating room...',
     'Setting up game environment...',
@@ -28,10 +27,7 @@ function Page() {
   ];
 
   useEffect(() => {
-    const rawToken = getCookie('token');
-    if (rawToken) {
-      setDecodedToken(decodeJwt(rawToken));
-    }
+    getUsername().then(setUsername);
   }, []);
 
   const router = useRouter();
@@ -44,7 +40,7 @@ function Page() {
       setError('Room name must be at least 4 characters long');
       return;
     }
-    if (!decodedToken?.username || !roomName || isCreating) return;
+    if (!username || !roomName || isCreating) return;
 
     setIsCreating(true);
 
@@ -57,7 +53,7 @@ function Page() {
     }, 800);
 
     try {
-      await delay(3000);
+      await delay(1000);
 
       const port = getPort();
 
@@ -67,19 +63,9 @@ function Page() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          playerId: token,
+          playerId: username,
           roomName: roomName,
-          createdBy: decodedToken.username,
-        }),
-      });
-
-      const getRoomCode = await fetch(`${port}/findRoom`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: decodedToken.username,
+          createdBy: username,
         }),
       });
 
@@ -87,7 +73,7 @@ function Page() {
         throw new Error('Failed to create room');
       }
 
-      const data = await getRoomCode.json();
+      const data = await res.json();
 
       clearInterval(messageInterval);
       router.push(`/game/${data.roomCode}`);

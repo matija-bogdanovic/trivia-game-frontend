@@ -4,7 +4,7 @@
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
 import { getPort } from '@/app/helpers/port';
-import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
+import { getUsername } from '@/app/helpers/token_operations';
 import { setRoomCode } from '@/app/redux/slicers/room_opeations';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import { useRouter } from 'next/navigation';
@@ -18,12 +18,11 @@ function Page() {
   const { code } = useSelector((state: RootState) => state.roomOperations);
   const dispatch = useDispatch<AppDispatch>();
   const [currentlyActiveRooms, setCurrentlyActiveRooms] = useState<number>(0);
-  const [decodedToken, setDecodedToken] = useState<any>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const port = getPort();
   const router = useRouter();
-  const cookie = getCookie('token');
 
   useEffect(() => {
     const port = getPort();
@@ -32,10 +31,7 @@ function Page() {
       const responsedata = await response.json();
       setCurrentlyActiveRooms(responsedata.roundCount);
     }
-    const rawToken = getCookie('token');
-    if (rawToken) {
-      setDecodedToken(decodeJwt(rawToken));
-    }
+    getUsername().then(setUsername);
     getActiveRooms();
   }, []);
 
@@ -59,9 +55,9 @@ function Page() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          id: cookie,
+          id: username,
           roomCode: code.trim(),
-          username: decodedToken.username,
+          username,
         }),
       });
 

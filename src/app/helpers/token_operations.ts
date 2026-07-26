@@ -1,6 +1,24 @@
 'use client';
 
+import { fetchAuthSession } from 'aws-amplify/auth';
 import { useEffect, useState } from 'react';
+
+/**
+ * Resolve the signed-in player's username. Prefers the Amplify session
+ * (current auth flow) and falls back to the legacy `token` cookie.
+ */
+export async function getUsername(): Promise<string | null> {
+  try {
+    const session = await fetchAuthSession();
+    const payload = session.tokens?.idToken?.payload;
+    const name = payload?.['name'] ?? payload?.['cognito:username'];
+    if (typeof name === 'string' && name.length > 0) return name;
+  } catch {
+    // not signed in via Amplify — fall through to the cookie
+  }
+  const legacy = decodeJwt(getCookie('token'));
+  return legacy?.username ?? null;
+}
 
 export function decodeJwt(token: string | null) {
   if (!token) {

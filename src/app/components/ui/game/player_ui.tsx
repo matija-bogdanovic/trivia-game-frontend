@@ -1,28 +1,39 @@
-import Image from 'next/image';
 import React from 'react';
+import { GamePlayer } from '@/app/redux/slicers/game_slice';
+import Avatar from './avatar';
 
 interface PlayerProps {
-  id: string;
-  name: string;
+  player: GamePlayer;
   isCurrentUser: boolean;
-  points?: number;
+  /** show alive/eliminated styling (hidden while still in the lobby) */
+  showLifeState: boolean;
 }
 
-export function Player({ id, name, isCurrentUser, points = 0 }: PlayerProps) {
+export function Player({ player, isCurrentUser, showLifeState }: PlayerProps) {
+  const eliminated = showLifeState && !player.alive;
   return (
     <div
-      key={id}
-      className="flex transition duration-75 flex-col items-center gap-2 border border-black p-2 rounded"
+      className={`flex items-center gap-3 border rounded p-2 transition duration-150 ${
+        eliminated ? 'opacity-40 grayscale' : ''
+      } ${player.connected ? 'border-black' : 'border-dashed border-gray-400 opacity-60'}`}
     >
-      <Image alt={'pfp'} width={50} height={50} src="/pfp.svg" />
-      <div className="flex flex-col items-center">
-        {isCurrentUser && (
-          <span className="text-sm text-gray-500">&#40;you&#41;</span>
-        )}
-        <h4>{name}</h4>
+      <Avatar name={player.username} />
+      <div className="flex flex-col min-w-0">
         <div className="flex items-center gap-1">
-          <Image width={20} height={20} src="/token.svg" alt="token" />
-          <span>{points}</span>
+          <h4 className="font-medium truncate">{player.username}</h4>
+          {player.isHost && (
+            <span title="Host" aria-label="Host">
+              👑
+            </span>
+          )}
+          {isCurrentUser && (
+            <span className="text-sm text-gray-500">(you)</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>{player.points} pts</span>
+          {eliminated && <span className="text-red-500">eliminated</span>}
+          {!player.connected && <span>offline</span>}
         </div>
       </div>
     </div>
