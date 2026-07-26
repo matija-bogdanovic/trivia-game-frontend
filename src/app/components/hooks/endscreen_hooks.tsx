@@ -1,39 +1,47 @@
 'use client';
 
+import { getWebSocketUrl } from '@/app/helpers/port';
 import { useRouter } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 function EndScreenHooks() {
-  const winner = useRef<HTMLHeadingElement>(null);
-  const websocket = new WebSocket(`ws://localhost:3001/endscreen`);
+  const websocketRef = useRef<WebSocket | null>(null);
+  const [winnerText, setWinnerText] = useState('Connecting to server...');
+  const [connected, setConnected] = useState(false);
   const router = useRouter();
-  const playAgain = () => {
-    websocket.send(JSON.stringify({ playAgain: true }));
-    router.push('/');
-  };
+
   useEffect(() => {
-    if (websocket.readyState === WebSocket.CONNECTING) {
-      if (winner.current) {
-        winner.current.innerText = 'Connecting to server...';
-      }
-    }
+    const websocket = new WebSocket(getWebSocketUrl('/endscreen'));
+    websocketRef.current = websocket;
 
     websocket.onopen = () => {
+      setConnected(true);
       websocket.send(JSON.stringify({ getWinner: 'getWinner' }));
-
-      websocket.onmessage = (event) => {
-        const parsedEvent = JSON.parse(event.data);
-        if (parsedEvent)
-          if (winner.current) {
-            winner.current.innerText = `${parsedEvent.topPlayers[0]} is the winner of this match!`;
-          }
-      };
     };
-  });
+
+    websocket.onmessage = (event) => {
+      const parsedEvent = JSON.parse(event.data);
+      if (parsedEvent?.topPlayers?.[0]) {
+        setWinnerText(
+          `${parsedEvent.topPlayers[0]} is the winner of this match!`
+        );
+      }
+    };
+
+    websocket.onclose = () => setConnected(false);
+
+    return () => websocket.close();
+  }, []);
+
+  const playAgain = () => {
+    websocketRef.current?.send(JSON.stringify({ playAgain: true }));
+    router.push('/');
+  };
+
   return {
     playAgain,
-    winner,
-    websocket,
+    winnerText,
+    connected,
   };
 }
 

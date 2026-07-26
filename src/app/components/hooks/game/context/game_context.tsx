@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { getPort } from '@/app/helpers/port';
+import { getPort, getWebSocketUrl } from '@/app/helpers/port';
 import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
 import { usePathname, useRouter } from 'next/navigation';
 import { GameContextType, Submit } from '@/app/helpers/types';
@@ -43,7 +43,7 @@ export default function GameProvider({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const socketUrl = useMemo(() => `ws://localhost:3001${pathname}`, [pathname]);
+  const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
   const router = useRouter();
   const { sendJsonMessage, lastJsonMessage } = useWebSocket(socketUrl, {
     shouldReconnect: () => true,

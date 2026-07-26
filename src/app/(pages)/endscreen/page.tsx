@@ -1,3 +1,5 @@
+'use client';
+
 import EndScreenHooks from '@/app/components/hooks/endscreen_hooks';
 import React from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
@@ -5,18 +7,14 @@ import { amplifyConfigure } from '@/app/lib/amplify_configure';
 amplifyConfigure();
 
 function Page() {
-  const { winner, playAgain, websocket } = EndScreenHooks();
+  const { winnerText, playAgain, connected } = EndScreenHooks();
   return (
     <div>
-      <h3 ref={winner}></h3>
+      <h3>{winnerText}</h3>
       <button
         onClick={playAgain}
-        className={`${
-          websocket.readyState === WebSocket.CONNECTING
-            ? 'cursor-pointer'
-            : 'cursor-not-allowed'
-        }`}
-        disabled={websocket.readyState === WebSocket.CONNECTING ? false : true}
+        className={connected ? 'cursor-pointer' : 'cursor-not-allowed'}
+        disabled={!connected}
       >
         Play again?
       </button>

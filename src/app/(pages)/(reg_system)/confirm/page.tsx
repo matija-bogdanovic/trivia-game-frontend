@@ -2,7 +2,7 @@
 
 import Input from '@/app/components/general/input';
 import { confirmSignUp } from 'aws-amplify/auth';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import React, {
   useCallback,
   useEffect,

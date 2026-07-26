@@ -33,6 +33,10 @@ export function getWebSocketPort(): string {
   return window.location.protocol === 'https:' ? 'wss' : 'ws';
 }
 
+export function getWebSocketUrl(path: string): string {
+  return getPort().replace(/^http/, 'ws') + path;
+}
+
 // Alternative: Use a hook for client-side only usage
 export function usePort(): string | null {
   const [port, setPort] = useState<string | null>(null);

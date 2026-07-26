@@ -42,6 +42,7 @@ function Page() {
   async function findRoom() {
     if (code.length > 13) {
       setError('Room code is too long');
+      return;
     }
     if (!code.trim()) {
       setError('Please enter a room code');

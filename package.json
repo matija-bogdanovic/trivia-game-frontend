@@ -19,7 +19,6 @@
     "react-loading-skeleton": "^3.5.0",
     "react-redux": "^9.2.0",
     "react-use-websocket": "^4.13.0",
-    "whoisfaster": "file:",
     "ws": "^8.18.2"
   },
   "devDependencies": {
