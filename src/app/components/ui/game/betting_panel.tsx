@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
+import { useT } from '@/app/lib/i18n';
 
 const MIN_BET = 10;
 
 function BettingPanel() {
+  const { t } = useT();
   const { placeBet, username } = useGame();
   const { players, answering, myBet } = useSelector(
     (state: RootState) => state.game
@@ -23,11 +25,16 @@ function BettingPanel() {
     return (
       <div className="border rounded p-3 bg-gray-50 text-sm text-gray-700">
         {myBet.kind === 'neutral' ? (
-          <span>😐 You&apos;re staying neutral this turn.</span>
+          <span>{t('game.neutralStay')}</span>
         ) : (
           <span>
-            🎲 Your bet: <strong>${myBet.amount}</strong> that {answering}{' '}
-            answers <strong>{myBet.bet === 'correct' ? 'correctly' : 'wrong'}</strong>.
+            {t('game.yourBet', {
+              n: myBet.amount,
+              name: answering ?? '',
+              bet: t(
+                myBet.bet === 'correct' ? 'game.correctly' : 'game.wrong'
+              ),
+            })}
           </span>
         )}
       </div>
@@ -40,7 +47,7 @@ function BettingPanel() {
   return (
     <div className="border rounded p-3 flex flex-col gap-3 bg-gray-50">
       <p className="text-sm font-medium">
-        🎲 Bet on {answering}&apos;s answer (you have ${me.money})
+        {t('game.betOn', { name: answering ?? '', n: me.money })}
       </p>
       <div className="flex items-center gap-2 flex-wrap">
         <input
@@ -65,7 +72,7 @@ function BettingPanel() {
           className="border rounded px-2 py-1 text-sm hover:bg-gray-100 cursor-pointer"
           onClick={() => setAmount(me.money)}
         >
-          All in (${me.money})
+          {t('game.allIn', { n: me.money })}
         </button>
       </div>
       <div className="flex gap-2 flex-wrap">
@@ -73,19 +80,19 @@ function BettingPanel() {
           className="bg-green-600 text-white rounded px-3 py-1.5 text-sm hover:bg-green-700 cursor-pointer"
           onClick={() => placeBet('correct', clamped)}
         >
-          ✅ Answers correctly (${clamped})
+          {t('game.betCorrect', { n: clamped })}
         </button>
         <button
           className="bg-red-600 text-white rounded px-3 py-1.5 text-sm hover:bg-red-700 cursor-pointer"
           onClick={() => placeBet('wrong', clamped)}
         >
-          ❌ Answers wrong (${clamped})
+          {t('game.betWrong', { n: clamped })}
         </button>
         <button
           className="border rounded px-3 py-1.5 text-sm hover:bg-gray-100 cursor-pointer"
           onClick={() => placeBet('neutral', 0)}
         >
-          😐 Stay neutral
+          {t('game.neutral')}
         </button>
       </div>
     </div>

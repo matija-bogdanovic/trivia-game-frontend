@@ -1,5 +1,6 @@
 import React from 'react';
 import { GamePlayer } from '@/app/redux/slicers/game_slice';
+import { useT } from '@/app/lib/i18n';
 import Avatar from './avatar';
 
 interface PlayerProps {
@@ -17,6 +18,7 @@ export function Player({
   showLifeState,
   active = false,
 }: PlayerProps) {
+  const { t } = useT();
   const eliminated = showLifeState && !player.alive;
   return (
     <div
@@ -28,7 +30,7 @@ export function Player({
           : 'border-dashed border-gray-400 opacity-60'
       }`}
     >
-      <Avatar name={player.username} />
+      <Avatar name={player.username} avatar={player.avatar} />
       <div className="flex flex-col min-w-0">
         <div className="flex items-center gap-1">
           <h4 className="font-medium truncate">{player.username}</h4>
@@ -38,13 +40,15 @@ export function Player({
             </span>
           )}
           {isCurrentUser && (
-            <span className="text-sm text-gray-500">(you)</span>
+            <span className="text-sm text-gray-500">{t('game.you')}</span>
           )}
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <span>${player.money}</span>
-          {eliminated && <span className="text-red-500">broke</span>}
-          {!player.connected && <span>offline</span>}
+          {eliminated && (
+            <span className="text-red-500">{t('game.broke')}</span>
+          )}
+          {!player.connected && <span>{t('game.offline')}</span>}
         </div>
       </div>
     </div>

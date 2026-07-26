@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
+import { useT } from '@/app/lib/i18n';
 import BettingPanel from './betting_panel';
 
 export function useCountdown(endsAt: number | null) {
@@ -45,6 +46,7 @@ function TimerBar({
 }
 
 function QuestionUI() {
+  const { t } = useT();
   const { submitAnswer, pickPlayer, username } = useGame();
   const game = useSelector((state: RootState) => state.game);
   const {
@@ -87,9 +89,7 @@ function QuestionUI() {
   ) {
     return (
       <div className="h-full flex flex-col w-full justify-center items-center text-gray-600">
-        {phase === 'gameover' ? null : (
-          <span>Waiting for the host to start the game&hellip;</span>
-        )}
+        {phase === 'gameover' ? null : <span>{t('game.waitingHost')}</span>}
       </div>
     );
   }
@@ -97,7 +97,7 @@ function QuestionUI() {
   if (phase === 'spin') {
     return (
       <div className="h-full flex flex-col w-full justify-center items-center text-gray-600">
-        <span>Spinning to pick who answers&hellip;</span>
+        <span>{t('game.spinning')}</span>
       </div>
     );
   }
@@ -124,10 +124,10 @@ function QuestionUI() {
       <div className="flex flex-col w-full gap-4 max-w-2xl">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>Question {round}</span>
+            <span>{t('game.question', { n: round })}</span>
             {chainDepth > 0 && (
               <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
-                🔥 chain ×{chainDepth}
+                {t('game.chain', { n: chainDepth })}
               </span>
             )}
             <span title="Difficulty">{'★'.repeat(difficulty)}</span>
@@ -152,11 +152,11 @@ function QuestionUI() {
         >
           {phase === 'betting'
             ? isAnswerer
-              ? 'Answer locked in — waiting for players to make their bets…'
-              : `Waiting for players to make their bets on ${answering}…`
+              ? t('game.betsWaitSelf')
+              : t('game.betsWait', { name: answering ?? '' })
             : isAnswerer
-              ? '🎯 Your turn — answer the question!'
-              : `${answering} is answering…`}
+              ? t('game.yourTurn')
+              : t('game.answering', { name: answering ?? '' })}
         </div>
 
         {phase === 'betting' && (
@@ -184,32 +184,31 @@ function QuestionUI() {
         )}
 
         {phase === 'question' && isAnswerer && selectedAnswer !== null && (
-          <p className="text-gray-600">Answer locked in&hellip;</p>
+          <p className="text-gray-600">{t('game.answerLocked')}</p>
         )}
 
         {phase === 'reveal' && (
           <div className="flex flex-col gap-1 text-gray-800 border-t pt-3">
-            {lastCorrect ? (
-              <p>
-                ✅ <strong>{answering}</strong> answered correctly and gets to
-                pick who&apos;s next!
-              </p>
-            ) : (
-              <p>
-                ❌ <strong>{answering}</strong>{' '}
-                {timedOut ? 'ran out of time' : 'answered wrong'} and loses{' '}
-                <strong>${-answererDelta}</strong>. The wheel spins again&hellip;
-              </p>
-            )}
+            <p>
+              {lastCorrect
+                ? t('game.correctPicks', { name: answering ?? '' })
+                : t(timedOut ? 'game.timeoutLoses' : 'game.wrongLoses', {
+                    name: answering ?? '',
+                    n: -answererDelta,
+                  })}
+            </p>
             {betOutcomes.map((b) => (
               <p key={b.username} className="text-sm">
-                {b.won ? '💰' : '💸'} {b.username} bet ${b.amount} on &quot;
-                {b.bet}&quot; and {b.won ? 'won' : 'lost'} ${b.amount}
+                {t(b.won ? 'game.betWon' : 'game.betLost', {
+                  name: b.username,
+                  n: b.amount,
+                  bet: t(b.bet === 'correct' ? 'game.correctly' : 'game.wrong'),
+                })}
               </p>
             ))}
             {eliminatedNow.length > 0 && (
               <p className="text-red-600 font-medium">
-                Out of money and eliminated: {eliminatedNow.join(', ')}
+                {t('game.brokeOut', { names: eliminatedNow.join(', ') })}
               </p>
             )}
           </div>
@@ -219,9 +218,7 @@ function QuestionUI() {
           <div className="flex flex-col gap-3 border-t pt-3">
             {username === picker ? (
               <>
-                <p className="font-medium">
-                  Pick who gets the next (harder) question:
-                </p>
+                <p className="font-medium">{t('game.pickPrompt')}</p>
                 <div className="flex flex-wrap gap-2">
                   {pickChoices.map((name) => (
                     <button
@@ -236,7 +233,7 @@ function QuestionUI() {
               </>
             ) : (
               <p className="text-gray-600">
-                <strong>{picker}</strong> is choosing who answers next&hellip;
+                {t('game.picking', { name: picker ?? '' })}
               </p>
             )}
             {pickRemaining !== null && (

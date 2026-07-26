@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
+import { useT } from '@/app/lib/i18n';
 import Avatar from './avatar';
 
 /**
@@ -10,6 +11,7 @@ import Avatar from './avatar';
  * until it lands on the server-chosen target exactly as the spin ends.
  */
 function SpinWheel() {
+  const { t } = useT();
   const { players, spinTarget, spinEndsAt, spinDurationMs } = useSelector(
     (state: RootState) => state.game
   );
@@ -43,9 +45,7 @@ function SpinWheel() {
 
   return (
     <div className="fixed inset-0 z-10 bg-[rgba(0,0,0,0.6)] flex flex-col justify-center items-center gap-8">
-      <p className="text-white text-2xl font-semibold">
-        Who answers next? 🎯
-      </p>
+      <p className="text-white text-2xl font-semibold">{t('game.whoNext')}</p>
       <div className="flex gap-6 flex-wrap justify-center px-8">
         {alive.map((p, i) => (
           <div
@@ -61,7 +61,7 @@ function SpinWheel() {
                   : 'rounded-full'
               }
             >
-              <Avatar name={p.username} size={64} />
+              <Avatar name={p.username} avatar={p.avatar} size={64} />
             </div>
             <span className="text-white text-sm">{p.username}</span>
           </div>

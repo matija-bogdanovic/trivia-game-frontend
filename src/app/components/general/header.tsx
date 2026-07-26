@@ -5,10 +5,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { useT } from '@/app/lib/i18n';
 
 function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const { lang, setLang, t } = useT();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [decodedToken, setDecodedToken] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -47,19 +49,28 @@ function Header() {
           <Image src="/rrl.png" width={40} height={40} alt="rrl" />
         </Link>
 
-        {!loading && decodedToken ? (
-          <div className="flex flex-row gap-4 items-center">
-            <span className="text-sm text-gray-700"></span>
-            <Link href="/profile">Profile</Link>
-            <Link href="/playgame">Play Game</Link>
-            <Link href="/joingame">Join Game</Link>
-          </div>
-        ) : (
-          <div className="flex flex-row gap-4">
-            <Link href="/login">Login</Link>
-            <Link href="/signup">Signup</Link>
-          </div>
-        )}
+        <div className="flex flex-row gap-4 items-center">
+          {!loading && decodedToken ? (
+            <>
+              <Link href="/profile">{t('nav.profile')}</Link>
+              <Link href="/playgame">{t('nav.play')}</Link>
+              <Link href="/joingame">{t('nav.join')}</Link>
+              <Link href="/shop">{t('nav.shop')}</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/login">{t('nav.login')}</Link>
+              <Link href="/signup">{t('nav.signup')}</Link>
+            </>
+          )}
+          <button
+            className="border border-gray-300 rounded px-2 py-1 text-sm cursor-pointer"
+            onClick={() => setLang(lang === 'en' ? 'sr' : 'en')}
+            aria-label="Switch language"
+          >
+            {lang === 'en' ? 'SR' : 'EN'}
+          </button>
+        </div>
       </div>
     </header>
   );

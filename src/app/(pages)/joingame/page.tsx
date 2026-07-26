@@ -11,10 +11,12 @@ import { useRouter } from 'next/navigation';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
 
 function Page() {
+  const { t } = useT();
   const { code } = useSelector((state: RootState) => state.roomOperations);
   const dispatch = useDispatch<AppDispatch>();
   const [currentlyActiveRooms, setCurrentlyActiveRooms] = useState<number>(0);
@@ -37,11 +39,11 @@ function Page() {
 
   async function findRoom() {
     if (code.length > 13) {
-      setError('Room code is too long');
+      setError(t('join.codeTooLong'));
       return;
     }
     if (!code.trim()) {
-      setError('Please enter a room code');
+      setError(t('join.codeMissing'));
       return;
     }
 
@@ -68,12 +70,12 @@ function Page() {
       if (res.ok) {
         router.push(`/game/${code}`);
       } else {
-        setError(data.message || 'Failed to join room');
+        setError(data.message || t('join.failed'));
         setLoading(false);
       }
     } catch (err) {
       console.error('Something went wrong: ', err);
-      setError('Network error. Please try again.');
+      setError(t('join.network'));
       setLoading(false);
     }
   }
@@ -81,7 +83,7 @@ function Page() {
   const LoadingSpinner = () => (
     <div className="flex items-center justify-center">
       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-      <span className="ml-2 text-gray-600">Joining room...</span>
+      <span className="ml-2 text-gray-600">{t('join.joining')}</span>
     </div>
   );
   const handleRoomCodeChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +97,7 @@ function Page() {
           <Input
             value={code}
             onChange={handleRoomCodeChange}
-            placeholder="Enter room code"
+            placeholder={t('join.placeholder')}
             type={'text'}
             className={'border border-gray-300 rounded px-2 py-1'}
             maxLength={13}
@@ -107,17 +109,17 @@ function Page() {
           )}
 
           {currentlyActiveRooms === 0 ? (
-            <p className="text-gray-600">There are currently no active rooms</p>
+            <p className="text-gray-600">{t('join.noRooms')}</p>
           ) : (
             <p className="text-gray-600">
-              There are {currentlyActiveRooms} currently active rooms.
+              {t('join.roomCount', { n: currentlyActiveRooms })}
             </p>
           )}
 
           {loading ? (
             <LoadingSpinner />
           ) : (
-            <Button text={'Join Room'} onClick={findRoom} />
+            <Button text={t('join.button')} onClick={findRoom} />
           )}
         </div>
       </div>

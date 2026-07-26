@@ -13,10 +13,12 @@ import SideBar from './side_bar';
 import StartButton from './start_button';
 import LeaveButton from './leave_button';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
 
 function Page() {
+  const { t } = useT();
   const { leaveRoom, playAgain, username } = useGame();
   const dispatch = useDispatch<AppDispatch>();
   const { phase, countdown, winner, standings, totalRounds, error } =
@@ -33,7 +35,7 @@ function Page() {
 
       {phase === 'countdown' && countdown !== null && (
         <div className="fixed inset-0 z-10 bg-[rgba(0,0,0,0.5)] flex flex-col justify-center items-center gap-4">
-          <p className="text-white text-xl">The game starts in</p>
+          <p className="text-white text-xl">{t('game.startsIn')}</p>
           <span className="text-white text-7xl font-bold">
             {countdown > 0 ? countdown : 'GO!'}
           </span>
@@ -46,12 +48,12 @@ function Page() {
             <h2 className="text-2xl font-bold text-center">
               {winner
                 ? winner === username
-                  ? '🏆 You win!'
-                  : `🏆 ${winner} wins!`
-                : 'Game over'}
+                  ? t('game.youWin')
+                  : t('game.winner', { name: winner })
+                : t('game.gameOver')}
             </h2>
             <p className="text-center text-gray-500">
-              {totalRounds} question{totalRounds === 1 ? '' : 's'} asked
+              {t('game.questionsAsked', { n: totalRounds })}
             </p>
             <div className="flex flex-col gap-2">
               {standings.map((p, i) => (
@@ -62,11 +64,14 @@ function Page() {
                   <span className="w-6 text-center font-semibold">
                     {i + 1}.
                   </span>
-                  <Avatar name={p.username} size={32} />
+                  <Avatar name={p.username} avatar={p.avatar} size={32} />
                   <span className="flex-1 truncate">
                     {p.username}
                     {p.username === username && (
-                      <span className="text-sm text-gray-500"> (you)</span>
+                      <span className="text-sm text-gray-500">
+                        {' '}
+                        {t('game.you')}
+                      </span>
                     )}
                   </span>
                   <span className="text-gray-600">${p.money}</span>
@@ -74,12 +79,12 @@ function Page() {
               ))}
             </div>
             <div className="flex gap-3 justify-center">
-              <Button text="Play again" onClick={playAgain} />
+              <Button text={t('game.playAgain')} onClick={playAgain} />
               <button
                 className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
                 onClick={leaveRoom}
               >
-                Leave
+                {t('game.leave')}
               </button>
             </div>
           </div>

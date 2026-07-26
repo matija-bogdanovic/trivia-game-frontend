@@ -4,8 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
+import { useT } from '@/app/lib/i18n';
 
 function ChatUI() {
+  const { t } = useT();
   const { sendChat, username } = useGame();
   const messages = useSelector((state: RootState) => state.game.chatMessages);
   const [text, setText] = useState('');
@@ -26,13 +28,13 @@ function ChatUI() {
 
   return (
     <div className="flex flex-col border p-3 gap-2 h-64">
-      <h4 className="font-semibold">Chat</h4>
+      <h4 className="font-semibold">{t('chat.title')}</h4>
       <div
         ref={listRef}
         className="flex-1 overflow-y-auto flex flex-col gap-1 text-sm pr-1"
       >
         {messages.length === 0 && (
-          <p className="text-gray-400">No messages yet — say hi!</p>
+          <p className="text-gray-400">{t('chat.empty')}</p>
         )}
         {messages.map((m, i) =>
           m.username === null ? (
@@ -58,7 +60,7 @@ function ChatUI() {
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
+          placeholder={t('chat.placeholder')}
           maxLength={300}
           className="flex-1 min-w-0 border border-gray-300 rounded px-2 py-1 text-sm"
         />
@@ -67,7 +69,7 @@ function ChatUI() {
           disabled={!text.trim()}
           className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          Send
+          {t('chat.send')}
         </button>
       </form>
     </div>

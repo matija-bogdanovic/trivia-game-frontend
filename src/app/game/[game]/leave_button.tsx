@@ -2,10 +2,12 @@
 
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import Button from '@/app/components/general/button';
+import { useT } from '@/app/lib/i18n';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
 function LeaveButton() {
+  const { t } = useT();
   const { leaveRoom } = useGame();
   const [confirming, setConfirming] = useState(false);
 
@@ -31,15 +33,15 @@ function LeaveButton() {
             onClick={() => setConfirming(false)}
           ></div>
           <div className="relative flex flex-col gap-4 bg-white rounded-md p-6 z-10">
-            <p>Are you sure you want to leave the room?</p>
+            <p>{t('game.leaveConfirm')}</p>
             <div className="flex gap-3 justify-end">
               <button
                 className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
                 onClick={() => setConfirming(false)}
               >
-                Stay
+                {t('game.stay')}
               </button>
-              <Button text="Leave" onClick={leaveRoom} />
+              <Button text={t('game.leave')} onClick={leaveRoom} />
             </div>
           </div>
         </div>

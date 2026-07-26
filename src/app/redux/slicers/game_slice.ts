@@ -14,6 +14,7 @@ export type GamePhase =
 
 export interface GamePlayer {
   username: string;
+  avatar: string | null;
   money: number;
   alive: boolean;
   connected: boolean;

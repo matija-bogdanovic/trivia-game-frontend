@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { usePathname, useRouter } from 'next/navigation';
 import { getPort, getWebSocketUrl } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
+import { getMyAvatar } from '@/app/helpers/avatar';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import {
   resetGame,
@@ -49,9 +50,11 @@ export default function GameProvider({
 
   const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
   const [username, setUsername] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     getUsername().then(setUsername);
+    getMyAvatar().then(setAvatar);
   }, []);
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -65,9 +68,9 @@ export default function GameProvider({
   // username has been resolved
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
-      sendJsonMessage({ type: 'join', username });
+      sendJsonMessage({ type: 'join', username, avatar });
     }
-  }, [username, readyState, sendJsonMessage]);
+  }, [username, avatar, readyState, sendJsonMessage]);
 
   useEffect(() => {
     if (!lastJsonMessage) return;

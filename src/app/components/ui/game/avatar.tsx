@@ -1,4 +1,5 @@
 import React from 'react';
+import { decodeAvatar } from '@/app/helpers/avatar';
 
 function hashHue(name: string): number {
   let hash = 0;
@@ -10,25 +11,27 @@ function hashHue(name: string): number {
 
 interface AvatarProps {
   name: string;
+  /** chosen avatar string ("e|🦊|200"); falls back to initials */
+  avatar?: string | null;
   size?: number;
 }
 
-/** Deterministic profile picture: same username always gets the same
- *  color + initials, with no upload infrastructure needed. */
-function Avatar({ name, size = 48 }: AvatarProps) {
-  const hue = hashHue(name);
-  const initials = name.slice(0, 2).toUpperCase();
+/** Profile picture: the player's chosen emoji+color, or a deterministic
+ *  initials avatar derived from the username. */
+function Avatar({ name, avatar = null, size = 48 }: AvatarProps) {
+  const chosen = decodeAvatar(avatar);
+  const hue = chosen ? chosen.hue : hashHue(name);
   return (
     <div
       className="rounded-full flex items-center justify-center text-white font-semibold select-none shrink-0"
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.38,
+        fontSize: chosen ? size * 0.55 : size * 0.38,
         backgroundColor: `hsl(${hue} 65% 45%)`,
       }}
     >
-      {initials}
+      {chosen ? chosen.emoji : name.slice(0, 2).toUpperCase()}
     </div>
   );
 }

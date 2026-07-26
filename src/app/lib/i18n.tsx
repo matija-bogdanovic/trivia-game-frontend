@@ -1,0 +1,309 @@
+'use client';
+
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+export type Lang = 'en' | 'sr';
+
+const dict: Record<Lang, Record<string, string>> = {
+  en: {
+    // nav
+    'nav.profile': 'Profile',
+    'nav.play': 'Play Game',
+    'nav.join': 'Join Game',
+    'nav.shop': 'Shop',
+    'nav.login': 'Login',
+    'nav.signup': 'Signup',
+    // home
+    'home.hello': 'Hello {name}!',
+    'home.noToken': 'No token found.',
+    'home.lobbies': 'Active lobbies',
+    'home.noLobbies': 'No open lobbies right now — create one!',
+    'home.players': '{n} player(s)',
+    'home.join': 'Join',
+    'home.leaderboard': 'Leaderboard',
+    'home.wins': '{n} wins',
+    'home.games': '{n} games',
+    'home.noLeaders': 'Nobody has played yet.',
+    // create room
+    'create.roomName': 'Room name',
+    'create.create': 'Create room',
+    'create.credits': 'Lobby credits: {n}',
+    'create.cost': 'Creating a room costs 1 credit.',
+    'create.outOfCredits': 'Out of credits! Next credit in {min} min.',
+    'create.tooShort': 'Room name must be at least 4 characters long',
+    // join room
+    'join.placeholder': 'Enter room code',
+    'join.button': 'Join Room',
+    'join.joining': 'Joining room...',
+    'join.noRooms': 'There are currently no active rooms',
+    'join.roomCount': 'There are {n} currently active rooms.',
+    'join.codeTooLong': 'Room code is too long',
+    'join.codeMissing': 'Please enter a room code',
+    'join.failed': 'Failed to join room',
+    'join.network': 'Network error. Please try again.',
+    // auth
+    'auth.login': 'Login',
+    'auth.loginSub': 'Login to your account to get started',
+    'auth.username': 'Username',
+    'auth.password': 'Password',
+    'auth.noAccount': "Don't have an account?",
+    'auth.signupLink': 'Sign up.',
+    'auth.forgot': "Can't remember your password?",
+    'auth.resetLink': 'Reset password.',
+    // reset password
+    'reset.title': 'Reset Password',
+    'reset.sub': 'Enter your username to reset your password',
+    'reset.button': 'Send reset code',
+    'reset.codeSent': 'We emailed you a code. Enter it with a new password.',
+    'reset.code': 'Verification code',
+    'reset.newPassword': 'New password',
+    'reset.confirm': 'Set new password',
+    'reset.done': 'Password changed! You can log in now.',
+    'reset.toLogin': 'Go to login',
+    // profile
+    'profile.title': 'Your profile',
+    'profile.avatar': 'Profile picture',
+    'profile.emoji': 'Pick an emoji',
+    'profile.color': 'Pick a color',
+    'profile.save': 'Save avatar',
+    'profile.saved': 'Avatar saved!',
+    'profile.locked': 'Unlock more in the shop',
+    'profile.wallet': 'Wallet',
+    'profile.credits': 'Lobby credits',
+    'profile.coins': 'Coins',
+    'profile.stats': 'Stats',
+    'profile.wins': 'Wins',
+    'profile.games': 'Games played',
+    // shop
+    'shop.title': 'Shop',
+    'shop.balance': 'Your coins: {n}',
+    'shop.buy': 'Buy',
+    'shop.owned': 'Owned',
+    'shop.earn': 'Earn coins by playing: +25 per game, +100 per win.',
+    // game
+    'game.waitingHost': 'Waiting for the host to start the game…',
+    'game.spinning': 'Spinning to pick who answers…',
+    'game.whoNext': 'Who answers next? 🎯',
+    'game.yourTurn': '🎯 Your turn — answer the question!',
+    'game.answering': '{name} is answering…',
+    'game.betsWaitSelf': 'Answer locked in — waiting for players to make their bets…',
+    'game.betsWait': 'Waiting for players to make their bets on {name}…',
+    'game.answerLocked': 'Answer locked in…',
+    'game.question': 'Question {n}',
+    'game.chain': '🔥 chain ×{n}',
+    'game.correctPicks': '✅ {name} answered correctly and gets to pick who’s next!',
+    'game.wrongLoses': '❌ {name} answered wrong and loses ${n}. The wheel spins again…',
+    'game.timeoutLoses': '❌ {name} ran out of time and loses ${n}. The wheel spins again…',
+    'game.betWon': '💰 {name} bet ${n} on "{bet}" and won ${n}',
+    'game.betLost': '💸 {name} bet ${n} on "{bet}" and lost ${n}',
+    'game.brokeOut': 'Out of money and eliminated: {names}',
+    'game.pickPrompt': 'Pick who gets the next (harder) question:',
+    'game.picking': '{name} is choosing who answers next…',
+    'game.betOn': "🎲 Bet on {name}'s answer (you have ${n})",
+    'game.betCorrect': '✅ Answers correctly (${n})',
+    'game.betWrong': '❌ Answers wrong (${n})',
+    'game.neutral': '😐 Stay neutral',
+    'game.neutralStay': "😐 You're staying neutral this turn.",
+    'game.yourBet': '🎲 Your bet: ${n} that {name} answers {bet}.',
+    'game.correctly': 'correctly',
+    'game.wrong': 'wrong',
+    'game.allIn': 'All in (${n})',
+    'game.startsIn': 'The game starts in',
+    'game.winner': '🏆 {name} wins!',
+    'game.youWin': '🏆 You win!',
+    'game.gameOver': 'Game over',
+    'game.questionsAsked': '{n} question(s) asked',
+    'game.playAgain': 'Play again',
+    'game.leave': 'Leave',
+    'game.stay': 'Stay',
+    'game.leaveConfirm': 'Are you sure you want to leave the room?',
+    'game.start': 'Start game!',
+    'game.needPlayers': 'Need at least {n} players',
+    'game.waitingPlayers': 'Waiting for players… {a}/{b} needed to start.',
+    'game.players': 'Players ({n})',
+    'game.connecting': 'Connecting...',
+    'game.roomInfo': 'Room information',
+    'game.roomName': 'Room name: {name}',
+    'game.roomCode': 'Room code: {code}',
+    'game.round': 'Round: {n}',
+    'game.you': '(you)',
+    'game.offline': 'offline',
+    'game.broke': 'broke',
+    // chat
+    'chat.title': 'Chat',
+    'chat.placeholder': 'Type a message...',
+    'chat.send': 'Send',
+    'chat.empty': 'No messages yet — say hi!',
+  },
+  sr: {
+    'nav.profile': 'Profil',
+    'nav.play': 'Igraj',
+    'nav.join': 'Pridruži se',
+    'nav.shop': 'Prodavnica',
+    'nav.login': 'Prijava',
+    'nav.signup': 'Registracija',
+    'home.hello': 'Zdravo {name}!',
+    'home.noToken': 'Niste prijavljeni.',
+    'home.lobbies': 'Aktivne sobe',
+    'home.noLobbies': 'Trenutno nema otvorenih soba — napravi jednu!',
+    'home.players': '{n} igrač(a)',
+    'home.join': 'Uđi',
+    'home.leaderboard': 'Rang lista',
+    'home.wins': '{n} pobeda',
+    'home.games': '{n} partija',
+    'home.noLeaders': 'Još niko nije igrao.',
+    'create.roomName': 'Ime sobe',
+    'create.create': 'Napravi sobu',
+    'create.credits': 'Krediti za sobe: {n}',
+    'create.cost': 'Pravljenje sobe košta 1 kredit.',
+    'create.outOfCredits': 'Nema više kredita! Sledeći kredit za {min} min.',
+    'create.tooShort': 'Ime sobe mora imati bar 4 znaka',
+    'join.placeholder': 'Unesi kod sobe',
+    'join.button': 'Uđi u sobu',
+    'join.joining': 'Ulazak u sobu...',
+    'join.noRooms': 'Trenutno nema aktivnih soba',
+    'join.roomCount': 'Trenutno ima {n} aktivnih soba.',
+    'join.codeTooLong': 'Kod sobe je predugačak',
+    'join.codeMissing': 'Unesi kod sobe',
+    'join.failed': 'Ulazak u sobu nije uspeo',
+    'join.network': 'Greška na mreži. Pokušaj ponovo.',
+    'auth.login': 'Prijava',
+    'auth.loginSub': 'Prijavi se na svoj nalog',
+    'auth.username': 'Korisničko ime',
+    'auth.password': 'Lozinka',
+    'auth.noAccount': 'Nemaš nalog?',
+    'auth.signupLink': 'Registruj se.',
+    'auth.forgot': 'Zaboravio/la si lozinku?',
+    'auth.resetLink': 'Resetuj lozinku.',
+    'reset.title': 'Reset lozinke',
+    'reset.sub': 'Unesi korisničko ime za reset lozinke',
+    'reset.button': 'Pošalji kod',
+    'reset.codeSent': 'Poslali smo ti kod na mejl. Unesi ga uz novu lozinku.',
+    'reset.code': 'Verifikacioni kod',
+    'reset.newPassword': 'Nova lozinka',
+    'reset.confirm': 'Postavi novu lozinku',
+    'reset.done': 'Lozinka promenjena! Možeš da se prijaviš.',
+    'reset.toLogin': 'Na prijavu',
+    'profile.title': 'Tvoj profil',
+    'profile.avatar': 'Profilna slika',
+    'profile.emoji': 'Izaberi emodži',
+    'profile.color': 'Izaberi boju',
+    'profile.save': 'Sačuvaj avatar',
+    'profile.saved': 'Avatar sačuvan!',
+    'profile.locked': 'Otključaj još u prodavnici',
+    'profile.wallet': 'Novčanik',
+    'profile.credits': 'Krediti za sobe',
+    'profile.coins': 'Novčići',
+    'profile.stats': 'Statistika',
+    'profile.wins': 'Pobede',
+    'profile.games': 'Odigrane partije',
+    'shop.title': 'Prodavnica',
+    'shop.balance': 'Tvoji novčići: {n}',
+    'shop.buy': 'Kupi',
+    'shop.owned': 'Imaš',
+    'shop.earn': 'Zaradi novčiće igranjem: +25 po partiji, +100 po pobedi.',
+    'game.waitingHost': 'Čeka se da domaćin pokrene igru…',
+    'game.spinning': 'Rulet bira ko odgovara…',
+    'game.whoNext': 'Ko odgovara sledeći? 🎯',
+    'game.yourTurn': '🎯 Ti si na redu — odgovori na pitanje!',
+    'game.answering': '{name} odgovara…',
+    'game.betsWaitSelf': 'Odgovor zaključan — čekaju se opklade igrača…',
+    'game.betsWait': 'Čekaju se opklade na odgovor igrača {name}…',
+    'game.answerLocked': 'Odgovor zaključan…',
+    'game.question': 'Pitanje {n}',
+    'game.chain': '🔥 niz ×{n}',
+    'game.correctPicks': '✅ {name} je odgovorio/la tačno i bira ko je sledeći!',
+    'game.wrongLoses': '❌ {name} je pogrešio/la i gubi ${n}. Rulet se ponovo vrti…',
+    'game.timeoutLoses': '❌ {name} nije stigao/la da odgovori i gubi ${n}. Rulet se ponovo vrti…',
+    'game.betWon': '💰 {name} se kladio/la ${n} na "{bet}" i osvojio/la ${n}',
+    'game.betLost': '💸 {name} se kladio/la ${n} na "{bet}" i izgubio/la ${n}',
+    'game.brokeOut': 'Bankrot i ispadanje: {names}',
+    'game.pickPrompt': 'Izaberi ko dobija sledeće (teže) pitanje:',
+    'game.picking': '{name} bira ko odgovara sledeći…',
+    'game.betOn': '🎲 Kladi se na odgovor igrača {name} (imaš ${n})',
+    'game.betCorrect': '✅ Odgovoriće tačno (${n})',
+    'game.betWrong': '❌ Odgovoriće pogrešno (${n})',
+    'game.neutral': '😐 Ostani neutralan',
+    'game.neutralStay': '😐 Ovaj krug si neutralan/na.',
+    'game.yourBet': '🎲 Tvoja opklada: ${n} da {name} odgovara {bet}.',
+    'game.correctly': 'tačno',
+    'game.wrong': 'pogrešno',
+    'game.allIn': 'Sve ulažem (${n})',
+    'game.startsIn': 'Igra počinje za',
+    'game.winner': '🏆 {name} pobeđuje!',
+    'game.youWin': '🏆 Pobedio/la si!',
+    'game.gameOver': 'Kraj igre',
+    'game.questionsAsked': 'Postavljeno pitanja: {n}',
+    'game.playAgain': 'Igraj ponovo',
+    'game.leave': 'Izađi',
+    'game.stay': 'Ostani',
+    'game.leaveConfirm': 'Da li sigurno želiš da napustiš sobu?',
+    'game.start': 'Pokreni igru!',
+    'game.needPlayers': 'Potrebno je bar {n} igrača',
+    'game.waitingPlayers': 'Čekaju se igrači… {a}/{b} potrebno za početak.',
+    'game.players': 'Igrači ({n})',
+    'game.connecting': 'Povezivanje...',
+    'game.roomInfo': 'Podaci o sobi',
+    'game.roomName': 'Ime sobe: {name}',
+    'game.roomCode': 'Kod sobe: {code}',
+    'game.round': 'Runda: {n}',
+    'game.you': '(ti)',
+    'game.offline': 'nije tu',
+    'game.broke': 'bankrot',
+    'chat.title': 'Ćaskanje',
+    'chat.placeholder': 'Napiši poruku...',
+    'chat.send': 'Pošalji',
+    'chat.empty': 'Još nema poruka — javi se!',
+  },
+};
+
+interface I18nContextValue {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+  t: (key: string, vars?: Record<string, string | number>) => string;
+}
+
+const I18nContext = createContext<I18nContextValue | null>(null);
+
+export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  const [lang, setLangState] = useState<Lang>('en');
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem('lang');
+    if (stored === 'sr' || stored === 'en') setLangState(stored);
+  }, []);
+
+  const setLang = useCallback((next: Lang) => {
+    setLangState(next);
+    window.localStorage.setItem('lang', next);
+  }, []);
+
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) => {
+      let text = dict[lang][key] ?? dict.en[key] ?? key;
+      if (vars) {
+        for (const [k, v] of Object.entries(vars)) {
+          text = text.split(`{${k}}`).join(String(v));
+        }
+      }
+      return text;
+    },
+    [lang]
+  );
+
+  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t]);
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
+}
+
+export function useT() {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error('useT must be used within LanguageProvider');
+  return ctx;
+}

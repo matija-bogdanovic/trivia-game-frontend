@@ -8,9 +8,11 @@ import { fetchAuthSession, signIn } from 'aws-amplify/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useEffect, useState } from 'react';
+import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
 function Page() {
+  const { t } = useT();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -54,38 +56,38 @@ function Page() {
           className="w-full h-[89vh] flex flex-col justify-center items-center gap-4"
           onSubmit={logIn}
         >
-          <h1 className="text-2xl font-bold">Login</h1>
-          <p className="text-gray-500">Login to your account to get started</p>
+          <h1 className="text-2xl font-bold">{t('auth.login')}</h1>
+          <p className="text-gray-500">{t('auth.loginSub')}</p>
           {error === '' ? <></> : <p className="text-red-500">{error}</p>}
           <Input
             type={'text'}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder={'Username'}
+            placeholder={t('auth.username')}
             className={'border border-gray-300 rounded px-2 py-1'}
           />
           <Input
             type={'password'}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={'Password'}
+            placeholder={t('auth.password')}
             className={'border border-gray-300 rounded px-2 py-1'}
           />
           <div className="flex flex-col items-center">
             <p>
-              Don&apos;t have an account?{' '}
+              {t('auth.noAccount')}{' '}
               <Link className="underline" href="/signup">
-                Sign up.
+                {t('auth.signupLink')}
               </Link>
             </p>
             <p>
-              Can&apos;t remember your password?{' '}
+              {t('auth.forgot')}{' '}
               <Link className="underline" href="/reset-password">
-                Reset password.
+                {t('auth.resetLink')}
               </Link>
             </p>
           </div>
-          <Button text={'Login'} type={'submit'} />
+          <Button text={t('auth.login')} type={'submit'} />
         </form>
       </div>
     </section>
