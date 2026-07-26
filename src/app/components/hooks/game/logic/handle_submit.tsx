@@ -1,5 +1,5 @@
-import { HandleSubmitTypes } from "@/app/helpers/types";
-import { submittedText } from "@/app/redux/slicers/loop_and_overlay_slice";
+import { HandleSubmitTypes } from '@/app/helpers/types';
+import { submittedText } from '@/app/redux/slicers/loop_and_overlay_slice';
 
 export const handleSubmit = async (
   e: React.FormEvent,
@@ -15,14 +15,14 @@ export const handleSubmit = async (
   e.preventDefault();
 
   if (!selectedOption) {
-    dispatch(submittedText("Please select an option first."));
+    dispatch(submittedText('Please select an option first.'));
     return;
   }
   try {
-    const roomCode = window.location.pathname.split("/")[2];
+    const roomCode = window.location.pathname.split('/')[2];
 
     sendJsonMessage({
-      message: "submit_answer",
+      message: 'submit_answer',
       roomCode: roomCode,
       username: decodedToken.username,
       questionId: questionIdReference.current,
@@ -31,20 +31,20 @@ export const handleSubmit = async (
       )?.question_option_text,
     });
     const firstTimer = setTimeout(() => {
-      const roomCode = window.location.pathname.split("/")[2];
+      const roomCode = window.location.pathname.split('/')[2];
 
-      sendJsonMessage({ message: "question_retrieval", code: roomCode });
+      sendJsonMessage({ message: 'question_retrieval', code: roomCode });
       clearTimeout(firstTimer);
     }, 1000);
     const secondTimer = setTimeout(() => {
       sendJsonMessage({
-        message: "change_current_player",
+        message: 'change_current_player',
         code: roomCode,
       });
-      clearTimeout(secondTimer)
+      clearTimeout(secondTimer);
     }, 3000);
   } catch (error) {
-    console.error("Something went wrong", error);
-    dispatch(submittedText("Error connecting to the server."));
+    console.error('Something went wrong', error);
+    dispatch(submittedText('Error connecting to the server.'));
   }
 };

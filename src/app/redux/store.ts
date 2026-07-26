@@ -1,7 +1,7 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore } from '@reduxjs/toolkit';
 
-import reducer from "./slicers/loop_and_overlay_slice";
-import questionSlicer from "./slicers/question_operations";
+import reducer from './slicers/loop_and_overlay_slice';
+import questionSlicer from './slicers/question_operations';
 import playerSlicer from './slicers/player_operations';
 import roomOperations from './slicers/room_opeations';
 

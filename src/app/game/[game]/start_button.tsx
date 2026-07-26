@@ -1,8 +1,8 @@
-import Button from "@/app/components/general/button";
-import { useGame } from "@/app/components/hooks/game/context/game_context";
-import { RootState } from "@/app/redux/store";
-import React from "react";
-import { useSelector } from "react-redux";
+import Button from '@/app/components/general/button';
+import { useGame } from '@/app/components/hooks/game/context/game_context';
+import { RootState } from '@/app/redux/store';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
 function StartButton() {
   const { startButton, startGameInitiator, startButtonBox } = useGame();

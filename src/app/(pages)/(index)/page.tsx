@@ -1,24 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 
-import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
-import React, { useEffect, useState } from "react";
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { fetchAuthSession } from 'aws-amplify/auth';
+import React, { useEffect, useState } from 'react';
 
+amplifyConfigure();
 function Page() {
   const [decodedToken, setDecodedToken] = useState<any>(null);
 
   useEffect(() => {
-    const rawToken = getCookie("token");
-    if (rawToken) {
-      setDecodedToken(decodeJwt(rawToken));
+    async function decodingToken() {
+      const session = await fetchAuthSession();
+      setDecodedToken(session.tokens?.idToken?.payload);
     }
+    decodingToken();
   }, []);
 
   return (
     <section className="section">
       <div className="container">
         <p>
-          {decodedToken ? `Hello ${decodedToken.username}!` : "No token found."}
+          {decodedToken
+            ? `Hello ${
+                decodedToken['name'] ||
+                decodedToken['cognito:username'] ||
+                decodedToken['email']
+              }!`
+            : 'No token found.'}
         </p>
       </div>
     </section>

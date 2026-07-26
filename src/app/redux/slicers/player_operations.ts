@@ -1,5 +1,5 @@
-import { PlayerData } from "@/app/helpers/types";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { PlayerData } from '@/app/helpers/types';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface PlayerState {
   playerArray: PlayerData[];
@@ -12,7 +12,7 @@ const initialState: PlayerState = {
 };
 
 const playerSlice = createSlice({
-  name: "playerSlice",
+  name: 'playerSlice',
   initialState,
   reducers: {
     setPlayers: (

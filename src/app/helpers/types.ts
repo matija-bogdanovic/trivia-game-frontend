@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { RefObject } from "react";
-import { Option } from "../components/ui/game/question_ui";
-import { SendJsonMessage } from "react-use-websocket/dist/lib/types";
-import { AppDispatch } from "../redux/store";
+import React, { RefObject } from 'react';
+import { Option } from '../components/ui/game/question_ui';
+import { SendJsonMessage } from 'react-use-websocket/dist/lib/types';
+import { AppDispatch } from '../redux/store';
 
 export interface StartGame {
   sendJsonMessage: SendJsonMessage;

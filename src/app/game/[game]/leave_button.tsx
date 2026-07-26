@@ -1,8 +1,8 @@
-import { cancelLeave } from "@/app/redux/slicers/room_opeations";
-import { AppDispatch } from "@/app/redux/store";
-import Image from "next/image";
-import React from "react";
-import { useDispatch } from "react-redux";
+import { cancelLeave } from '@/app/redux/slicers/room_opeations';
+import { AppDispatch } from '@/app/redux/store';
+import Image from 'next/image';
+import React from 'react';
+import { useDispatch } from 'react-redux';
 
 function LeaveButton() {
   const dispatch = useDispatch<AppDispatch>();

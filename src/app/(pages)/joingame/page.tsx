@@ -1,15 +1,18 @@
-"use client";
+'use client';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import Button from "@/app/components/general/button";
-import Input from "@/app/components/general/input";
-import { getPort } from "@/app/helpers/port";
-import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
-import { setRoomCode } from "@/app/redux/slicers/room_opeations";
-import { AppDispatch, RootState } from "@/app/redux/store";
-import { useRouter } from "next/navigation";
-import React, { ChangeEvent, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import Button from '@/app/components/general/button';
+import Input from '@/app/components/general/input';
+import { getPort } from '@/app/helpers/port';
+import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
+import { setRoomCode } from '@/app/redux/slicers/room_opeations';
+import { AppDispatch, RootState } from '@/app/redux/store';
+import { useRouter } from 'next/navigation';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
+
+amplifyConfigure();
 
 function Page() {
   const { code } = useSelector((state: RootState) => state.roomOperations);
@@ -17,10 +20,10 @@ function Page() {
   const [currentlyActiveRooms, setCurrentlyActiveRooms] = useState<number>(0);
   const [decodedToken, setDecodedToken] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string>('');
   const port = getPort();
   const router = useRouter();
-  const cookie = getCookie("token");
+  const cookie = getCookie('token');
 
   useEffect(() => {
     const port = getPort();
@@ -29,7 +32,7 @@ function Page() {
       const responsedata = await response.json();
       setCurrentlyActiveRooms(responsedata.roundCount);
     }
-    const rawToken = getCookie("token");
+    const rawToken = getCookie('token');
     if (rawToken) {
       setDecodedToken(decodeJwt(rawToken));
     }
@@ -38,21 +41,21 @@ function Page() {
 
   async function findRoom() {
     if (code.length > 13) {
-      setError("Room code is too long");
+      setError('Room code is too long');
     }
     if (!code.trim()) {
-      setError("Please enter a room code");
+      setError('Please enter a room code');
       return;
     }
 
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
       const res = await fetch(`${port}/joinRoom`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           id: cookie,
@@ -68,12 +71,12 @@ function Page() {
       if (res.ok) {
         router.push(`/game/${code}`);
       } else {
-        setError(data.message || "Failed to join room");
+        setError(data.message || 'Failed to join room');
         setLoading(false);
       }
     } catch (err) {
-      console.error("Something went wrong: ", err);
-      setError("Network error. Please try again.");
+      console.error('Something went wrong: ', err);
+      setError('Network error. Please try again.');
       setLoading(false);
     }
   }
@@ -96,8 +99,8 @@ function Page() {
             value={code}
             onChange={handleRoomCodeChange}
             placeholder="Enter room code"
-            type={"text"}
-            className={"border border-gray-300 rounded px-2 py-1"}
+            type={'text'}
+            className={'border border-gray-300 rounded px-2 py-1'}
             maxLength={13}
           />
           {error && (
@@ -117,7 +120,7 @@ function Page() {
           {loading ? (
             <LoadingSpinner />
           ) : (
-            <Button text={"Join Room"} onClick={findRoom} />
+            <Button text={'Join Room'} onClick={findRoom} />
           )}
         </div>
       </div>

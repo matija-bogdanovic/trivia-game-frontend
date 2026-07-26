@@ -1,9 +1,9 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef } from 'react';
 
 interface ButtonProps {
   text: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  type?: "button" | "submit" | "reset";
+  type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
 }
 
@@ -23,6 +23,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-Button.displayName = "Button";
+Button.displayName = 'Button';
 
 export default Button;

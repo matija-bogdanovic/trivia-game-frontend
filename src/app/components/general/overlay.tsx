@@ -1,7 +1,7 @@
-import { toggleCancel } from "@/app/redux/slicers/room_opeations";
-import { AppDispatch, RootState } from "@/app/redux/store";
-import React, { ReactNode } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { toggleCancel } from '@/app/redux/slicers/room_opeations';
+import { AppDispatch, RootState } from '@/app/redux/store';
+import React, { ReactNode } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
 type OverlayProps = {
   content: ReactNode;

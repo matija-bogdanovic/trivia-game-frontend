@@ -1,5 +1,8 @@
-import EndScreenHooks from "@/app/components/hooks/endscreen_hooks";
-import React from "react";
+import EndScreenHooks from '@/app/components/hooks/endscreen_hooks';
+import React from 'react';
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
+
+amplifyConfigure();
 
 function Page() {
   const { winner, playAgain, websocket } = EndScreenHooks();
@@ -10,8 +13,8 @@ function Page() {
         onClick={playAgain}
         className={`${
           websocket.readyState === WebSocket.CONNECTING
-            ? "cursor-pointer"
-            : "cursor-not-allowed"
+            ? 'cursor-pointer'
+            : 'cursor-not-allowed'
         }`}
         disabled={websocket.readyState === WebSocket.CONNECTING ? false : true}
       >

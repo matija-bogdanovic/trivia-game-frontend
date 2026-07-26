@@ -1,9 +1,9 @@
-import { useGame } from "@/app/components/hooks/game/context/game_context";
-import { Player } from "@/app/components/ui/game/player_ui";
-import { getCookie } from "@/app/helpers/token_operations";
-import { RootState } from "@/app/redux/store";
-import React from "react";
-import { useSelector } from "react-redux";
+import { useGame } from '@/app/components/hooks/game/context/game_context';
+import { Player } from '@/app/components/ui/game/player_ui';
+import { getCookie } from '@/app/helpers/token_operations';
+import { RootState } from '@/app/redux/store';
+import React from 'react';
+import { useSelector } from 'react-redux';
 
 function SideBar() {
   const { playerParent, roomInfo } = useGame();
@@ -33,7 +33,7 @@ function SideBar() {
                     key={p.id}
                     id={p.id}
                     name={p.player}
-                    isCurrentUser={p.id === getCookie("token")}
+                    isCurrentUser={p.id === getCookie('token')}
                     points={p.points}
                   />
                 );

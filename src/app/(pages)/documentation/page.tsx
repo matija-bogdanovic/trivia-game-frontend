@@ -1,4 +1,7 @@
-import React from "react";
+import React from 'react';
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
+
+amplifyConfigure();
 
 function Page() {
   return (

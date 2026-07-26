@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 function EndScreenHooks() {
   const winner = useRef<HTMLHeadingElement>(null);
@@ -9,17 +9,17 @@ function EndScreenHooks() {
   const router = useRouter();
   const playAgain = () => {
     websocket.send(JSON.stringify({ playAgain: true }));
-    router.push("/");
+    router.push('/');
   };
   useEffect(() => {
     if (websocket.readyState === WebSocket.CONNECTING) {
       if (winner.current) {
-        winner.current.innerText = "Connecting to server...";
+        winner.current.innerText = 'Connecting to server...';
       }
     }
 
     websocket.onopen = () => {
-      websocket.send(JSON.stringify({ getWinner: "getWinner" }));
+      websocket.send(JSON.stringify({ getWinner: 'getWinner' }));
 
       websocket.onmessage = (event) => {
         const parsedEvent = JSON.parse(event.data);

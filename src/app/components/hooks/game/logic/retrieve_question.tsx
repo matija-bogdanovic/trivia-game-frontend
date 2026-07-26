@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Option } from "@/app/components/ui/game/question_ui";
+import { Option } from '@/app/components/ui/game/question_ui';
 
 export async function retrieveQuestion({ lastJsonMessage }: any) {
   const data = lastJsonMessage as {
@@ -16,7 +16,7 @@ export async function retrieveQuestion({ lastJsonMessage }: any) {
   const formattedOptions: Option[] = data.question_details.question_options.map(
     (opt, index) => ({
       id: index.toString(),
-      question_option_text: opt.replace(/^"|"$/g, ""),
+      question_option_text: opt.replace(/^"|"$/g, ''),
     })
   );
 

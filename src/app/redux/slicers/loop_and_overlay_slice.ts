@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 export interface LoopAndOverlayState {
   startedLoop: boolean;
@@ -12,12 +12,12 @@ const initialState: LoopAndOverlayState = {
   startedLoop: false,
   overlay: false,
   showStartButton: true,
-  text: "",
-  warningText: "",
+  text: '',
+  warningText: '',
 };
 
 const slicer = createSlice({
-  name: "gameStart",
+  name: 'gameStart',
   initialState,
   reducers: {
     overlayTrue: (state) => {

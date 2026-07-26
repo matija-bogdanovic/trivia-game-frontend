@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AppDispatch } from "@/app/redux/store";
-import { retrieveQuestion } from "./retrieve_question";
-import { setQuestion } from "@/app/redux/slicers/question_operations";
-import { setLoading } from "@/app/redux/slicers/room_opeations";
+import { AppDispatch } from '@/app/redux/store';
+import { retrieveQuestion } from './retrieve_question';
+import { setQuestion } from '@/app/redux/slicers/question_operations';
+import { setLoading } from '@/app/redux/slicers/room_opeations';
 
 type QuestionSet = {
   lastJsonMessage: any;
@@ -30,5 +30,3 @@ export async function setQuestions({
     })
   );
 }
-
-

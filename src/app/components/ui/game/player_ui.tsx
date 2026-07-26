@@ -10,11 +10,11 @@ interface PlayerProps {
 
 export function Player({ id, name, isCurrentUser, points = 0 }: PlayerProps) {
   return (
-    <div 
+    <div
       key={id}
       className="flex transition duration-75 flex-col items-center gap-2 border border-black p-2 rounded"
     >
-      <Image alt={"pfp"} width={50} height={50} src="/pfp.svg"/>
+      <Image alt={'pfp'} width={50} height={50} src="/pfp.svg" />
       <div className="flex flex-col items-center">
         {isCurrentUser && (
           <span className="text-sm text-gray-500">&#40;you&#41;</span>

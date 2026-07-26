@@ -1,16 +1,18 @@
-"use client";
+'use client';
 
-import Button from "@/app/components/general/button";
-import Overlay from "@/app/components/general/overlay";
-import { useGame } from "@/app/components/hooks/game/context/game_context";
-import QuestionUI from "@/app/components/ui/game/question_ui";
-import React from "react";
-import SideBar from "./side_bar";
-import StartButton from "./start_button";
-import LeaveButton from "./leave_button";
-import { useSelector } from "react-redux";
-import { RootState } from "@/app/redux/store";
+import Button from '@/app/components/general/button';
+import Overlay from '@/app/components/general/overlay';
+import { useGame } from '@/app/components/hooks/game/context/game_context';
+import QuestionUI from '@/app/components/ui/game/question_ui';
+import React from 'react';
+import SideBar from './side_bar';
+import StartButton from './start_button';
+import LeaveButton from './leave_button';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/redux/store';
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
 
+amplifyConfigure();
 function Page() {
   const { leaveRoom, overlay, onSubmitHandler } = useGame();
   const { text } = useSelector((state: RootState) => state.startGame);
@@ -25,7 +27,7 @@ function Page() {
         content={
           <div className="relative flex flex-col gap-4 bg-white rounded-md p-4 z-[2] m-auto">
             {text}
-            <Button text={"Leave"} onClick={leaveRoom} />
+            <Button text={'Leave'} onClick={leaveRoom} />
           </div>
         }
       />

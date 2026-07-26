@@ -1,16 +1,16 @@
-import { getPort } from "@/app/helpers/port";
-import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
+import { getPort } from '@/app/helpers/port';
+import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
 
 export async function leaveRoom() {
   const port = getPort();
 
-  const cookie = getCookie("token") as string;
+  const cookie = getCookie('token') as string;
   const decodedToken = decodeJwt(cookie);
 
   const data = await fetch(`${port}/getRoomCode`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-type": "application/json",
+      'Content-type': 'application/json',
     },
     body: JSON.stringify({
       username: decodedToken.username,
@@ -19,17 +19,17 @@ export async function leaveRoom() {
   const res = await data.json();
   const roomCode = res.code;
   try {
-    const token = getCookie("token") as string;
+    const token = getCookie('token') as string;
 
     if (!token) {
-      console.log("No token found, user already logged out");
+      console.log('No token found, user already logged out');
       return;
     }
 
     const parsedToken = decodeJwt(token);
 
     if (!parsedToken || !parsedToken.username) {
-      console.log("Invalid token or no username");
+      console.log('Invalid token or no username');
       return;
     }
 
@@ -41,18 +41,18 @@ export async function leaveRoom() {
         }),
       ],
       {
-        type: "application/json",
+        type: 'application/json',
       }
     );
 
     if (navigator.sendBeacon) {
       const success = navigator.sendBeacon(`${port}/leaveRoom`, blob);
       if (!success) {
-        console.warn("sendBeacon failed, falling back to fetch.");
+        console.warn('sendBeacon failed, falling back to fetch.');
         await fetch(`${port}/leaveRoom`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             code: roomCode,
@@ -63,9 +63,9 @@ export async function leaveRoom() {
       }
     } else {
       await fetch(`${port}/leaveRoom`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           code: roomCode,
@@ -75,6 +75,6 @@ export async function leaveRoom() {
       });
     }
   } catch (error) {
-    console.error("Error leaving room:", error);
+    console.error('Error leaving room:', error);
   }
 }

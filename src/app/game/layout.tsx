@@ -1,4 +1,4 @@
-import GameProvider from "../components/hooks/game/context/game_context";
+import GameProvider from '../components/hooks/game/context/game_context';
 
 export default function GameLayout({
   children,

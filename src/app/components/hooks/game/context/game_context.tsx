@@ -1,39 +1,39 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+'use client';
 import React, {
   createContext,
   useContext,
   useEffect,
   useMemo,
   useRef,
-} from "react";
-import { getPort } from "@/app/helpers/port";
-import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
-import { usePathname, useRouter } from "next/navigation";
-import { GameContextType, Submit } from "@/app/helpers/types";
-import { handleSubmit } from "../logic/handle_submit";
-import { startGame } from "../logic/start_game";
-import { leaveRoom } from "../logic/leave_room";
-import useWebSocket from "react-use-websocket";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "@/app/redux/store";
-import { setPlayers } from "@/app/redux/slicers/player_operations";
+} from 'react';
+import { getPort } from '@/app/helpers/port';
+import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
+import { usePathname, useRouter } from 'next/navigation';
+import { GameContextType, Submit } from '@/app/helpers/types';
+import { handleSubmit } from '../logic/handle_submit';
+import { startGame } from '../logic/start_game';
+import { leaveRoom } from '../logic/leave_room';
+import useWebSocket from 'react-use-websocket';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '@/app/redux/store';
+import { setPlayers } from '@/app/redux/slicers/player_operations';
 import {
   answerCorrect,
   setLoading,
   setRoomData,
   setTokenDetails,
   setUsername,
-} from "@/app/redux/slicers/room_opeations";
-import loopPlayers from "../logic/loop";
-import { setQuestions } from "../logic/set_question";
-import { setQuestionOptionsStatus } from "@/app/redux/slicers/question_operations";
+} from '@/app/redux/slicers/room_opeations';
+import loopPlayers from '../logic/loop';
+import { setQuestions } from '../logic/set_question';
+import { setQuestionOptionsStatus } from '@/app/redux/slicers/question_operations';
 import {
   overlayFalse,
   overlayText,
   overlayTrue,
-} from "@/app/redux/slicers/loop_and_overlay_slice";
+} from '@/app/redux/slicers/loop_and_overlay_slice';
 
 const GameContext = createContext<GameContextType | null>(null);
 
@@ -68,11 +68,11 @@ export default function GameProvider({
   const questionReference = useRef<boolean | null>(null);
 
   useEffect(() => {
-    const code = window.location.pathname.split("/")[2];
-    const cookie = getCookie("token");
+    const code = window.location.pathname.split('/')[2];
+    const cookie = getCookie('token');
     const token = decodeJwt(cookie);
     return sendJsonMessage({
-      message: "join_message",
+      message: 'join_message',
       roomCode: Number(code),
       username: token.username,
       id: cookie,
@@ -85,7 +85,7 @@ export default function GameProvider({
 
     const message = lastJsonMessage as any;
     switch (message.type) {
-      case "game_start":
+      case 'game_start':
         dispatch(setLoading(true));
 
         loopPlayers({
@@ -97,12 +97,12 @@ export default function GameProvider({
           questionIdReference,
         });
         break;
-      case "question_retrieval":
+      case 'question_retrieval':
         if (questionReference.current) return;
         questionReference.current = true;
         setQuestions({ dispatch, lastJsonMessage, questionIdReference });
         break;
-      case "submit_answer":
+      case 'submit_answer':
         if ((lastJsonMessage as Submit).status) {
           const correctAnswer = (lastJsonMessage as Submit).correctAnswer;
           dispatch(setQuestionOptionsStatus({ correctAnswer }));
@@ -110,17 +110,17 @@ export default function GameProvider({
 
           if (children) {
             Array.from(children).forEach((child) => {
-              const span = child.querySelector("span");
+              const span = child.querySelector('span');
               if (!span) return;
 
               const optionText = span.textContent;
 
               if (optionText === correctAnswer) {
-                (child as HTMLElement).style.backgroundColor = "green";
+                (child as HTMLElement).style.backgroundColor = 'green';
               } else if (optionText === selectedOption) {
-                (child as HTMLElement).style.backgroundColor = "red";
+                (child as HTMLElement).style.backgroundColor = 'red';
               } else {
-                (child as HTMLElement).style.backgroundColor = "";
+                (child as HTMLElement).style.backgroundColor = '';
               }
             });
           }
@@ -138,12 +138,12 @@ export default function GameProvider({
           dispatch(setQuestionOptionsStatus({ correctAnswer }));
           async function incorrectAnswer() {
             const port = getPort();
-            const token = getCookie("token");
+            const token = getCookie('token');
             const usernameDecoded = decodeJwt(token);
             await fetch(`${port}/incorrectAnswer`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
               body: JSON.stringify({
                 roomCode: code,
@@ -152,22 +152,22 @@ export default function GameProvider({
             });
             const correctAnswer = (lastJsonMessage as any).correctAnswer;
             dispatch(setQuestionOptionsStatus({ correctAnswer }));
-            sendJsonMessage({ message: "" });
+            sendJsonMessage({ message: '' });
           }
           const children = playerParent.current?.children;
           if (children) {
             Array.from(children).forEach((child) => {
-              const span = child.querySelector("span");
+              const span = child.querySelector('span');
               if (!span) return;
 
               const optionText = span.textContent;
 
               if (optionText === correctAnswer) {
-                (child as HTMLElement).style.backgroundColor = "green";
+                (child as HTMLElement).style.backgroundColor = 'green';
               } else if (optionText === selectedOption) {
-                (child as HTMLElement).style.backgroundColor = "red";
+                (child as HTMLElement).style.backgroundColor = 'red';
               } else {
-                (child as HTMLElement).style.backgroundColor = "";
+                (child as HTMLElement).style.backgroundColor = '';
               }
             });
           }
@@ -175,9 +175,9 @@ export default function GameProvider({
           async function updateRoom() {
             const port = getPort();
             const updatedRoom = await fetch(`${port}/getRoomDetails`, {
-              method: "POST",
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
               body: JSON.stringify(code),
             });
@@ -186,7 +186,7 @@ export default function GameProvider({
               dispatch(
                 setPlayers({
                   players: (lastJsonMessage as any).players,
-                  token: getCookie("token") as string,
+                  token: getCookie('token') as string,
                 })
               );
             }
@@ -202,22 +202,22 @@ export default function GameProvider({
           );
           dispatch(overlayTrue());
           const incorrect_a_timeout = setTimeout(() => {
-            dispatch(overlayText(""));
+            dispatch(overlayText(''));
             dispatch(overlayFalse());
 
             clearTimeout(incorrect_a_timeout);
           }, 3000);
         }
         break;
-      case "change_current_player":
-        // This changes the players 
+      case 'change_current_player':
+        // This changes the players
         if (message.players.length === 2) {
           const children = playerParent.current!.children;
           dispatch(overlayFalse());
-          dispatch(overlayText(""));
+          dispatch(overlayText(''));
 
           for (let i = 0; i < children.length; i++) {
-            (children[i] as HTMLElement).style.backgroundColor = "";
+            (children[i] as HTMLElement).style.backgroundColor = '';
           }
           const currentlyAnswering = (lastJsonMessage as any).activeRound
             .currentlyAnswering;
@@ -226,12 +226,12 @@ export default function GameProvider({
             (e): e is HTMLDivElement => {
               return (
                 e instanceof HTMLDivElement &&
-                e.querySelector("h4")?.innerText !== currentlyAnswering
-              )
+                e.querySelector('h4')?.innerText !== currentlyAnswering
+              );
             }
           );
-          console.log(message)
-          console.log(opposite)
+          console.log(message);
+          console.log(opposite);
 
           if (username === currentlyAnswering) {
             dispatch(overlayTrue());
@@ -239,7 +239,7 @@ export default function GameProvider({
 
           dispatch(setUsername(currentlyAnswering));
 
-          opposite!.style.backgroundColor = "red";
+          opposite!.style.backgroundColor = 'red';
         } else {
           loopPlayers({
             playerParent,
@@ -251,13 +251,13 @@ export default function GameProvider({
           });
         }
         break;
-      case "leave_room":
+      case 'leave_room':
         break;
-      case "join_message":
+      case 'join_message':
         dispatch(
           setPlayers({
             players: (lastJsonMessage as any).players,
-            token: getCookie("token") as string,
+            token: getCookie('token') as string,
           })
         );
         dispatch(
@@ -268,10 +268,10 @@ export default function GameProvider({
         );
         if ((lastJsonMessage as any).players.length <= 1) {
           startButton.current!.disabled = true;
-          startButton.current!.style.opacity = "0.3";
+          startButton.current!.style.opacity = '0.3';
         } else {
           startButton.current!.disabled = false;
-          startButton.current!.style.opacity = "1";
+          startButton.current!.style.opacity = '1';
         }
         break;
     }
@@ -280,28 +280,28 @@ export default function GameProvider({
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = "";
+      e.returnValue = '';
     };
 
     const handlePopState = () => {
       const confirmed = window.confirm(
-        "Are you sure you want to leave the page?"
+        'Are you sure you want to leave the page?'
       );
       if (confirmed) {
         leaveRoom();
         window.history.back();
       } else {
-        window.history.pushState(null, "", window.location.href);
+        window.history.pushState(null, '', window.location.href);
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", handlePopState);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, []);
 
@@ -395,7 +395,7 @@ export default function GameProvider({
 export const useGame = () => {
   const context = useContext(GameContext);
   if (!context) {
-    throw new Error("useGame must be used within a GameProvider");
+    throw new Error('useGame must be used within a GameProvider');
   }
   return context;
 };

@@ -1,6 +1,6 @@
-import { getPort } from "@/app/helpers/port";
-import { decodeJwt, getCookie } from "@/app/helpers/token_operations";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { getPort } from '@/app/helpers/port';
+import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface RoomState {
   roomNameText: string;
@@ -16,20 +16,20 @@ export interface RoomState {
 }
 
 const initialState: RoomState = {
-  roomNameText: "",
-  roomCodeText: "",
-  overlayText: "",
-  port: "",
-  code: "",
-  username: "",
-  decodedToken: "",
+  roomNameText: '',
+  roomCodeText: '',
+  overlayText: '',
+  port: '',
+  code: '',
+  username: '',
+  decodedToken: '',
   cancel: false,
   loading: false,
   answer: false,
 };
 
 const roomOperations = createSlice({
-  name: "roomOperations",
+  name: 'roomOperations',
   initialState,
   reducers: {
     setRoomData: (
@@ -46,10 +46,10 @@ const roomOperations = createSlice({
       state.username = action.payload;
     },
     setTokenDetails: (state) => {
-      const cookie = getCookie("token");
+      const cookie = getCookie('token');
       const token = decodeJwt(cookie);
       const port = getPort();
-      const code = window.location.pathname.split("/")[2];
+      const code = window.location.pathname.split('/')[2];
       state.code = code;
       state.username = token.username;
       state.port = port;
@@ -57,7 +57,7 @@ const roomOperations = createSlice({
     },
     cancelLeave: (state) => {
       state.cancel = true;
-      state.overlayText = "Are you sure you want to leave the room?";
+      state.overlayText = 'Are you sure you want to leave the room?';
     },
     toggleCancel: (state) => {
       state.cancel = !state.cancel;

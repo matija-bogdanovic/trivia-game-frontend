@@ -1,5 +1,5 @@
-import { Option } from "@/app/components/ui/game/question_ui";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Option } from '@/app/components/ui/game/question_ui';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface QuestionState {
   questionOptions: Option[];
@@ -11,12 +11,12 @@ export interface QuestionState {
 
 const initialState: QuestionState = {
   questionOptions: [],
-  questionText: "",
-  questionId: "",
+  questionText: '',
+  questionId: '',
 };
 
 const questionSlicer = createSlice({
-  name: "questionSlicer",
+  name: 'questionSlicer',
   initialState,
   reducers: {
     setQuestion: (

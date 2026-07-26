@@ -1,9 +1,9 @@
-import React from "react";
-import Button from "../../general/button";
-import Input from "../../general/input";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/app/redux/store";
-import { setSelectedOption } from "@/app/redux/slicers/question_operations";
+import React from 'react';
+import Button from '../../general/button';
+import Input from '../../general/input';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/app/redux/store';
+import { setSelectedOption } from '@/app/redux/slicers/question_operations';
 
 export interface Option {
   id: string;
@@ -32,9 +32,11 @@ function QuestionUI({ handleSubmit }: QuestionUIProps) {
         >
           {!questionOptions || questionOptions.length === 0 ? (
             <>
-            <div className="h-full flex flex-col w-full justify-center items-center">
-              <span>Waiting on the host to start the game&#46;&#46;&#46;</span>
-            </div>
+              <div className="h-full flex flex-col w-full justify-center items-center">
+                <span>
+                  Waiting on the host to start the game&#46;&#46;&#46;
+                </span>
+              </div>
             </>
           ) : (
             <>
@@ -44,9 +46,9 @@ function QuestionUI({ handleSubmit }: QuestionUIProps) {
                     selectedOption === data.question_option_text;
                   let optionClass = `flex items-center gap-2 cursor-pointer rounded p-2`;
                   if (data.status === true) {
-                    optionClass += " bg-green-500 text-green-800";
+                    optionClass += ' bg-green-500 text-green-800';
                   } else if (data.status === false) {
-                    optionClass += " bg-red-500 text-red-800";
+                    optionClass += ' bg-red-500 text-red-800';
                   }
 
                   return (
@@ -69,7 +71,7 @@ function QuestionUI({ handleSubmit }: QuestionUIProps) {
                   );
                 })}
               </div>
-              <Button text={"Submit"} onClick={handleSubmit} />
+              <Button text={'Submit'} onClick={handleSubmit} />
               {submittedText && <p>{submittedText}</p>}
             </>
           )}
