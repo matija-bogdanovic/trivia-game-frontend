@@ -44,16 +44,32 @@ export async function saveMyAvatar(avatar: string): Promise<void> {
   await updateUserAttributes({ userAttributes: { picture: avatar } });
 }
 
-/** downscale + center-crop a picked file to a square JPEG data URL */
-export function fileToAvatarDataUrl(
-  file: File,
+/** read a picked file into a data URL for the cropper */
+export function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('could not read image'));
+    reader.readAsDataURL(file);
+  });
+}
+
+export interface CropPixels {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** render the user-chosen crop area to a square JPEG data URL */
+export function cropToAvatarDataUrl(
+  imageSrc: string,
+  crop: CropPixels,
   size = 256
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
       canvas.width = size;
       canvas.height = size;
@@ -62,13 +78,12 @@ export function fileToAvatarDataUrl(
         reject(new Error('canvas unavailable'));
         return;
       }
-      const side = Math.min(img.width, img.height);
       ctx.drawImage(
         img,
-        (img.width - side) / 2,
-        (img.height - side) / 2,
-        side,
-        side,
+        crop.x,
+        crop.y,
+        crop.width,
+        crop.height,
         0,
         0,
         size,
@@ -76,10 +91,7 @@ export function fileToAvatarDataUrl(
       );
       resolve(canvas.toDataURL('image/jpeg', 0.85));
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('could not read image'));
-    };
-    img.src = url;
+    img.onerror = () => reject(new Error('could not read image'));
+    img.src = imageSrc;
   });
 }

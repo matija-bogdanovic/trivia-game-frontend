@@ -5,11 +5,12 @@ import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getUsername } from '@/app/helpers/token_operations';
 import {
   encodeUploadAvatar,
-  fileToAvatarDataUrl,
+  fileToDataUrl,
   getMyAvatar,
   saveMyAvatar,
 } from '@/app/helpers/avatar';
 import Avatar from '@/app/components/ui/game/avatar';
+import AvatarCropper from '@/app/components/ui/avatar_cropper';
 import Button from '@/app/components/general/button';
 import { getPort } from '@/app/helpers/port';
 import { useT } from '@/app/lib/i18n';
@@ -33,6 +34,8 @@ function Page() {
   const [username, setUsername] = useState<string | null>(null);
   const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  /** original picked image, being adjusted in the crop modal */
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -62,11 +65,13 @@ function Page() {
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // allow re-picking the same file
+    e.target.value = '';
     if (!file) return;
     setError('');
     setSaved(false);
     try {
-      setPreview(await fileToAvatarDataUrl(file));
+      setCropSrc(await fileToDataUrl(file));
     } catch {
       setError(t('profile.badImage'));
     }
@@ -102,6 +107,16 @@ function Page() {
 
   return (
     <section className="section">
+      {cropSrc && (
+        <AvatarCropper
+          imageSrc={cropSrc}
+          onDone={(cropped) => {
+            setPreview(cropped);
+            setCropSrc(null);
+          }}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
       <div className="container flex flex-col gap-8 pb-16">
         <div>
           <h5 className="text-gray-500">{t('profile.title')}</h5>
