@@ -1,5 +1,11 @@
 import { Amplify } from 'aws-amplify';
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000/';
+
+/** set NEXT_PUBLIC_GOOGLE_AUTH=1 once the Google identity provider is
+ *  configured in the Cognito user pool to show the Google button */
+export const googleAuthEnabled = process.env.NEXT_PUBLIC_GOOGLE_AUTH === '1';
+
 export const amplifyConfigure = () => {
   Amplify.configure(
     {
@@ -9,12 +15,21 @@ export const amplifyConfigure = () => {
             process.env.NEXT_PUBLIC_USER_POOL_ID || 'eu-west-3_Uylh5ZFUK',
           userPoolClientId:
             process.env.NEXT_PUBLIC_USER_POOL_CLIENT_ID ||
-            '1lcoq8c9r7lvhi3l4klhb4idth',
+            '3j69q67dfk60kl92gukqhdlr91',
           identityPoolId:
             process.env.NEXT_PUBLIC_IDENTITY_POOL_ID ||
             'eu-west-3:ee26e62a-ab48-4755-b656-462f3cca5ece',
           loginWith: {
             email: true,
+            oauth: {
+              domain:
+                process.env.NEXT_PUBLIC_COGNITO_DOMAIN ||
+                'eu-west-3uylh5zfuk.auth.eu-west-3.amazoncognito.com',
+              scopes: ['openid', 'email', 'profile'],
+              redirectSignIn: [APP_URL],
+              redirectSignOut: [APP_URL],
+              responseType: 'code',
+            },
           },
           signUpVerificationMethod: 'code',
           userAttributes: {
@@ -22,7 +37,7 @@ export const amplifyConfigure = () => {
               required: true,
             },
             name: {
-              required: false, // The display name from your signup
+              required: false,
             },
           },
           allowGuestAccess: true,

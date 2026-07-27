@@ -3,9 +3,16 @@
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
 import { authErrorKey } from '@/app/helpers/auth_errors';
-import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import {
+  amplifyConfigure,
+  googleAuthEnabled,
+} from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
-import { fetchAuthSession, signIn } from 'aws-amplify/auth';
+import {
+  fetchAuthSession,
+  signIn,
+  signInWithRedirect,
+} from 'aws-amplify/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useEffect, useState } from 'react';
@@ -105,6 +112,16 @@ function Page() {
             type={'submit'}
             disabled={busy}
           />
+          {googleAuthEnabled && (
+            <button
+              type="button"
+              className="border border-gray-300 rounded px-4 py-2 flex items-center gap-2 hover:bg-gray-50 cursor-pointer"
+              onClick={() => signInWithRedirect({ provider: 'Google' })}
+            >
+              <span className="font-bold text-blue-600">G</span>
+              {t('auth.google')}
+            </button>
+          )}
         </form>
       </div>
     </section>

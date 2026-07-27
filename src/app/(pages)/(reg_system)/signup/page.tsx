@@ -3,9 +3,16 @@
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
 import { authErrorKey } from '@/app/helpers/auth_errors';
-import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import {
+  amplifyConfigure,
+  googleAuthEnabled,
+} from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
-import { fetchAuthSession, signUp } from 'aws-amplify/auth';
+import {
+  fetchAuthSession,
+  signInWithRedirect,
+  signUp,
+} from 'aws-amplify/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useEffect, useState } from 'react';
@@ -25,6 +32,8 @@ export default function SignUp() {
   const [repeatPass, setRepeatPass] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // shown when the username is taken but might be an unconfirmed account
+  const [offerConfirm, setOfferConfirm] = useState(false);
 
   // already signed in? no need to register
   useEffect(() => {
@@ -54,6 +63,7 @@ export default function SignUp() {
       return;
     }
     setError('');
+    setOfferConfirm(false);
     setBusy(true);
     try {
       await signUp({
@@ -73,9 +83,16 @@ export default function SignUp() {
       router.push('/confirm');
     } catch (err) {
       console.error('Signup error:', err);
-      setError(t(authErrorKey(err)));
+      const key = authErrorKey(err);
+      setError(t(key));
+      setOfferConfirm(key === 'authError.usernameTaken');
       setBusy(false);
     }
+  };
+
+  const goConfirmExisting = () => {
+    sessionStorage.setItem('signupUsername', username.trim());
+    router.push('/confirm');
   };
 
   return (
@@ -87,6 +104,15 @@ export default function SignUp() {
         <h1 className="text-2xl font-bold">{t('auth.signupTitle')}</h1>
         <p className="text-gray-500">{t('auth.signupSub')}</p>
         {error && <p className="text-red-500 max-w-md text-center">{error}</p>}
+        {offerConfirm && (
+          <button
+            type="button"
+            className="underline text-blue-600 cursor-pointer"
+            onClick={goConfirmExisting}
+          >
+            {t('auth.confirmInstead')}
+          </button>
+        )}
         <Input
           type="text"
           value={username}
@@ -134,6 +160,16 @@ export default function SignUp() {
           type="submit"
           disabled={busy}
         />
+        {googleAuthEnabled && (
+          <button
+            type="button"
+            className="border border-gray-300 rounded px-4 py-2 flex items-center gap-2 hover:bg-gray-50 cursor-pointer"
+            onClick={() => signInWithRedirect({ provider: 'Google' })}
+          >
+            <span className="font-bold text-blue-600">G</span>
+            {t('auth.google')}
+          </button>
+        )}
       </form>
       <div className="flex flex-col gap-2 justify-center items-center pb-6">
         <span className="text-xs">{t('footer.rights')}</span>

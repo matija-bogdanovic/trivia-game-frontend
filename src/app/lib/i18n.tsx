@@ -68,6 +68,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.register': 'Register!',
     'auth.registering': 'Creating account…',
     'auth.signingIn': 'Signing in…',
+    'auth.google': 'Continue with Google',
+    'auth.confirmInstead':
+      'Is this your account waiting for confirmation? Confirm it here.',
     'authError.nameShort': 'Name must be at least 3 characters long.',
     'authError.nameWhitespace': "Name can't contain spaces.",
     'authError.nameSpecial': "Name can't contain special characters (<, >, #, !).",
@@ -290,6 +293,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.register': 'Registruj se!',
     'auth.registering': 'Pravljenje naloga…',
     'auth.signingIn': 'Prijavljivanje…',
+    'auth.google': 'Nastavi sa Google nalogom',
+    'auth.confirmInstead':
+      'Ako je ovo tvoj nepotvrđen nalog, potvrdi ga ovde.',
     'authError.nameShort': 'Ime mora imati bar 3 znaka.',
     'authError.nameWhitespace': 'Ime ne sme sadržati razmake.',
     'authError.nameSpecial': 'Ime ne sme sadržati specijalne znakove (<, >, #, !).',
