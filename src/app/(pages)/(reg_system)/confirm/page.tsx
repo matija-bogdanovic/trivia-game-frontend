@@ -1,7 +1,10 @@
 'use client';
 
 import Input from '@/app/components/general/input';
-import { confirmSignUp } from 'aws-amplify/auth';
+import { authErrorKey } from '@/app/helpers/auth_errors';
+import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { useT } from '@/app/lib/i18n';
+import { autoSignIn, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 import { useRouter } from 'next/navigation';
 import React, {
   useCallback,
@@ -10,27 +13,51 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { amplifyConfigure } from '@/app/lib/amplify_configure';
 
 amplifyConfigure();
+
 function Page() {
-  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const { t } = useT();
   const router = useRouter();
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [username, setUsername] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
   const [selectAllMode, setSelectAllMode] = useState(false);
   const inputRefs = useMemo(
     () => Array.from({ length: 6 }, () => React.createRef<HTMLInputElement>()),
     []
   );
+
+  // set by the signup page; if someone lands here directly we ask instead
+  useEffect(() => {
+    setUsername(sessionStorage.getItem('signupUsername') ?? '');
+  }, []);
+
   const handleVerify = async () => {
+    if (!username.trim()) {
+      setError(t('confirm.usernamePrompt'));
+      return;
+    }
+    setError('');
+    setBusy(true);
     try {
       await confirmSignUp({
-        username: sessionStorage.getItem('signupUsername') as string,
+        username: username.trim(),
         confirmationCode: codeValue,
       });
-      router.push('/login');
-    } catch (error) {
-      console.error('Verification failed:', error);
-      // Show error message
+      // signup requested autoSignIn — try it, fall back to the login page
+      try {
+        await autoSignIn();
+        router.push('/');
+      } catch {
+        router.push('/login');
+      }
+    } catch (err) {
+      console.error('Verification failed:', err);
+      setError(t(authErrorKey(err)));
+      setBusy(false);
     }
   };
 
@@ -117,11 +144,6 @@ function Page() {
         focusInput(idx + 1);
         return;
       }
-      if (key.length === 1 && /\d/.test(key)) {
-        // allow, will be handled by onInput/onChange
-        return;
-      }
-      // Block non-digit characters
       if (key.length === 1 && /[^\d]/.test(key)) {
         e.preventDefault();
       }
@@ -146,30 +168,27 @@ function Page() {
   const codeValue = code.join('');
   const isComplete = codeValue.length === 6 && code.every((c) => c !== '');
 
-  // Resend cooldown state
+  // resend cooldown: 30s, 60s, then doubling, capped at 120 min
   const [resendCount, setResendCount] = useState(0);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const computeCooldown = (count: number) => {
-    // 0 -> 30s, 1 -> 60s, then doubling capped at 120 mins
     if (count === 0) return 30;
     if (count === 1) return 60;
     const seconds = 60 * Math.pow(2, count - 1);
-    const maxSeconds = 120 * 60; // 120 minutes
+    const maxSeconds = 120 * 60;
     return Math.min(seconds, maxSeconds);
   };
 
   const startCooldown = (count: number) => {
     const seconds = computeCooldown(count);
     setCooldownSeconds(seconds);
-    if (intervalRef.current)
-      clearInterval(intervalRef.current as unknown as number);
+    if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
       setCooldownSeconds((prev) => {
         if (prev <= 1) {
-          if (intervalRef.current)
-            clearInterval(intervalRef.current as unknown as number);
+          if (intervalRef.current) clearInterval(intervalRef.current);
           return 0;
         }
         return prev - 1;
@@ -177,21 +196,49 @@ function Page() {
     }, 1000);
   };
 
+  const handleResend = async () => {
+    if (!username.trim()) {
+      setError(t('confirm.usernamePrompt'));
+      return;
+    }
+    setError('');
+    setNotice('');
+    try {
+      await resendSignUpCode({ username: username.trim() });
+      setNotice(t('confirm.resent'));
+      setResendCount((c) => c + 1);
+      startCooldown(resendCount);
+    } catch (err) {
+      console.error('Resend failed:', err);
+      setError(t(authErrorKey(err)));
+    }
+  };
+
   useEffect(() => {
     return () => {
-      if (intervalRef.current)
-        clearInterval(intervalRef.current as unknown as number);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
 
   return (
     <div className="min-h-[60vh] container w-full flex flex-col items-center justify-center gap-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">Enter verification code</h1>
-        <p className="text-gray-500 mt-1">
-          We sent a 6-digit code to your email
-        </p>
+        <h1 className="text-2xl font-semibold">{t('confirm.title')}</h1>
+        <p className="text-gray-500 mt-1">{t('confirm.sub')}</p>
       </div>
+      {error && <p className="text-red-500 max-w-md text-center">{error}</p>}
+      {notice && (
+        <p className="text-green-600 max-w-md text-center">{notice}</p>
+      )}
+      {username === '' && (
+        <Input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder={t('auth.username')}
+          className="border border-gray-300 rounded px-2 py-1"
+        />
+      )}
       <div className="flex items-center gap-3">
         {code.map((value, index) => (
           <Input
@@ -213,29 +260,26 @@ function Page() {
       </div>
       <div className="flex items-center gap-3 mt-2">
         <button
-          className="px-4 py-2 rounded-md border border-gray-300 disabled:opacity-40"
+          className="px-4 py-2 rounded-md border border-gray-300 disabled:opacity-40 cursor-pointer"
           disabled={cooldownSeconds > 0}
-          onClick={() => {
-            const nextCount = resendCount + 1;
-            setResendCount(nextCount);
-            startCooldown(resendCount);
-          }}
+          onClick={handleResend}
         >
-          Resend code
+          {t('confirm.resend')}
         </button>
         {cooldownSeconds > 0 && (
           <span className="text-gray-500">
-            Retry in {Math.floor(cooldownSeconds / 60)}:
-            {`${cooldownSeconds % 60}`.padStart(2, '0')}
+            {t('confirm.retryIn', {
+              time: `${Math.floor(cooldownSeconds / 60)}:${`${cooldownSeconds % 60}`.padStart(2, '0')}`,
+            })}
           </span>
         )}
       </div>
       <button
-        className={`px-5 py-2 rounded-md bg-black text-white disabled:opacity-40`}
-        disabled={!isComplete}
+        className={`px-5 py-2 rounded-md bg-black text-white disabled:opacity-40 cursor-pointer`}
+        disabled={!isComplete || busy}
         onClick={handleVerify}
       >
-        Verify
+        {busy ? '…' : t('confirm.verify')}
       </button>
     </div>
   );

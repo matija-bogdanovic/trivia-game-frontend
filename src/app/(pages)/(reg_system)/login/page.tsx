@@ -2,53 +2,64 @@
 
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
-import { getCookie } from '@/app/helpers/token_operations';
+import { authErrorKey } from '@/app/helpers/auth_errors';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { useT } from '@/app/lib/i18n';
 import { fetchAuthSession, signIn } from 'aws-amplify/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useEffect, useState } from 'react';
-import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
+
 function Page() {
   const { t } = useT();
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+
+  // already signed in? straight to the game
+  useEffect(() => {
+    fetchAuthSession()
+      .then((session) => {
+        if (session.tokens) router.replace('/');
+      })
+      .catch(() => {});
+  }, [router]);
 
   async function logIn(e: FormEvent) {
     e.preventDefault();
+    if (!username.trim() || !password) return;
+    setError('');
+    setBusy(true);
     try {
-      await signIn({
-        username,
-        password,
-      });
+      const result = await signIn({ username: username.trim(), password });
+      if (result.nextStep?.signInStep === 'CONFIRM_SIGN_UP') {
+        // account exists but was never verified — finish that first
+        sessionStorage.setItem('signupUsername', username.trim());
+        router.push('/confirm');
+        return;
+      }
       router.push('/');
-    } catch (error) {
-      setError(String(error));
-      console.log('Something went wrong', error);
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name === 'UserAlreadyAuthenticatedException') {
+        router.push('/');
+        return;
+      }
+      if (name === 'UserNotConfirmedException') {
+        sessionStorage.setItem('signupUsername', username.trim());
+        router.push('/confirm');
+        return;
+      }
+      console.error('Login error:', err);
+      setError(t(authErrorKey(err)));
+      setBusy(false);
     }
   }
-  useEffect(() => {
-    const token = getCookie('token');
-    async function somethingELse() {
-      const session = await fetchAuthSession();
-      const idToken = session;
 
-      console.log(idToken);
-    }
-    somethingELse();
-
-    if (token) {
-      router.push('/');
-      alert("You're already signed in.");
-      return;
-    } else {
-      return;
-    }
-  }, [router]);
   return (
     <section className="section">
       <div className="container">
@@ -58,7 +69,9 @@ function Page() {
         >
           <h1 className="text-2xl font-bold">{t('auth.login')}</h1>
           <p className="text-gray-500">{t('auth.loginSub')}</p>
-          {error === '' ? <></> : <p className="text-red-500">{error}</p>}
+          {error && (
+            <p className="text-red-500 max-w-md text-center">{error}</p>
+          )}
           <Input
             type={'text'}
             value={username}
@@ -87,7 +100,11 @@ function Page() {
               </Link>
             </p>
           </div>
-          <Button text={t('auth.login')} type={'submit'} />
+          <Button
+            text={busy ? t('auth.signingIn') : t('auth.login')}
+            type={'submit'}
+            disabled={busy}
+          />
         </form>
       </div>
     </section>
