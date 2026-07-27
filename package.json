@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
+    "agentation": "^3.0.2",
     "aws-amplify": "^6.15.7",
     "i18next": "^25.5.3",
     "next": "^15.5.4",

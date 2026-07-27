@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Providers } from './redux/provider';
 import { LanguageProvider } from './lib/i18n';
+import AgentationToolbar from './components/general/agentation_toolbar';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -31,6 +32,7 @@ export default function RootLayout({
       >
         <LanguageProvider>
           <Providers>{children}</Providers>
+          <AgentationToolbar />
         </LanguageProvider>
       </body>
     </html>

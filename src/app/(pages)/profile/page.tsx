@@ -1,14 +1,11 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useRef, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getUsername } from '@/app/helpers/token_operations';
 import {
-  AVATAR_HUES,
-  decodeAvatar,
-  encodeAvatar,
-  FREE_AVATARS,
+  encodeUploadAvatar,
+  fileToAvatarDataUrl,
   getMyAvatar,
   saveMyAvatar,
 } from '@/app/helpers/avatar';
@@ -22,7 +19,6 @@ amplifyConfigure();
 interface WalletInfo {
   credits: number;
   coins: number;
-  ownedAvatars: string[];
   wins: number;
   gamesPlayed: number;
   points: number;
@@ -35,21 +31,19 @@ interface WalletInfo {
 function Page() {
   const { t } = useT();
   const [username, setUsername] = useState<string | null>(null);
-  const [emoji, setEmoji] = useState<string>(FREE_AVATARS[0]);
-  const [hue, setHue] = useState<number>(AVATAR_HUES[4]);
+  const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [wallet, setWallet] = useState<WalletInfo | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     async function load() {
       const name = await getUsername();
       setUsername(name);
-      const avatar = decodeAvatar(await getMyAvatar());
-      if (avatar) {
-        setEmoji(avatar.emoji);
-        setHue(avatar.hue);
-      }
+      setCurrentAvatar(await getMyAvatar());
       if (name) {
         try {
           const res = await fetch(`${getPort()}/wallet`, {
@@ -66,16 +60,41 @@ function Page() {
     load();
   }, []);
 
-  const availableEmojis = [...FREE_AVATARS, ...(wallet?.ownedAvatars ?? [])];
-
-  const save = async () => {
-    setSaving(true);
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError('');
     setSaved(false);
     try {
-      await saveMyAvatar(encodeAvatar(emoji, hue));
+      setPreview(await fileToAvatarDataUrl(file));
+    } catch {
+      setError(t('profile.badImage'));
+    }
+  };
+
+  const save = async () => {
+    if (!username || !preview) return;
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    try {
+      const res = await fetch(`${getPort()}/avatar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, image: preview }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message ?? 'upload failed');
+      }
+      const { version } = await res.json();
+      await saveMyAvatar(encodeUploadAvatar(version));
+      setCurrentAvatar(encodeUploadAvatar(version));
+      setPreview(null);
       setSaved(true);
     } catch (err) {
-      console.error('Failed to save avatar:', err);
+      console.error('Avatar upload failed:', err);
+      setError(t('profile.uploadFailed'));
     } finally {
       setSaving(false);
     }
@@ -91,63 +110,45 @@ function Page() {
 
         <div className="flex flex-col gap-4 border rounded p-4 max-w-xl">
           <h3 className="font-semibold">{t('profile.avatar')}</h3>
-          <div className="flex items-center gap-4">
-            <Avatar
-              name={username ?? '??'}
-              avatar={encodeAvatar(emoji, hue)}
-              size={80}
-            />
-            <div className="flex flex-col gap-3">
-              <div>
-                <p className="text-sm text-gray-500 mb-1">
-                  {t('profile.emoji')}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {availableEmojis.map((e) => (
-                    <button
-                      key={e}
-                      className={`text-2xl p-1 rounded cursor-pointer ${
-                        e === emoji ? 'bg-blue-100 ring-2 ring-blue-500' : ''
-                      }`}
-                      onClick={() => setEmoji(e)}
-                    >
-                      {e}
-                    </button>
-                  ))}
-                  <Link
-                    href="/shop"
-                    className="text-2xl p-1 opacity-50"
-                    title={t('profile.locked')}
-                  >
-                    🔒
-                  </Link>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 mb-1">
-                  {t('profile.color')}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {AVATAR_HUES.map((h) => (
-                    <button
-                      key={h}
-                      className={`w-8 h-8 rounded-full cursor-pointer ${
-                        h === hue ? 'ring-2 ring-offset-2 ring-blue-500' : ''
-                      }`}
-                      style={{ backgroundColor: `hsl(${h} 65% 45%)` }}
-                      onClick={() => setHue(h)}
-                      aria-label={`hue ${h}`}
-                    />
-                  ))}
-                </div>
-              </div>
+          <div className="flex items-center gap-5">
+            {preview ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={preview}
+                alt="preview"
+                className="rounded-full object-cover"
+                style={{ width: 96, height: 96 }}
+              />
+            ) : (
+              <Avatar
+                name={username ?? '??'}
+                avatar={currentAvatar}
+                size={96}
+              />
+            )}
+            <div className="flex flex-col gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleFile}
+              />
+              <button
+                className="border border-gray-300 rounded px-4 py-2 hover:bg-gray-50 cursor-pointer self-start"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {t('profile.choosePhoto')}
+              </button>
+              <p className="text-sm text-gray-500">{t('profile.uploadHint')}</p>
             </div>
           </div>
+          {error && <p className="text-red-500">{error}</p>}
           <div className="flex items-center gap-3">
             <Button
               text={saving ? '…' : t('profile.save')}
               onClick={save}
-              disabled={saving}
+              disabled={saving || !preview}
             />
             {saved && (
               <span className="text-green-600">{t('profile.saved')}</span>
