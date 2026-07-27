@@ -48,7 +48,7 @@ function ChatUI() {
                   m.username === username ? 'text-blue-600' : 'text-gray-800'
                 }
               >
-                {m.username}
+                {m.displayName ?? m.username}
               </strong>
               : {m.text}
             </p>

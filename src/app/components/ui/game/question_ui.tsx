@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import BettingPanel from './betting_panel';
 import CodeDuelUI from './code_duel_ui';
 import DuelUI from './duel_ui';
@@ -77,6 +78,8 @@ function QuestionUI() {
     pickDurationMs,
   } = game;
 
+  const nameOf = (u: string | null | undefined) =>
+    displayNameOf(game.players, u);
   const answerRemaining = useCountdown(
     phase === 'question' ? answerEndsAt : null
   );
@@ -161,10 +164,10 @@ function QuestionUI() {
           {phase === 'betting'
             ? isAnswerer
               ? t('game.betsWaitSelf')
-              : t('game.betsWait', { name: answering ?? '' })
+              : t('game.betsWait', { name: nameOf(answering) })
             : isAnswerer
               ? t('game.yourTurn')
-              : t('game.answering', { name: answering ?? '' })}
+              : t('game.answering', { name: nameOf(answering) })}
         </div>
 
         {phase === 'betting' && (
@@ -199,16 +202,16 @@ function QuestionUI() {
           <div className="flex flex-col gap-1 text-gray-800 border-t pt-3">
             <p>
               {lastCorrect
-                ? t('game.correctPicks', { name: answering ?? '' })
+                ? t('game.correctPicks', { name: nameOf(answering) })
                 : t(timedOut ? 'game.timeoutLoses' : 'game.wrongLoses', {
-                    name: answering ?? '',
+                    name: nameOf(answering),
                     n: -answererDelta,
                   })}
             </p>
             {betOutcomes.map((b) => (
               <p key={b.username} className="text-sm">
                 {t(b.won ? 'game.betWon' : 'game.betLost', {
-                  name: b.username,
+                  name: nameOf(b.username),
                   n: b.amount,
                   bet: t(b.bet === 'correct' ? 'game.correctly' : 'game.wrong'),
                 })}
@@ -216,7 +219,9 @@ function QuestionUI() {
             ))}
             {eliminatedNow.length > 0 && (
               <p className="text-red-600 font-medium">
-                {t('game.brokeOut', { names: eliminatedNow.join(', ') })}
+                {t('game.brokeOut', {
+                  names: eliminatedNow.map(nameOf).join(', '),
+                })}
               </p>
             )}
           </div>
@@ -228,20 +233,20 @@ function QuestionUI() {
               <>
                 <p className="font-medium">{t('game.pickPrompt')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {pickChoices.map((name) => (
+                  {pickChoices.map((choice) => (
                     <button
-                      key={name}
+                      key={choice}
                       className="border rounded px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                      onClick={() => pickPlayer(name)}
+                      onClick={() => pickPlayer(choice)}
                     >
-                      {name}
+                      {nameOf(choice)}
                     </button>
                   ))}
                 </div>
               </>
             ) : (
               <p className="text-gray-600">
-                {t('game.picking', { name: picker ?? '' })}
+                {t('game.picking', { name: nameOf(picker) })}
               </p>
             )}
             {pickRemaining !== null && (

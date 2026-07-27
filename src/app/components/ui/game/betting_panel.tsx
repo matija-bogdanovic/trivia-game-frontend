@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { displayNameOf } from '@/app/redux/slicers/game_slice';
 
 const MIN_BET = 10;
 
@@ -15,6 +16,7 @@ function BettingPanel() {
     (state: RootState) => state.game
   );
   const me = players.find((p) => p.username === username);
+  const nameOf = (u: string | null | undefined) => displayNameOf(players, u);
   const [amount, setAmount] = useState(50);
 
   if (!me || !me.alive || me.money < MIN_BET || username === answering) {
@@ -30,7 +32,7 @@ function BettingPanel() {
           <span>
             {t('game.yourBet', {
               n: myBet.amount,
-              name: answering ?? '',
+              name: nameOf(answering),
               bet: t(
                 myBet.bet === 'correct' ? 'game.correctly' : 'game.wrong'
               ),
@@ -47,7 +49,7 @@ function BettingPanel() {
   return (
     <div className="border rounded p-3 flex flex-col gap-3 bg-gray-50">
       <p className="text-sm font-medium">
-        {t('game.betOn', { name: answering ?? '', n: me.money })}
+        {t('game.betOn', { name: nameOf(answering), n: me.money })}
       </p>
       <div className="flex items-center gap-2 flex-wrap">
         <input

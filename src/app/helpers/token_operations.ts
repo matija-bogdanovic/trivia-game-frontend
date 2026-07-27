@@ -3,21 +3,43 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { useEffect, useState } from 'react';
 
+export interface Identity {
+  /** unique account id (Cognito username) — the identity key everywhere */
+  username: string;
+  /** what other players see */
+  displayName: string;
+}
+
 /**
- * Resolve the signed-in player's username. Prefers the Amplify session
- * (current auth flow) and falls back to the legacy `token` cookie.
+ * Resolve the signed-in player's identity. The unique Cognito username is
+ * the key (display names like Google profile names can collide); the
+ * display name is only ever shown, never compared.
  */
-export async function getUsername(): Promise<string | null> {
+export async function getIdentity(): Promise<Identity | null> {
   try {
     const session = await fetchAuthSession();
     const payload = session.tokens?.idToken?.payload;
-    const name = payload?.['name'] ?? payload?.['cognito:username'];
-    if (typeof name === 'string' && name.length > 0) return name;
+    const username = payload?.['cognito:username'];
+    if (typeof username === 'string' && username.length > 0) {
+      const name = payload?.['name'];
+      return {
+        username,
+        displayName:
+          typeof name === 'string' && name.length > 0 ? name : username,
+      };
+    }
   } catch {
     // not signed in via Amplify — fall through to the cookie
   }
   const legacy = decodeJwt(getCookie('token'));
-  return legacy?.username ?? null;
+  if (legacy?.username) {
+    return { username: legacy.username, displayName: legacy.username };
+  }
+  return null;
+}
+
+export async function getUsername(): Promise<string | null> {
+  return (await getIdentity())?.username ?? null;
 }
 
 export function decodeJwt(token: string | null) {

@@ -11,22 +11,25 @@ function hashHue(name: string): number {
 }
 
 interface AvatarProps {
+  /** display name — used for initials and alt text */
   name: string;
+  /** unique account id — keys the uploaded image; defaults to name */
+  username?: string;
   /** avatar string from the profile ("u|<version>" = uploaded photo) */
   avatar?: string | null;
   size?: number;
 }
 
 /** Profile picture: the player's uploaded photo, a legacy emoji avatar,
- *  or deterministic initials derived from the username. */
-function Avatar({ name, avatar = null, size = 48 }: AvatarProps) {
+ *  or deterministic initials derived from the display name. */
+function Avatar({ name, username, avatar = null, size = 48 }: AvatarProps) {
   const info = decodeAvatar(avatar);
 
   if (info?.kind === 'upload') {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`${getPort()}/avatar/img/${encodeURIComponent(name)}?v=${info.version}`}
+        src={`${getPort()}/avatar/img/${encodeURIComponent(username ?? name)}?v=${info.version}`}
         alt={name}
         width={size}
         height={size}

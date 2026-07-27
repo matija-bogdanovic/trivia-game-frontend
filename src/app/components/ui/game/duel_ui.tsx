@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useCountdown } from './question_ui';
 
 /** head-to-head closest-guess round: both duelists type a number */
@@ -26,7 +27,9 @@ function DuelUI() {
     duelTie,
     duelLoserDelta,
     eliminatedNow,
+    players,
   } = useSelector((state: RootState) => state.game);
+  const nameOf = (u: string | null | undefined) => displayNameOf(players, u);
   const [guess, setGuess] = useState('');
   const remainingMs = useCountdown(phase === 'duel' ? answerEndsAt : null);
 
@@ -59,8 +62,8 @@ function DuelUI() {
 
         <div className="rounded px-3 py-2 text-sm bg-purple-600 text-white">
           {t('game.duelTitle', {
-            a: duelPlayers[0] ?? '',
-            b: duelPlayers[1] ?? '',
+            a: nameOf(duelPlayers[0]),
+            b: nameOf(duelPlayers[1]),
           })}
         </div>
 
@@ -103,8 +106,8 @@ function DuelUI() {
           ) : (
             <p className="text-gray-600">
               {t('game.duelWatch', {
-                a: duelPlayers[0] ?? '',
-                b: duelPlayers[1] ?? '',
+                a: nameOf(duelPlayers[0]),
+                b: nameOf(duelPlayers[1]),
               })}
             </p>
           ))}
@@ -117,9 +120,9 @@ function DuelUI() {
             {duelGuesses.map((g) => (
               <p key={g.username} className="text-sm">
                 {g.guess === null
-                  ? t('game.noGuess', { name: g.username })
+                  ? t('game.noGuess', { name: nameOf(g.username) })
                   : t('game.duelGuess', {
-                      name: g.username,
+                      name: nameOf(g.username),
                       g: g.guess,
                       d: g.diff ?? 0,
                     })}
@@ -129,14 +132,16 @@ function DuelUI() {
               {duelTie
                 ? t('game.duelTie')
                 : t('game.duelWin', {
-                    name: duelWinner ?? '',
-                    loser: duelLoser ?? '',
+                    name: nameOf(duelWinner),
+                    loser: nameOf(duelLoser),
                     n: -duelLoserDelta,
                   })}
             </p>
             {eliminatedNow.length > 0 && (
               <p className="text-red-600 font-medium">
-                {t('game.brokeOut', { names: eliminatedNow.join(', ') })}
+                {t('game.brokeOut', {
+                  names: eliminatedNow.map(nameOf).join(', '),
+                })}
               </p>
             )}
           </div>

@@ -13,6 +13,7 @@ amplifyConfigure();
 
 interface FriendRow {
   username: string;
+  displayName: string;
   online: boolean;
   points: number;
   currentStreak: number;
@@ -134,7 +135,11 @@ function Page() {
                 className="border rounded p-3 flex items-center gap-3"
               >
                 <div className="relative">
-                  <Avatar name={f.username} size={40} />
+                  <Avatar
+                    name={f.displayName}
+                    username={f.username}
+                    size={40}
+                  />
                   <span
                     className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
                       f.online ? 'bg-green-500' : 'bg-gray-300'
@@ -143,7 +148,7 @@ function Page() {
                   ></span>
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
-                  <span className="truncate font-medium">{f.username}</span>
+                  <span className="truncate font-medium">{f.displayName}</span>
                   <span className="text-sm text-gray-500">
                     {t('home.points', { n: f.points })} ·{' '}
                     {t('home.wins', { n: f.wins })}

@@ -20,13 +20,25 @@ export interface DuelGuess {
 }
 
 export interface GamePlayer {
+  /** unique account id — the identity key */
   username: string;
+  /** what's shown on screen */
+  displayName: string;
   avatar: string | null;
   money: number;
   alive: boolean;
   connected: boolean;
   isHost: boolean;
   streak: number;
+}
+
+/** what to call a player on screen, given their unique username */
+export function displayNameOf(
+  players: GamePlayer[],
+  username: string | null | undefined
+): string {
+  if (!username) return '';
+  return players.find((p) => p.username === username)?.displayName ?? username;
 }
 
 export interface AchievementNotice {
@@ -38,6 +50,7 @@ export interface AchievementNotice {
 export interface ChatMessage {
   /** null for system messages (joins, eliminations, ...) */
   username: string | null;
+  displayName?: string | null;
   text: string;
   at: number;
 }
@@ -402,6 +415,7 @@ const gameSlice = createSlice({
         case 'chat_message':
           state.chatMessages.push({
             username: message.username,
+            displayName: message.displayName ?? null,
             text: message.text,
             at: message.at,
           });

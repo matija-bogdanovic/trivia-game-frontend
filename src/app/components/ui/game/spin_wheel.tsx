@@ -61,9 +61,14 @@ function SpinWheel() {
                   : 'rounded-full'
               }
             >
-              <Avatar name={p.username} avatar={p.avatar} size={64} />
+              <Avatar
+                name={p.displayName}
+                username={p.username}
+                avatar={p.avatar}
+                size={64}
+              />
             </div>
-            <span className="text-white text-sm">{p.username}</span>
+            <span className="text-white text-sm">{p.displayName}</span>
           </div>
         ))}
       </div>

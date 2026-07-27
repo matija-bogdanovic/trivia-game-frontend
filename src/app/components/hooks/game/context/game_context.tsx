@@ -13,7 +13,7 @@ import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePathname, useRouter } from 'next/navigation';
 import { getPort, getWebSocketUrl } from '@/app/helpers/port';
-import { getUsername } from '@/app/helpers/token_operations';
+import { getIdentity } from '@/app/helpers/token_operations';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import {
   markGuessSubmitted,
@@ -25,6 +25,7 @@ import {
 
 export interface GameActions {
   username: string | null;
+  displayName: string | null;
   startGame: () => void;
   submitAnswer: (answer: string) => void;
   submitGuess: (value: number) => void;
@@ -54,9 +55,13 @@ export default function GameProvider({
 
   const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
   const [username, setUsername] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
-    getUsername().then(setUsername);
+    getIdentity().then((id) => {
+      setUsername(id?.username ?? null);
+      setDisplayName(id?.displayName ?? null);
+    });
   }, []);
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -71,9 +76,9 @@ export default function GameProvider({
   // from the wallet
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
-      sendJsonMessage({ type: 'join', username });
+      sendJsonMessage({ type: 'join', username, displayName });
     }
-  }, [username, readyState, sendJsonMessage]);
+  }, [username, displayName, readyState, sendJsonMessage]);
 
   useEffect(() => {
     if (!lastJsonMessage) return;
@@ -189,6 +194,7 @@ export default function GameProvider({
   const value = useMemo<GameActions>(
     () => ({
       username,
+      displayName,
       startGame,
       submitAnswer,
       submitGuess,
@@ -203,6 +209,7 @@ export default function GameProvider({
     }),
     [
       username,
+      displayName,
       startGame,
       submitAnswer,
       submitGuess,

@@ -45,10 +45,20 @@ function SideBar() {
   const { players, roomName, code, phase, minPlayers, round, answering } =
     useSelector((state: RootState) => state.game);
 
-  const sorted = [...players].sort((a, b) => {
-    if (a.alive !== b.alive) return a.alive ? -1 : 1;
-    return b.money - a.money;
-  });
+  // before the match: everyone sees themselves first, others in join
+  // order; once the game runs, ranking is alive-first then by money
+  const inLobby =
+    phase === 'lobby' || phase === 'countdown' || phase === 'connecting';
+  const sorted = inLobby
+    ? [...players].sort((a, b) => {
+        if (a.username === username) return -1;
+        if (b.username === username) return 1;
+        return 0;
+      })
+    : [...players].sort((a, b) => {
+        if (a.alive !== b.alive) return a.alive ? -1 : 1;
+        return b.money - a.money;
+      });
   const showLifeState = phase !== 'lobby' && phase !== 'connecting';
   const connectedCount = players.filter((p) => p.connected).length;
   const iAmHost =

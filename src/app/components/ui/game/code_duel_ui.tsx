@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useCountdown } from './question_ui';
 
 function FeedbackPegs({ exact, partial }: { exact: number; partial: number }) {
@@ -38,7 +39,9 @@ function CodeDuelUI() {
     eliminatedNow,
     answerEndsAt,
     answerDurationMs,
+    players,
   } = useSelector((state: RootState) => state.game);
+  const nameOf = (u: string | null | undefined) => displayNameOf(players, u);
 
   const [draft, setDraft] = useState<string[]>([]);
   const remainingMs = useCountdown(phase === 'duel' ? answerEndsAt : null);
@@ -71,8 +74,8 @@ function CodeDuelUI() {
 
         <div className="rounded px-3 py-2 text-sm bg-indigo-600 text-white">
           {t('game.codeDuelTitle', {
-            a: duelPlayers[0] ?? '',
-            b: duelPlayers[1] ?? '',
+            a: nameOf(duelPlayers[0]),
+            b: nameOf(duelPlayers[1]),
           })}
         </div>
 
@@ -138,8 +141,8 @@ function CodeDuelUI() {
         {phase === 'duel' && !amDueling && (
           <p className="text-gray-600">
             {t('game.duelWatch', {
-              a: duelPlayers[0] ?? '',
-              b: duelPlayers[1] ?? '',
+              a: nameOf(duelPlayers[0]),
+              b: nameOf(duelPlayers[1]),
             })}
           </p>
         )}
@@ -161,7 +164,7 @@ function CodeDuelUI() {
             .map((p) => (
               <div key={p} className="flex flex-col gap-1">
                 <h4 className="font-medium text-sm">
-                  {t('game.codeTheirTries', { name: p })}
+                  {t('game.codeTheirTries', { name: nameOf(p) })}
                 </h4>
                 {(codeProgress[p] ?? []).map((a, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -186,19 +189,21 @@ function CodeDuelUI() {
                 ? t('game.duelTie')
                 : codeCracked
                   ? t('game.codeCrackedBy', {
-                      name: duelWinner ?? '',
-                      loser: duelLoser ?? '',
+                      name: nameOf(duelWinner),
+                      loser: nameOf(duelLoser),
                       n: -duelLoserDelta,
                     })
                   : t('game.duelWin', {
-                      name: duelWinner ?? '',
-                      loser: duelLoser ?? '',
+                      name: nameOf(duelWinner),
+                      loser: nameOf(duelLoser),
                       n: -duelLoserDelta,
                     })}
             </p>
             {eliminatedNow.length > 0 && (
               <p className="text-red-600 font-medium">
-                {t('game.brokeOut', { names: eliminatedNow.join(', ') })}
+                {t('game.brokeOut', {
+                  names: eliminatedNow.map(nameOf).join(', '),
+                })}
               </p>
             )}
           </div>

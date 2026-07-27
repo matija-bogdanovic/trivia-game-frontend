@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
-import { getUsername } from '@/app/helpers/token_operations';
+import { getIdentity } from '@/app/helpers/token_operations';
 import { getPort } from '@/app/helpers/port';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/components/ui/game/avatar';
@@ -19,6 +19,7 @@ interface LobbyPreview {
 
 interface LeaderboardRow {
   username: string;
+  displayName: string;
   wins: number;
   gamesPlayed: number;
   coins: number;
@@ -30,13 +31,17 @@ function Page() {
   const { t } = useT();
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [lobbies, setLobbies] = useState<LobbyPreview[]>([]);
   const [leaders, setLeaders] = useState<LeaderboardRow[]>([]);
   const [joining, setJoining] = useState<number | null>(null);
   const [joinError, setJoinError] = useState('');
 
   useEffect(() => {
-    getUsername().then(setUsername);
+    getIdentity().then((id) => {
+      setUsername(id?.username ?? null);
+      setDisplayName(id?.displayName ?? null);
+    });
     const port = getPort();
     const load = async () => {
       try {
@@ -91,7 +96,7 @@ function Page() {
       <div className="container flex flex-col gap-8 pb-16">
         <p className="text-xl">
           {username
-            ? t('home.hello', { name: username })
+            ? t('home.hello', { name: displayName ?? username })
             : t('home.noToken')}
         </p>
 
@@ -145,9 +150,13 @@ function Page() {
                     <span className="w-6 text-center font-semibold">
                       {i + 1}.
                     </span>
-                    <Avatar name={row.username} size={32} />
+                    <Avatar
+                      name={row.displayName}
+                      username={row.username}
+                      size={32}
+                    />
                     <span className="flex-1 truncate">
-                      {row.username}
+                      {row.displayName}
                       {row.currentStreak > 0 && (
                         <span className="ml-1 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">
                           🔥{row.currentStreak}

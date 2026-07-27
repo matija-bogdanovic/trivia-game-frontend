@@ -38,10 +38,14 @@ export function Player({
           : 'border-dashed border-gray-400 opacity-60'
       }`}
     >
-      <Avatar name={player.username} avatar={player.avatar} />
+      <Avatar
+        name={player.displayName}
+        username={player.username}
+        avatar={player.avatar}
+      />
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-center gap-1">
-          <h4 className="font-medium truncate">{player.username}</h4>
+          <h4 className="font-medium truncate">{player.displayName}</h4>
           {player.isHost && (
             <span title="Host" aria-label="Host">
               👑

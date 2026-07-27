@@ -8,6 +8,7 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import {
   clearAchievementNotice,
   clearError,
+  displayNameOf,
 } from '@/app/redux/slicers/game_slice';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import React from 'react';
@@ -34,6 +35,7 @@ function Page() {
     achievementNotice,
     kicked,
     terminated,
+    players,
   } = useSelector((state: RootState) => state.game);
 
   // achievement toasts dismiss themselves
@@ -77,7 +79,9 @@ function Page() {
               {winner
                 ? winner === username
                   ? t('game.youWin')
-                  : t('game.winner', { name: winner })
+                  : t('game.winner', {
+                      name: displayNameOf(standings, winner),
+                    })
                 : t('game.gameOver')}
             </h2>
             <p className="text-center text-gray-500">
@@ -92,9 +96,14 @@ function Page() {
                   <span className="w-6 text-center font-semibold">
                     {i + 1}.
                   </span>
-                  <Avatar name={p.username} avatar={p.avatar} size={32} />
+                  <Avatar
+                    name={p.displayName}
+                    username={p.username}
+                    avatar={p.avatar}
+                    size={32}
+                  />
                   <span className="flex-1 truncate">
-                    {p.username}
+                    {p.displayName}
                     {p.username === username && (
                       <span className="text-sm text-gray-500">
                         {' '}
@@ -122,7 +131,7 @@ function Page() {
       {achievementNotice && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-20 bg-amber-500 text-white px-4 py-2 rounded shadow max-w-[90vw]">
           {t('game.achUnlocked', {
-            name: achievementNotice.username,
+            name: displayNameOf(players, achievementNotice.username),
             items: achievementNotice.ids
               .map((id, i) => {
                 const translated = t(`ach.${id}`);

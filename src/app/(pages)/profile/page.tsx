@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
-import { getUsername } from '@/app/helpers/token_operations';
+import { getIdentity } from '@/app/helpers/token_operations';
 import { fileToDataUrl } from '@/app/helpers/avatar';
 import Avatar from '@/app/components/ui/game/avatar';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
@@ -28,6 +28,7 @@ interface WalletInfo {
 function Page() {
   const { t } = useT();
   const [username, setUsername] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [currentAvatar, setCurrentAvatar] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   /** original picked image, being adjusted in the crop modal */
@@ -40,14 +41,18 @@ function Page() {
 
   useEffect(() => {
     async function load() {
-      const name = await getUsername();
-      setUsername(name);
-      if (name) {
+      const id = await getIdentity();
+      setUsername(id?.username ?? null);
+      setDisplayName(id?.displayName ?? null);
+      if (id) {
         try {
           const res = await fetch(`${getPort()}/wallet`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: name }),
+            body: JSON.stringify({
+              username: id.username,
+              displayName: id.displayName,
+            }),
           });
           if (res.ok) {
             const data: WalletInfo = await res.json();
@@ -120,7 +125,7 @@ function Page() {
       <div className="container flex flex-col gap-8 pb-16">
         <div>
           <h5 className="text-gray-500">{t('profile.title')}</h5>
-          <h1 className="text-[32px] font-bold">{username ?? ''}</h1>
+          <h1 className="text-[32px] font-bold">{displayName ?? ''}</h1>
         </div>
 
         <div className="flex flex-col gap-4 border rounded p-4 max-w-xl">
@@ -136,7 +141,8 @@ function Page() {
               />
             ) : (
               <Avatar
-                name={username ?? '??'}
+                name={displayName ?? '??'}
+                username={username ?? undefined}
                 avatar={currentAvatar}
                 size={96}
               />
