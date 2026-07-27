@@ -33,6 +33,7 @@ function Page() {
   const [lobbies, setLobbies] = useState<LobbyPreview[]>([]);
   const [leaders, setLeaders] = useState<LeaderboardRow[]>([]);
   const [joining, setJoining] = useState<number | null>(null);
+  const [joinError, setJoinError] = useState('');
 
   useEffect(() => {
     getUsername().then(setUsername);
@@ -58,6 +59,7 @@ function Page() {
   const joinLobby = async (code: number) => {
     if (!username || joining) return;
     setJoining(code);
+    setJoinError('');
     try {
       const res = await fetch(`${getPort()}/joinRoom`, {
         method: 'POST',
@@ -68,8 +70,18 @@ function Page() {
         router.push(`/game/${code}`);
         return;
       }
+      const data = await res.json().catch(() => ({}));
+      setJoinError(data.message ?? t('home.joinFailed'));
+      // the lobby may have vanished — refresh the list right away
+      try {
+        const lobbyRes = await fetch(`${getPort()}/lobbies`);
+        if (lobbyRes.ok) setLobbies((await lobbyRes.json()).lobbies ?? []);
+      } catch {
+        // list refresh is best-effort
+      }
     } catch (err) {
       console.error('Join failed:', err);
+      setJoinError(t('join.network'));
     }
     setJoining(null);
   };
@@ -86,6 +98,10 @@ function Page() {
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
           <div className="flex flex-col gap-3">
             <h2 className="text-2xl font-bold">{t('home.lobbies')}</h2>
+            {!username && (
+              <p className="text-sm text-gray-500">{t('home.signInToJoin')}</p>
+            )}
+            {joinError && <p className="text-red-500">{joinError}</p>}
             {lobbies.length === 0 ? (
               <p className="text-gray-500">{t('home.noLobbies')}</p>
             ) : (
