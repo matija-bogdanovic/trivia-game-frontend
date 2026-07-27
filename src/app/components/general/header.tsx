@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession, signOut } from 'aws-amplify/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -57,6 +57,19 @@ function Header() {
               <Link href="/joingame">{t('nav.join')}</Link>
               <Link href="/shop">{t('nav.shop')}</Link>
               <Link href="/friends">{t('nav.friends')}</Link>
+              <button
+                className="text-sm text-gray-500 hover:text-gray-800 cursor-pointer"
+                onClick={async () => {
+                  try {
+                    await signOut();
+                  } finally {
+                    setDecodedToken(null);
+                    router.push('/login');
+                  }
+                }}
+              >
+                {t('nav.signout')}
+              </button>
             </>
           ) : (
             <>

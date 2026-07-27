@@ -20,6 +20,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'nav.shop': 'Shop',
     'nav.login': 'Login',
     'nav.signup': 'Signup',
+    'nav.signout': 'Sign out',
     // home
     'home.hello': 'Hello {name}!',
     'home.noToken': 'No token found.',
@@ -254,6 +255,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'nav.shop': 'Prodavnica',
     'nav.login': 'Prijava',
     'nav.signup': 'Registracija',
+    'nav.signout': 'Odjava',
     'home.hello': 'Zdravo {name}!',
     'home.noToken': 'Niste prijavljeni.',
     'home.lobbies': 'Aktivne sobe',
