@@ -99,7 +99,9 @@ function Page() {
       setSaved(true);
     } catch (err) {
       console.error('Avatar upload failed:', err);
-      setError(t('profile.uploadFailed'));
+      const detail =
+        err instanceof Error && err.message ? ` (${err.message})` : '';
+      setError(`${t('profile.uploadFailed')}${detail}`);
     } finally {
       setSaving(false);
     }

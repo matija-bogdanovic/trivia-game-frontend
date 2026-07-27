@@ -25,7 +25,14 @@ export const amplifyConfigure = () => {
               domain:
                 process.env.NEXT_PUBLIC_COGNITO_DOMAIN ||
                 'eu-west-3uylh5zfuk.auth.eu-west-3.amazoncognito.com',
-              scopes: ['openid', 'email', 'profile'],
+              scopes: [
+                'openid',
+                'email',
+                'profile',
+                // required so federated (Google) users can update their
+                // own attributes, e.g. saving a profile picture
+                'aws.cognito.signin.user.admin',
+              ],
               redirectSignIn: [APP_URL],
               redirectSignOut: [APP_URL],
               responseType: 'code',
