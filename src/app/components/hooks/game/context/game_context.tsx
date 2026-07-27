@@ -14,7 +14,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { usePathname, useRouter } from 'next/navigation';
 import { getPort, getWebSocketUrl } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
-import { getMyAvatar } from '@/app/helpers/avatar';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import {
   markGuessSubmitted,
@@ -55,11 +54,9 @@ export default function GameProvider({
 
   const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
   const [username, setUsername] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
     getUsername().then(setUsername);
-    getMyAvatar().then(setAvatar);
   }, []);
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useWebSocket(
@@ -70,12 +67,13 @@ export default function GameProvider({
   );
 
   // join (or rejoin after a reconnect) once the socket is open and the
-  // username has been resolved
+  // username has been resolved; the server hydrates avatar + streak
+  // from the wallet
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
-      sendJsonMessage({ type: 'join', username, avatar });
+      sendJsonMessage({ type: 'join', username });
     }
-  }, [username, avatar, readyState, sendJsonMessage]);
+  }, [username, readyState, sendJsonMessage]);
 
   useEffect(() => {
     if (!lastJsonMessage) return;

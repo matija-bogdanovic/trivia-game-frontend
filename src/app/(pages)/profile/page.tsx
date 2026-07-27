@@ -3,12 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getUsername } from '@/app/helpers/token_operations';
-import {
-  encodeUploadAvatar,
-  fileToDataUrl,
-  getMyAvatar,
-  saveMyAvatar,
-} from '@/app/helpers/avatar';
+import { fileToDataUrl } from '@/app/helpers/avatar';
 import Avatar from '@/app/components/ui/game/avatar';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
 import Button from '@/app/components/general/button';
@@ -20,6 +15,7 @@ amplifyConfigure();
 interface WalletInfo {
   credits: number;
   coins: number;
+  avatar: string | null;
   wins: number;
   gamesPlayed: number;
   points: number;
@@ -46,7 +42,6 @@ function Page() {
     async function load() {
       const name = await getUsername();
       setUsername(name);
-      setCurrentAvatar(await getMyAvatar());
       if (name) {
         try {
           const res = await fetch(`${getPort()}/wallet`, {
@@ -54,7 +49,11 @@ function Page() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: name }),
           });
-          if (res.ok) setWallet(await res.json());
+          if (res.ok) {
+            const data: WalletInfo = await res.json();
+            setWallet(data);
+            setCurrentAvatar(data.avatar);
+          }
         } catch {
           // wallet display is optional
         }
@@ -92,9 +91,8 @@ function Page() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message ?? 'upload failed');
       }
-      const { version } = await res.json();
-      await saveMyAvatar(encodeUploadAvatar(version));
-      setCurrentAvatar(encodeUploadAvatar(version));
+      const { avatar } = await res.json();
+      setCurrentAvatar(avatar);
       setPreview(null);
       setSaved(true);
     } catch (err) {

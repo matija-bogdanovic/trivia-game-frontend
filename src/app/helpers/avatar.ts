@@ -1,8 +1,6 @@
 'use client';
 
-import { fetchUserAttributes, updateUserAttributes } from 'aws-amplify/auth';
-
-/** the avatar string stored in the Cognito `picture` attribute:
+/** the avatar string stored in the player's wallet:
  *  - "u|<version>"     uploaded photo, served from the backend
  *  - "e|<emoji>|<hue>" legacy emoji avatar (still rendered)
  *  - anything else     initials fallback */
@@ -25,23 +23,6 @@ export function decodeAvatar(
     return { kind: 'emoji', emoji, hue };
   }
   return null;
-}
-
-export function encodeUploadAvatar(version: number | string): string {
-  return `u|${version}`;
-}
-
-export async function getMyAvatar(): Promise<string | null> {
-  try {
-    const attrs = await fetchUserAttributes();
-    return attrs.picture ?? null;
-  } catch {
-    return null;
-  }
-}
-
-export async function saveMyAvatar(avatar: string): Promise<void> {
-  await updateUserAttributes({ userAttributes: { picture: avatar } });
 }
 
 /** read a picked file into a data URL for the cropper */
