@@ -1,10 +1,11 @@
 'use client';
 
 import { fetchAuthSession, signOut } from 'aws-amplify/auth';
+import { Hub } from 'aws-amplify/utils';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useT } from '@/app/lib/i18n';
 
 function Header() {
@@ -15,24 +16,29 @@ function Header() {
   const [decodedToken, setDecodedToken] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkUserSession = async () => {
-      try {
-        const session = await fetchAuthSession();
-        console.log(session);
-        const idToken = session.tokens?.accessToken.payload;
-        console.log(idToken);
-        setDecodedToken(idToken);
-      } catch (error) {
-        console.log(error);
-        setDecodedToken(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUserSession();
+  const checkUserSession = useCallback(async () => {
+    try {
+      const session = await fetchAuthSession();
+      setDecodedToken(session.tokens?.accessToken.payload ?? null);
+    } catch {
+      setDecodedToken(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // re-check on every navigation AND on auth events (manual sign-in,
+  // Google redirect completion, sign-out) so the header is never stale
+  useEffect(() => {
+    checkUserSession();
+  }, [checkUserSession, pathname]);
+
+  useEffect(() => {
+    const unsubscribe = Hub.listen('auth', () => {
+      checkUserSession();
+    });
+    return unsubscribe;
+  }, [checkUserSession]);
 
   useEffect(() => {
     if (loading) return;

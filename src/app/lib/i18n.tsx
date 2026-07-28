@@ -34,6 +34,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'home.noLeaders': 'Nobody has played yet.',
     'home.joinFailed': "Couldn't join — that lobby may no longer exist.",
     'home.signInToJoin': 'Sign in to join a lobby.',
+    'reconnect.text': 'You have a game in progress in "{name}"!',
+    'reconnect.button': 'Reconnect',
     // create room
     'create.roomName': 'Room name',
     'create.create': 'Create room',
@@ -270,6 +272,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'home.noLeaders': 'Još niko nije igrao.',
     'home.joinFailed': 'Ulazak nije uspeo — soba možda više ne postoji.',
     'home.signInToJoin': 'Prijavi se da bi ušao/la u sobu.',
+    'reconnect.text': 'Imaš partiju u toku u sobi „{name}"!',
+    'reconnect.button': 'Vrati se',
     'create.roomName': 'Ime sobe',
     'create.create': 'Napravi sobu',
     'create.credits': 'Krediti za sobe: {n}',
