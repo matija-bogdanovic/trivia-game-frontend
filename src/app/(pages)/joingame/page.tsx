@@ -22,6 +22,8 @@ function Page() {
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [needPassword, setNeedPassword] = useState(false);
+  const [password, setPassword] = useState('');
   const port = getPort();
   const router = useRouter();
 
@@ -59,6 +61,7 @@ function Page() {
           id: username,
           roomCode: code.trim(),
           username,
+          password: needPassword ? password : undefined,
         }),
       });
 
@@ -67,7 +70,14 @@ function Page() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       if (res.ok) {
-        router.push(`/game/${code}`);
+        router.push(`/game/${data.lobbyId ?? code}`);
+      } else if (res.status === 401) {
+        setNeedPassword(true);
+        setError(t('join.passwordNeeded'));
+        setLoading(false);
+      } else if (res.status === 403) {
+        setError(t('join.wrongPassword'));
+        setLoading(false);
       } else {
         setError(data.message || t('join.failed'));
         setLoading(false);
@@ -101,6 +111,15 @@ function Page() {
             className={'border border-gray-300 rounded px-2 py-1'}
             maxLength={13}
           />
+          {needPassword && (
+            <Input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('create.passwordPlaceholder')}
+              type={'password'}
+              className={'border border-gray-300 rounded px-2 py-1'}
+            />
+          )}
           {error && (
             <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded px-3 py-2">
               {error}

@@ -23,8 +23,9 @@ amplifyConfigure();
 
 function Page() {
   const { t } = useT();
-  const { leaveRoom, playAgain, username } = useGame();
+  const { leaveRoom, playAgain, username, joinWithPassword } = useGame();
   const dispatch = useDispatch<AppDispatch>();
+  const [roomPassword, setRoomPassword] = React.useState('');
   const {
     phase,
     countdown,
@@ -36,6 +37,7 @@ function Page() {
     kicked,
     terminated,
     players,
+    joinDenied,
   } = useSelector((state: RootState) => state.game);
 
   // achievement toasts dismiss themselves
@@ -51,6 +53,47 @@ function Page() {
       <QuestionUI />
       <LeaveButton />
       <StartButton />
+
+      {joinDenied && !kicked && !terminated && (
+        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.6)] flex justify-center items-center">
+          <form
+            className="flex flex-col gap-4 bg-white rounded-md p-6 max-w-sm w-full"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (roomPassword) joinWithPassword(roomPassword);
+            }}
+          >
+            <h3 className="font-semibold text-lg">
+              🔒 {t('game.passwordTitle')}
+            </h3>
+            {joinDenied === 'wrong_password' && (
+              <p className="text-red-500">{t('join.wrongPassword')}</p>
+            )}
+            <input
+              type="password"
+              value={roomPassword}
+              onChange={(e) => setRoomPassword(e.target.value)}
+              placeholder={t('create.passwordPlaceholder')}
+              className="border border-gray-300 rounded px-3 py-2"
+              autoFocus
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
+                onClick={leaveRoom}
+              >
+                {t('game.leave')}
+              </button>
+              <Button
+                text={t('game.enterRoom')}
+                type="submit"
+                disabled={!roomPassword}
+              />
+            </div>
+          </form>
+        </div>
+      )}
 
       {(kicked || terminated) && (
         <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.6)] flex justify-center items-center">

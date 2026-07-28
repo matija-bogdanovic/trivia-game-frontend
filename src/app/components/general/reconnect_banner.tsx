@@ -7,6 +7,7 @@ import { getPort } from '@/app/helpers/port';
 import { useT } from '@/app/lib/i18n';
 
 interface DroppedGame {
+  lobbyId: string | null;
   code: number;
   roomName: string;
   phase: string;
@@ -60,7 +61,7 @@ function ReconnectBanner() {
       <span>⏳ {t('reconnect.text', { name: room.roomName })}</span>
       <button
         className="bg-white text-blue-700 rounded px-3 py-1 font-medium cursor-pointer"
-        onClick={() => router.push(`/game/${room.code}`)}
+        onClick={() => router.push(`/game/${room.lobbyId ?? room.code}`)}
       >
         {t('reconnect.button')}
       </button>

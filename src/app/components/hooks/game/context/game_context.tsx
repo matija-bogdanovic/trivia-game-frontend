@@ -30,6 +30,7 @@ export interface GameActions {
   submitAnswer: (answer: string) => void;
   submitGuess: (value: number) => void;
   submitCode: (guess: string[]) => void;
+  joinWithPassword: (password: string) => void;
   placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
   pickPlayer: (target: string) => void;
   kickPlayer: (target: string) => void;
@@ -56,6 +57,9 @@ export default function GameProvider({
   const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
   const [username, setUsername] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
+  /** password for private rooms, kept for reconnect re-joins */
+  const passwordRef = useRef<string | null>(null);
+  const roomCode = useSelector((state: RootState) => state.game.code);
 
   useEffect(() => {
     getIdentity().then((id) => {
@@ -76,9 +80,24 @@ export default function GameProvider({
   // from the wallet
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
-      sendJsonMessage({ type: 'join', username, displayName });
+      sendJsonMessage({
+        type: 'join',
+        username,
+        displayName,
+        password: passwordRef.current ?? undefined,
+      });
     }
   }, [username, displayName, readyState, sendJsonMessage]);
+
+  const joinWithPassword = useCallback(
+    (password: string) => {
+      passwordRef.current = password;
+      if (username) {
+        sendJsonMessage({ type: 'join', username, displayName, password });
+      }
+    },
+    [username, displayName, sendJsonMessage]
+  );
 
   useEffect(() => {
     if (!lastJsonMessage) return;
@@ -178,18 +197,18 @@ export default function GameProvider({
 
   const leaveRoom = useCallback(() => {
     sendJsonMessage({ type: 'leave' });
-    const code = window.location.pathname.split('/')[2];
-    if (username && code) {
+    // the URL carries the lobby id; the REST cleanup wants the numeric code
+    if (username && roomCode !== null) {
       fetch(`${getPort()}/leaveRoom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, username }),
+        body: JSON.stringify({ code: roomCode, username }),
         keepalive: true,
       }).catch(() => {});
     }
     dispatch(resetGame());
     router.push('/');
-  }, [sendJsonMessage, username, dispatch, router]);
+  }, [sendJsonMessage, username, roomCode, dispatch, router]);
 
   const value = useMemo<GameActions>(
     () => ({
@@ -199,6 +218,7 @@ export default function GameProvider({
       submitAnswer,
       submitGuess,
       submitCode,
+      joinWithPassword,
       placeBet,
       pickPlayer,
       kickPlayer,
@@ -214,6 +234,7 @@ export default function GameProvider({
       submitAnswer,
       submitGuess,
       submitCode,
+      joinWithPassword,
       placeBet,
       pickPlayer,
       kickPlayer,

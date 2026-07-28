@@ -14,6 +14,8 @@ amplifyConfigure();
 function Page() {
   const { t } = useT();
   const [roomName, setRoomName] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [password, setPassword] = useState('');
   const [username, setUsername] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -55,6 +57,10 @@ function Page() {
       setError(t('create.tooShort'));
       return;
     }
+    if (isPrivate && password.length < 4) {
+      setError(t('create.passwordShort'));
+      return;
+    }
     if (!username || !roomName || isCreating) return;
 
     setIsCreating(true);
@@ -81,6 +87,8 @@ function Page() {
           playerId: username,
           roomName: roomName,
           createdBy: username,
+          isPrivate,
+          password: isPrivate ? password : undefined,
         }),
       });
 
@@ -101,7 +109,7 @@ function Page() {
 
       if (typeof data.creditsLeft === 'number') setCredits(data.creditsLeft);
       clearInterval(messageInterval);
-      router.push(`/game/${data.roomCode}`);
+      router.push(`/game/${data.lobbyId ?? data.roomCode}`);
     } catch (error) {
       console.error(error);
       clearInterval(messageInterval);
@@ -129,6 +137,42 @@ function Page() {
             maxLength={13}
             disabled={isCreating}
           />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className={`px-4 py-2 rounded border cursor-pointer ${
+                !isPrivate
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+              onClick={() => setIsPrivate(false)}
+              disabled={isCreating}
+            >
+              {t('create.public')}
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 rounded border cursor-pointer ${
+                isPrivate
+                  ? 'border-blue-600 bg-blue-50'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+              onClick={() => setIsPrivate(true)}
+              disabled={isCreating}
+            >
+              {t('create.private')}
+            </button>
+          </div>
+          {isPrivate && (
+            <Input
+              type={'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('create.passwordPlaceholder')}
+              className={'border border-gray-300 rounded px-2 py-1'}
+              disabled={isCreating}
+            />
+          )}
           {error && <p className="text-red-500">{error}</p>}
           <Button
             text={isCreating ? currentMessage : t('create.create')}

@@ -43,8 +43,16 @@ function SideBar() {
       body: JSON.stringify({ username, target, action: 'request' }),
     }).catch(() => {});
   };
-  const { players, roomName, code, phase, minPlayers, round, answering } =
-    useSelector((state: RootState) => state.game);
+  const {
+    players,
+    roomName,
+    code,
+    phase,
+    minPlayers,
+    round,
+    answering,
+    isPrivate,
+  } = useSelector((state: RootState) => state.game);
 
   // before the match: everyone sees themselves first, others in join
   // order; once the game runs, ranking is alive-first then by money
@@ -145,7 +153,9 @@ function SideBar() {
       <ChatUI />
       <div className="flex flex-col gap-2 h-auto p-4 border">
         <h4 className="font-semibold">{t('game.roomInfo')}</h4>
-        <p>{t('game.roomName', { name: roomName || '—' })}</p>
+        <p>
+          {isPrivate ? '🔒' : '🌐'} {t('game.roomName', { name: roomName || '—' })}
+        </p>
         <p>{t('game.roomCode', { code: code ?? '—' })}</p>
         {round > 0 && <p>{t('game.round', { n: round })}</p>}
         {canModerate &&

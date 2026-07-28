@@ -11,10 +11,12 @@ import Avatar from '@/app/components/ui/game/avatar';
 amplifyConfigure();
 
 interface LobbyPreview {
+  lobbyId: string;
   code: number;
   roomName: string;
   playerCount: number;
   phase: string;
+  isPrivate: boolean;
 }
 
 interface LeaderboardRow {
@@ -36,6 +38,8 @@ function Page() {
   const [leaders, setLeaders] = useState<LeaderboardRow[]>([]);
   const [joining, setJoining] = useState<number | null>(null);
   const [joinError, setJoinError] = useState('');
+  const [passwordFor, setPasswordFor] = useState<number | null>(null);
+  const [roomPassword, setRoomPassword] = useState('');
 
   useEffect(() => {
     getIdentity().then((id) => {
@@ -61,22 +65,41 @@ function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  const joinLobby = async (code: number) => {
+  const joinLobby = async (lobby: LobbyPreview) => {
     if (!username || joining) return;
-    setJoining(code);
+    // private rooms open a password field first
+    if (lobby.isPrivate && passwordFor !== lobby.code) {
+      setPasswordFor(lobby.code);
+      setRoomPassword('');
+      setJoinError('');
+      return;
+    }
+    setJoining(lobby.code);
     setJoinError('');
     try {
       const res = await fetch(`${getPort()}/joinRoom`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: username, roomCode: code, username }),
+        body: JSON.stringify({
+          id: username,
+          roomCode: lobby.code,
+          username,
+          password: lobby.isPrivate ? roomPassword : undefined,
+        }),
       });
       if (res.ok) {
-        router.push(`/game/${code}`);
+        const data = await res.json();
+        router.push(`/game/${data.lobbyId ?? lobby.code}`);
         return;
       }
       const data = await res.json().catch(() => ({}));
-      setJoinError(data.message ?? t('home.joinFailed'));
+      const message =
+        data.message === 'password_required'
+          ? t('join.passwordNeeded')
+          : data.message === 'wrong_password'
+            ? t('join.wrongPassword')
+            : (data.message ?? t('home.joinFailed'));
+      setJoinError(message);
       // the lobby may have vanished — refresh the list right away
       try {
         const lobbyRes = await fetch(`${getPort()}/lobbies`);
@@ -117,19 +140,33 @@ function Page() {
                     className="border rounded p-3 flex items-center justify-between gap-3"
                   >
                     <div className="flex flex-col">
-                      <strong>{lobby.roomName}</strong>
+                      <strong>
+                        {lobby.isPrivate ? '🔒' : '🌐'} {lobby.roomName}
+                      </strong>
                       <span className="text-sm text-gray-500">
                         #{lobby.code} ·{' '}
                         {t('home.players', { n: lobby.playerCount })}
                       </span>
                     </div>
-                    <button
-                      className="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 transition cursor-pointer disabled:opacity-40"
-                      disabled={joining !== null || !username}
-                      onClick={() => joinLobby(lobby.code)}
-                    >
-                      {joining === lobby.code ? '…' : t('home.join')}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {passwordFor === lobby.code && (
+                        <input
+                          type="password"
+                          value={roomPassword}
+                          onChange={(e) => setRoomPassword(e.target.value)}
+                          placeholder={t('create.passwordPlaceholder')}
+                          className="border border-gray-300 rounded px-2 py-1 w-36"
+                          autoFocus
+                        />
+                      )}
+                      <button
+                        className="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 transition cursor-pointer disabled:opacity-40"
+                        disabled={joining !== null || !username}
+                        onClick={() => joinLobby(lobby)}
+                      >
+                        {joining === lobby.code ? '…' : t('home.join')}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

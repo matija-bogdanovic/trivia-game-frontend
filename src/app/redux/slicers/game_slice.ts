@@ -133,6 +133,8 @@ export interface GameState {
   duelLoserDelta: number;
   kicked: boolean;
   terminated: boolean;
+  isPrivate: boolean;
+  joinDenied: 'password_required' | 'wrong_password' | null;
   error: string | null;
 }
 
@@ -193,6 +195,8 @@ const initialState: GameState = {
   duelLoserDelta: 0,
   kicked: false,
   terminated: false,
+  isPrivate: false,
+  joinDenied: null,
   error: null,
 };
 
@@ -212,6 +216,8 @@ const gameSlice = createSlice({
           state.phase = message.phase;
           state.roomName = message.roomName;
           state.code = message.code;
+          state.isPrivate = message.isPrivate ?? false;
+          state.joinDenied = null;
           state.minPlayers = message.minPlayers;
           state.players = message.players;
           state.round = message.round;
@@ -433,6 +439,9 @@ const gameSlice = createSlice({
             ids: message.achievements.map((a: { id: string }) => a.id),
             names: message.achievements.map((a: { name: string }) => a.name),
           };
+          break;
+        case 'join_denied':
+          state.joinDenied = message.reason ?? 'password_required';
           break;
         case 'kicked':
           state.kicked = true;
