@@ -49,6 +49,7 @@ function SideBar() {
     code,
     phase,
     minPlayers,
+    maxPlayers,
     round,
     answering,
     isPrivate,
@@ -81,7 +82,7 @@ function SideBar() {
       <aside className="border border-gray p-4 gap-3 flex flex-col flex-1 overflow-auto">
         <div className="flex items-center justify-between">
           <h4 className="font-semibold">
-            {t('game.players', { n: activePlayers.length })}
+            {t('game.players', { n: activePlayers.length, max: maxPlayers })}
           </h4>
         </div>
         {phase === 'connecting' ? (

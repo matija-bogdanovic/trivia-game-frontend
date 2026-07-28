@@ -73,6 +73,7 @@ export interface GameState {
   roomName: string;
   code: number | null;
   minPlayers: number;
+  maxPlayers: number;
   players: GamePlayer[];
   round: number;
   countdown: number | null;
@@ -134,7 +135,7 @@ export interface GameState {
   kicked: boolean;
   terminated: boolean;
   isPrivate: boolean;
-  joinDenied: 'password_required' | 'wrong_password' | null;
+  joinDenied: 'password_required' | 'wrong_password' | 'room_full' | null;
   error: string | null;
 }
 
@@ -143,6 +144,7 @@ const initialState: GameState = {
   roomName: '',
   code: null,
   minPlayers: 2,
+  maxPlayers: 6,
   players: [],
   round: 0,
   countdown: null,
@@ -219,6 +221,7 @@ const gameSlice = createSlice({
           state.isPrivate = message.isPrivate ?? false;
           state.joinDenied = null;
           state.minPlayers = message.minPlayers;
+          state.maxPlayers = message.maxPlayers ?? 6;
           state.players = message.players;
           state.round = message.round;
           if (message.phase === 'lobby') {

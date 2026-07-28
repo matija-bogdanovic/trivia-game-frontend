@@ -78,6 +78,9 @@ function Page() {
       } else if (res.status === 403) {
         setError(t('join.wrongPassword'));
         setLoading(false);
+      } else if (res.status === 409) {
+        setError(t('join.roomFull'));
+        setLoading(false);
       } else {
         setError(data.message || t('join.failed'));
         setLoading(false);

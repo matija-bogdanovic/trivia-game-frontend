@@ -98,7 +98,9 @@ function Page() {
           ? t('join.passwordNeeded')
           : data.message === 'wrong_password'
             ? t('join.wrongPassword')
-            : (data.message ?? t('home.joinFailed'));
+            : data.message === 'room_full'
+              ? t('join.roomFull')
+              : (data.message ?? t('home.joinFailed'));
       setJoinError(message);
       // the lobby may have vanished — refresh the list right away
       try {

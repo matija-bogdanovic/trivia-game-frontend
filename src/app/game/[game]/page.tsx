@@ -63,34 +63,48 @@ function Page() {
               if (roomPassword) joinWithPassword(roomPassword);
             }}
           >
-            <h3 className="font-semibold text-lg">
-              🔒 {t('game.passwordTitle')}
-            </h3>
-            {joinDenied === 'wrong_password' && (
-              <p className="text-red-500">{t('join.wrongPassword')}</p>
+            {joinDenied === 'room_full' ? (
+              <>
+                <h3 className="font-semibold text-lg">
+                  🚫 {t('join.roomFullTitle')}
+                </h3>
+                <p className="text-gray-600">{t('join.roomFull')}</p>
+                <div className="flex justify-end">
+                  <Button text={t('game.leave')} onClick={leaveRoom} />
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 className="font-semibold text-lg">
+                  🔒 {t('game.passwordTitle')}
+                </h3>
+                {joinDenied === 'wrong_password' && (
+                  <p className="text-red-500">{t('join.wrongPassword')}</p>
+                )}
+                <input
+                  type="password"
+                  value={roomPassword}
+                  onChange={(e) => setRoomPassword(e.target.value)}
+                  placeholder={t('create.passwordPlaceholder')}
+                  className="border border-gray-300 rounded px-3 py-2"
+                  autoFocus
+                />
+                <div className="flex gap-3 justify-end">
+                  <button
+                    type="button"
+                    className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
+                    onClick={leaveRoom}
+                  >
+                    {t('game.leave')}
+                  </button>
+                  <Button
+                    text={t('game.enterRoom')}
+                    type="submit"
+                    disabled={!roomPassword}
+                  />
+                </div>
+              </>
             )}
-            <input
-              type="password"
-              value={roomPassword}
-              onChange={(e) => setRoomPassword(e.target.value)}
-              placeholder={t('create.passwordPlaceholder')}
-              className="border border-gray-300 rounded px-3 py-2"
-              autoFocus
-            />
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
-                onClick={leaveRoom}
-              >
-                {t('game.leave')}
-              </button>
-              <Button
-                text={t('game.enterRoom')}
-                type="submit"
-                disabled={!roomPassword}
-              />
-            </div>
           </form>
         </div>
       )}
