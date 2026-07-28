@@ -1,6 +1,7 @@
 'use client';
 
 import { useGame } from '@/app/components/hooks/game/context/game_context';
+import Avatar from '@/app/components/ui/game/avatar';
 import ChatUI from '@/app/components/ui/game/chat_ui';
 import { Player } from '@/app/components/ui/game/player_ui';
 import { RootState } from '@/app/redux/store';
@@ -49,13 +50,15 @@ function SideBar() {
   // order; once the game runs, ranking is alive-first then by money
   const inLobby =
     phase === 'lobby' || phase === 'countdown' || phase === 'connecting';
+  const activePlayers = players.filter((p) => !p.isSpectator);
+  const spectators = players.filter((p) => p.isSpectator);
   const sorted = inLobby
-    ? [...players].sort((a, b) => {
+    ? [...activePlayers].sort((a, b) => {
         if (a.username === username) return -1;
         if (b.username === username) return 1;
         return 0;
       })
-    : [...players].sort((a, b) => {
+    : [...activePlayers].sort((a, b) => {
         if (a.alive !== b.alive) return a.alive ? -1 : 1;
         return b.money - a.money;
       });
@@ -70,7 +73,7 @@ function SideBar() {
       <aside className="border border-gray p-4 gap-3 flex flex-col flex-1 overflow-auto">
         <div className="flex items-center justify-between">
           <h4 className="font-semibold">
-            {t('game.players', { n: players.length })}
+            {t('game.players', { n: activePlayers.length })}
           </h4>
         </div>
         {phase === 'connecting' ? (
@@ -111,6 +114,30 @@ function SideBar() {
                   b: minPlayers,
                 })}
               </p>
+            )}
+            {spectators.length > 0 && (
+              <div className="flex flex-col gap-1 border-t pt-2 mt-1">
+                <h5 className="text-sm font-medium text-gray-500">
+                  {t('game.spectators', { n: spectators.length })}
+                </h5>
+                {spectators.map((s) => (
+                  <div
+                    key={s.username}
+                    className="flex items-center gap-2 text-sm text-gray-600"
+                  >
+                    <Avatar
+                      name={s.displayName}
+                      username={s.username}
+                      avatar={s.avatar}
+                      size={24}
+                    />
+                    <span className="truncate">
+                      {s.displayName}
+                      {s.username === username && <> {t('game.you')}</>}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
           </>
         )}

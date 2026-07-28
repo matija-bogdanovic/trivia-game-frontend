@@ -30,6 +30,7 @@ export interface GamePlayer {
   connected: boolean;
   isHost: boolean;
   streak: number;
+  isSpectator: boolean;
 }
 
 /** what to call a player on screen, given their unique username */
