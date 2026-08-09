@@ -24,15 +24,11 @@
     "ws": "^8.18.2"
   },
   "devDependencies": {
-    "@aws-amplify/backend": "^1.16.1",
-    "@aws-amplify/backend-cli": "^1.8.0",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^20",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
-    "aws-cdk-lib": "^2.204.0",
-    "constructs": "^10.4.2",
     "esbuild": "^0.25.10",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
