@@ -1,5 +1,97 @@
 @import 'tailwindcss';
 
+@theme {
+  /* keeps the font-sans utility in step with the app font below */
+  --font-sans: var(--font-play), ui-sans-serif, system-ui, sans-serif;
+  --color-forest-green: #228b22;
+  /* text sitting directly on the green, vs. text on a light card */
+  --color-on-green: #ffffff;
+  --color-on-surface: #171717;
+}
+
+html {
+  /* the UI is designed light (white cards, gray text) — don't let a dark-mode
+     browser flip the default text and form colors on top of the green */
+  color-scheme: light;
+}
+
+body {
+  /* Play (loaded in layout.tsx) is the app font. Set here rather than only via
+     --font-sans: Tailwind's preflight inlines its own stack onto html, so the
+     theme variable alone would lose to it. */
+  font-family: var(--font-play), ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-forest-green);
+  color: var(--color-on-green);
+  min-height: 100vh;
+}
+
+/*
+ * Text colour is decided by what is BEHIND it, and the surface list below is
+ * the single place that knows the difference.
+ *
+ * Elements with no colour of their own just inherit `color`. Elements carrying
+ * a text-gray utility can't inherit, so those utilities are
+ * re-pointed at variables instead of fixed values: on the green they resolve
+ * to white, and any light surface re-declares them for its whole subtree.
+ * Because custom properties inherit, this keeps working at any nesting depth
+ * without a selector per surface-and-shade combination.
+ *
+ * hover:bg-gray-50 is in the list because those buttons are transparent (white
+ * text) until hovered, at which point they gain a near-white background.
+ */
+:root {
+  --ui-gray-400: var(--color-on-green);
+  --ui-gray-500: var(--color-on-green);
+  --ui-gray-600: var(--color-on-green);
+  --ui-gray-700: var(--color-on-green);
+  --ui-gray-800: var(--color-on-green);
+}
+
+:is(
+  .bg-white,
+  .bg-white\/80,
+  .bg-gray-50,
+  .bg-gray-100,
+  .bg-gray-200,
+  .bg-amber-50,
+  .bg-blue-50,
+  .bg-red-50
+),
+.hover\:bg-gray-50:hover {
+  color: var(--color-on-surface);
+  --ui-gray-400: var(--color-gray-400, #9ca3af);
+  --ui-gray-500: var(--color-gray-500, #6b7280);
+  --ui-gray-600: var(--color-gray-600, #4b5563);
+  --ui-gray-700: var(--color-gray-700, #374151);
+  --ui-gray-800: var(--color-gray-800, #1f2937);
+}
+
+.text-gray-400 {
+  color: var(--ui-gray-400);
+}
+.text-gray-500 {
+  color: var(--ui-gray-500);
+}
+.text-gray-600 {
+  color: var(--ui-gray-600);
+}
+.text-gray-700 {
+  color: var(--ui-gray-700);
+}
+.text-gray-800 {
+  color: var(--ui-gray-800);
+}
+
+/* on green the placeholder needs to be legible without reading as real input */
+::placeholder {
+  color: color-mix(in srgb, var(--color-on-green) 75%, transparent);
+}
+
+.bg-white ::placeholder,
+.bg-gray-50 ::placeholder {
+  color: color-mix(in srgb, var(--color-on-surface) 55%, transparent);
+}
+
 .section {
   padding-left: 80px;
   padding-right: 80px;

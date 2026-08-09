@@ -6,7 +6,7 @@ import ChatUI from '@/app/components/ui/game/chat_ui';
 import { Player } from '@/app/components/ui/game/player_ui';
 import { RootState } from '@/app/redux/store';
 import { useT } from '@/app/lib/i18n';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -19,11 +19,7 @@ function SideBar() {
 
   useEffect(() => {
     if (!username) return;
-    fetch(`${getPort()}/friends/list`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username }),
-    })
+    apiFetch('/friends/list')
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data)
@@ -37,10 +33,8 @@ function SideBar() {
   const addFriend = (target: string) => {
     if (!username) return;
     setRequested((prev) => new Set(prev).add(target));
-    fetch(`${getPort()}/friends/action`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, target, action: 'request' }),
+    apiFetch('/friends/action', {
+      body: { target, action: 'request' },
     }).catch(() => {});
   };
   const {

@@ -24,6 +24,9 @@ interface InputTypes {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   pattern?: string;
   inputRef?: React.RefObject<HTMLInputElement | null>;
+  /** what the browser/password manager should offer here — "username",
+   *  "email", "new-password", "current-password", "one-time-code", … */
+  autoComplete?: string;
 }
 
 export const Input: React.FC<InputTypes> = ({
@@ -44,6 +47,9 @@ export const Input: React.FC<InputTypes> = ({
   inputMode,
   pattern,
   inputRef,
+  // opt in per field: a blanket "current-password" made browsers offer saved
+  // passwords on username/email/code fields and blocked new-password prompts
+  autoComplete = 'off',
   className,
 }) => {
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -84,7 +90,7 @@ export const Input: React.FC<InputTypes> = ({
           onInput={onInput}
           name={name}
           checked={checked}
-          autoComplete="current-password"
+          autoComplete={autoComplete}
           placeholder={placeholder}
           className={className}
           maxLength={maxLength}

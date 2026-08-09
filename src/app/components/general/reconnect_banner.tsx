@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getIdentity } from '@/app/helpers/token_operations';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 
 interface DroppedGame {
@@ -28,11 +28,7 @@ function ReconnectBanner() {
         setRoom(null);
         return;
       }
-      const res = await fetch(`${getPort()}/myActiveRoom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: id.username }),
-      });
+      const res = await apiFetch('/myActiveRoom');
       if (res.ok) {
         setRoom((await res.json()).room ?? null);
       }

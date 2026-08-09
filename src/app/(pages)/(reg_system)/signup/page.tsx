@@ -77,10 +77,11 @@ export default function SignUp() {
           autoSignIn: true,
         },
       });
-      // the confirm page needs these to verify and resend codes
+      // the confirm page needs these to verify and resend codes; the query
+      // param is the fallback when the link is opened in another tab
       sessionStorage.setItem('signupUsername', username.trim());
       sessionStorage.setItem('signupEmail', email.trim());
-      router.push('/confirm');
+      router.push(`/confirm?u=${encodeURIComponent(username.trim())}`);
     } catch (err) {
       console.error('Signup error:', err);
       const key = authErrorKey(err);
@@ -92,7 +93,7 @@ export default function SignUp() {
 
   const goConfirmExisting = () => {
     sessionStorage.setItem('signupUsername', username.trim());
-    router.push('/confirm');
+    router.push(`/confirm?u=${encodeURIComponent(username.trim())}`);
   };
 
   return (
@@ -118,6 +119,7 @@ export default function SignUp() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder={t('auth.namePlaceholder')}
+          autoComplete="username"
           className="border border-gray-300 rounded px-2 py-1"
         />
         <Input
@@ -125,6 +127,7 @@ export default function SignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={t('auth.emailPlaceholder')}
+          autoComplete="email"
           className="border border-gray-300 rounded px-2 py-1"
         />
         <Input
@@ -132,13 +135,18 @@ export default function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={t('auth.passwordPlaceholder')}
+          autoComplete="new-password"
           className="border border-gray-300 rounded px-2 py-1"
         />
+        <p className="text-xs text-gray-500 max-w-xs text-center">
+          {t('auth.passwordHint')}
+        </p>
         <Input
           type="password"
           value={repeatPass}
           onChange={(e) => setRepeatPass(e.target.value)}
           placeholder={t('auth.repeatPlaceholder')}
+          autoComplete="new-password"
           className="border border-gray-300 rounded px-2 py-1"
         />
         <div className="flex flex-col items-center">

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getIdentity } from '@/app/helpers/token_operations';
 import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/components/ui/game/avatar';
 
@@ -77,15 +78,12 @@ function Page() {
     setJoining(lobby.code);
     setJoinError('');
     try {
-      const res = await fetch(`${getPort()}/joinRoom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const res = await apiFetch('/joinRoom', {
+        body: {
           id: username,
           roomCode: lobby.code,
-          username,
           password: lobby.isPrivate ? roomPassword : undefined,
-        }),
+        },
       });
       if (res.ok) {
         const data = await res.json();

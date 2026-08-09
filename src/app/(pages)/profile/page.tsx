@@ -7,7 +7,10 @@ import { fileToDataUrl } from '@/app/helpers/avatar';
 import Avatar from '@/app/components/ui/game/avatar';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
 import Button from '@/app/components/general/button';
-import { getPort } from '@/app/helpers/port';
+import MatchHistory, {
+  MatchHistoryEntry,
+} from '@/app/components/ui/profile/match_history';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
@@ -18,6 +21,8 @@ interface WalletInfo {
   avatar: string | null;
   wins: number;
   gamesPlayed: number;
+  roundsPlayed: number;
+  matchHistory: MatchHistoryEntry[];
   points: number;
   currentStreak: number;
   bestStreak: number;
@@ -46,13 +51,8 @@ function Page() {
       setDisplayName(id?.displayName ?? null);
       if (id) {
         try {
-          const res = await fetch(`${getPort()}/wallet`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              username: id.username,
-              displayName: id.displayName,
-            }),
+          const res = await apiFetch('/wallet', {
+            body: { displayName: id.displayName },
           });
           if (res.ok) {
             const data: WalletInfo = await res.json();
@@ -66,6 +66,30 @@ function Page() {
     }
     load();
   }, []);
+
+  const winRate =
+    wallet && wallet.gamesPlayed > 0
+      ? Math.round((wallet.wins / wallet.gamesPlayed) * 100)
+      : 0;
+  const avgRounds =
+    wallet && wallet.gamesPlayed > 0
+      ? Math.round((wallet.roundsPlayed / wallet.gamesPlayed) * 10) / 10
+      : 0;
+
+  /** one line about how this player plays, from their own numbers */
+  const summaryLine = () => {
+    if (!wallet || wallet.gamesPlayed === 0) return t('profile.noGames');
+    const vars = {
+      name: displayName ?? '',
+      games: wallet.gamesPlayed,
+      rounds: wallet.roundsPlayed,
+      rate: winRate,
+      best: wallet.bestStreak,
+    };
+    if (wallet.gamesPlayed < 5) return t('summary.rookie', vars);
+    if (winRate >= 50) return t('summary.sharp', vars);
+    return t('summary.regular', vars);
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -87,11 +111,7 @@ function Page() {
     setError('');
     setSaved(false);
     try {
-      const res = await fetch(`${getPort()}/avatar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, image: preview }),
-      });
+      const res = await apiFetch('/avatar', { body: { image: preview } });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.message ?? 'upload failed');
@@ -178,6 +198,27 @@ function Page() {
         </div>
 
         {wallet && (
+          <div className="flex flex-col gap-2 border rounded p-4 max-w-xl">
+            <h3 className="font-semibold">{t('profile.summary')}</h3>
+            <p className="text-gray-600">{summaryLine()}</p>
+            <div className="flex gap-6 flex-wrap pt-1">
+              <span>
+                {t('profile.winRate')}: <strong>{winRate}%</strong>
+              </span>
+              <span>
+                {t('profile.games')}: <strong>{wallet.gamesPlayed}</strong>
+              </span>
+              <span>
+                {t('profile.rounds')}: <strong>{wallet.roundsPlayed}</strong>
+              </span>
+              <span>
+                {t('profile.avgRounds')}: <strong>{avgRounds}</strong>
+              </span>
+            </div>
+          </div>
+        )}
+
+        {wallet && (
           <div className="flex gap-4 flex-wrap">
             <div className="border rounded p-4 min-w-[200px]">
               <h3 className="font-semibold mb-2">{t('profile.wallet')}</h3>
@@ -212,6 +253,13 @@ function Page() {
               </p>
             </div>
           </div>
+        )}
+
+        {wallet && username && (
+          <MatchHistory
+            history={wallet.matchHistory ?? []}
+            username={username}
+          />
         )}
 
         {wallet && (

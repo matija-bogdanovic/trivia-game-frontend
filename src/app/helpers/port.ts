@@ -2,58 +2,62 @@
 
 import { useEffect, useState } from 'react';
 
-export function getPort(): string {
-  // Server-side: always use environment-based logic with fallbacks
+/**
+ * Where the game backend lives. Set NEXT_PUBLIC_API_URL (e.g. on Vercel) to
+ * point a deployment at its own backend — preview builds, a staging server, a
+ * self-hosted box. NEXT_PUBLIC_* is inlined at build time, so this resolves in
+ * the browser too.
+ *
+ * Without it we fall back to the historical behaviour: localhost in dev, the
+ * Render deployment otherwise.
+ */
+const CONFIGURED_API_URL = process.env.NEXT_PUBLIC_API_URL?.trim();
+const FALLBACK_LOCAL = 'http://localhost:3001';
+const FALLBACK_REMOTE = 'https://whoisfaster.onrender.com';
+
+/** no trailing slash — callers append paths like `${getPort()}/wallet` */
+function normalize(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
+function resolveApiUrl(): string {
+  if (CONFIGURED_API_URL) return normalize(CONFIGURED_API_URL);
+
+  // Server-side: no window to inspect, so go by the build environment
   if (typeof window === 'undefined') {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    return nodeEnv === 'production'
-      ? 'https://whoisfaster.onrender.com'
-      : 'http://localhost:3001';
+    return process.env.NODE_ENV === 'production'
+      ? FALLBACK_REMOTE
+      : FALLBACK_LOCAL;
   }
 
-  // Client-side: use window properties with fallbacks
-  const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
   const isLocalhost =
     window.location.hostname === 'localhost' ||
     window.location.hostname === '127.0.0.1';
+  if (isLocalhost) return FALLBACK_LOCAL;
+  // keep the page's scheme so an https page never makes an insecure call
+  const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+  return `${protocol}://${FALLBACK_REMOTE.replace(/^https?:\/\//, '')}`;
+}
 
-  const host = isLocalhost ? 'localhost:3001' : 'whoisfaster.onrender.com';
-
-  return `${protocol}://${host}`;
+export function getPort(): string {
+  return resolveApiUrl();
 }
 
 export function getWebSocketPort(): string {
-  // Server-side: determine based on environment
-  if (typeof window === 'undefined') {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    return nodeEnv === 'production' ? 'wss' : 'ws';
-  }
-
-  // Client-side: determine based on current protocol
-  return window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return resolveApiUrl().startsWith('https') ? 'wss' : 'ws';
 }
 
 export function getWebSocketUrl(path: string): string {
-  return getPort().replace(/^http/, 'ws') + path;
+  return resolveApiUrl().replace(/^http/, 'ws') + path;
 }
 
-// Alternative: Use a hook for client-side only usage
+/** hook form, for components that only want the URL after mount */
 export function usePort(): string | null {
   const [port, setPort] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only run on client-side
-    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-    const isLocalhost =
-      window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1';
-
-    const host = isLocalhost ? 'localhost:3001' : 'whoisfaster.onrender.com';
-    setPort(`${protocol}://${host}`);
+    setPort(resolveApiUrl());
   }, []);
 
   return port;
 }
-
-// You'll need to import useState and useEffect if using the hook:
-// import { useState, useEffect } from 'react';

@@ -2,6 +2,7 @@
 
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
+import { authErrorKey } from '@/app/helpers/auth_errors';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
 import { confirmResetPassword, resetPassword } from 'aws-amplify/auth';
@@ -9,6 +10,10 @@ import Link from 'next/link';
 import React, { FormEvent, useState } from 'react';
 
 amplifyConfigure();
+
+// same policy the pool enforces, checked here so the user finds out before
+// the round trip instead of via a raw Cognito error
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 type Step = 'request' | 'confirm' | 'done';
 
@@ -30,7 +35,8 @@ function Page() {
       await resetPassword({ username: username.trim() });
       setStep('confirm');
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      console.error('Reset request failed:', err);
+      setError(t(authErrorKey(err)));
     } finally {
       setBusy(false);
     }
@@ -38,6 +44,10 @@ function Page() {
 
   const confirm = async (e: FormEvent) => {
     e.preventDefault();
+    if (!PASSWORD_RE.test(newPassword)) {
+      setError(t('authError.passwordWeak'));
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -48,7 +58,8 @@ function Page() {
       });
       setStep('done');
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      console.error('Reset confirm failed:', err);
+      setError(t(authErrorKey(err)));
     } finally {
       setBusy(false);
     }
@@ -69,6 +80,7 @@ function Page() {
                 placeholder={t('auth.username')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
                 className={'border border-gray-300 rounded px-2 py-1'}
               />
               <Button
@@ -91,6 +103,8 @@ function Page() {
                 placeholder={t('reset.code')}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
+                autoComplete="one-time-code"
+                inputMode="numeric"
                 className={'border border-gray-300 rounded px-2 py-1'}
               />
               <Input
@@ -98,8 +112,12 @@ function Page() {
                 placeholder={t('reset.newPassword')}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
                 className={'border border-gray-300 rounded px-2 py-1'}
               />
+              <p className="text-xs text-gray-500 max-w-xs text-center">
+                {t('auth.passwordHint')}
+              </p>
               <Button
                 text={busy ? '…' : t('reset.confirm')}
                 type="submit"

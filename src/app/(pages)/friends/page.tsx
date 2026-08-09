@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getUsername } from '@/app/helpers/token_operations';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/components/ui/game/avatar';
 import Button from '@/app/components/general/button';
@@ -29,12 +29,8 @@ function Page() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const load = useCallback(async (name: string) => {
-    const res = await fetch(`${getPort()}/friends/list`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name }),
-    });
+  const load = useCallback(async () => {
+    const res = await apiFetch('/friends/list');
     if (res.ok) {
       const data = await res.json();
       setFriends(data.friends ?? []);
@@ -45,7 +41,7 @@ function Page() {
   useEffect(() => {
     getUsername().then((name) => {
       setUsername(name);
-      if (name) load(name).catch(console.error);
+      if (name) load().catch(console.error);
     });
   }, [load]);
 
@@ -54,10 +50,8 @@ function Page() {
     setError('');
     setMessage('');
     try {
-      const res = await fetch(`${getPort()}/friends/action`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, target, action: act }),
+      const res = await apiFetch('/friends/action', {
+        body: { target, action: act },
       });
       const data = await res.json();
       if (!res.ok) {
@@ -68,7 +62,7 @@ function Page() {
         );
         setAddName('');
       }
-      await load(username);
+      await load();
     } catch {
       setError('Network error');
     }

@@ -12,8 +12,9 @@ import React, {
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useDispatch, useSelector } from 'react-redux';
 import { usePathname, useRouter } from 'next/navigation';
-import { getPort, getWebSocketUrl } from '@/app/helpers/port';
+import { getWebSocketUrl } from '@/app/helpers/port';
 import { getIdentity } from '@/app/helpers/token_operations';
+import { apiFetch, getAccessToken } from '@/app/helpers/api';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import {
   markGuessSubmitted,
@@ -75,28 +76,39 @@ export default function GameProvider({
     }
   );
 
-  // join (or rejoin after a reconnect) once the socket is open and the
-  // username has been resolved; the server hydrates avatar + streak
-  // from the wallet
-  useEffect(() => {
-    if (username && readyState === ReadyState.OPEN) {
+  /**
+   * The server reads the player's identity off this token, so the join has to
+   * carry a fresh one — Amplify refreshes it behind getAccessToken(), which
+   * matters on a long game or after a reconnect. displayName stays cosmetic.
+   */
+  const sendJoin = useCallback(
+    async (password?: string) => {
+      const token = await getAccessToken();
+      if (!token) return;
       sendJsonMessage({
         type: 'join',
-        username,
+        token,
         displayName,
-        password: passwordRef.current ?? undefined,
+        password: password ?? passwordRef.current ?? undefined,
       });
+    },
+    [displayName, sendJsonMessage]
+  );
+
+  // join (or rejoin after a reconnect) once the socket is open and the
+  // identity has resolved; the server hydrates avatar + streak from the wallet
+  useEffect(() => {
+    if (username && readyState === ReadyState.OPEN) {
+      void sendJoin();
     }
-  }, [username, displayName, readyState, sendJsonMessage]);
+  }, [username, readyState, sendJoin]);
 
   const joinWithPassword = useCallback(
     (password: string) => {
       passwordRef.current = password;
-      if (username) {
-        sendJsonMessage({ type: 'join', username, displayName, password });
-      }
+      void sendJoin(password);
     },
-    [username, displayName, sendJsonMessage]
+    [sendJoin]
   );
 
   useEffect(() => {
@@ -199,12 +211,7 @@ export default function GameProvider({
     sendJsonMessage({ type: 'leave' });
     // the URL carries the lobby id; the REST cleanup wants the numeric code
     if (username && roomCode !== null) {
-      fetch(`${getPort()}/leaveRoom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: roomCode, username }),
-        keepalive: true,
-      }).catch(() => {});
+      apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(() => {});
     }
     dispatch(resetGame());
     router.push('/');
