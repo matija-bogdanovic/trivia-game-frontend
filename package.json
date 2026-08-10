@@ -10,6 +10,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@aws-amplify/plugin-types": "^1.12.2",
     "@reduxjs/toolkit": "^2.8.2",
     "agentation": "^3.0.2",
     "aws-amplify": "^6.15.7",

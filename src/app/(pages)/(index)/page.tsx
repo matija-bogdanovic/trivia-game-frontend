@@ -43,6 +43,8 @@ function Page() {
   const [roomPassword, setRoomPassword] = useState('');
 
   useEffect(() => {
+    const identity = getIdentity();
+    console.log(identity);
     getIdentity().then((id) => {
       setUsername(id?.username ?? null);
       setDisplayName(id?.displayName ?? null);
