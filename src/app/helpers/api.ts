@@ -1,7 +1,6 @@
 'use client';
 
 import { fetchAuthSession } from 'aws-amplify/auth';
-import { getPort } from './port';
 
 /**
  * The caller's Cognito access token. Amplify refreshes it behind
@@ -34,9 +33,13 @@ export async function apiFetch(
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  return fetch(`${getPort()}${path}`, {
-    method: options.method ?? 'POST',
-    headers,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-  });
+  return fetch(
+    `https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/${path}`,
+    {
+      method: options.method ?? 'POST',
+      headers,
+      body:
+        options.body === undefined ? undefined : JSON.stringify(options.body),
+    }
+  );
 }

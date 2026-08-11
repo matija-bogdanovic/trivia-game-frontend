@@ -1,6 +1,5 @@
 import React from 'react';
 import { decodeAvatar } from '@/app/helpers/avatar';
-import { getPort } from '@/app/helpers/port';
 
 function hashHue(name: string): number {
   let hash = 0;
@@ -29,7 +28,7 @@ function Avatar({ name, username, avatar = null, size = 48 }: AvatarProps) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`${getPort()}/avatar/img/${encodeURIComponent(username ?? name)}?v=${info.version}`}
+        src={`https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/avatar/img/${encodeURIComponent(username ?? name)}?v=${info.version}`}
         alt={name}
         width={size}
         height={size}

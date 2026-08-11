@@ -8,11 +8,7 @@ import {
   googleAuthEnabled,
 } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
-import {
-  fetchAuthSession,
-  signInWithRedirect,
-  signUp,
-} from 'aws-amplify/auth';
+import { fetchAuthSession, signInWithRedirect, signUp } from 'aws-amplify/auth';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { FormEvent, useEffect, useState } from 'react';
@@ -98,6 +94,34 @@ export default function SignUp() {
 
   return (
     <>
+      <button
+        onClick={async () => {
+          await fetch(
+            'https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/getData',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: 915185,
+                username: 'Matija',
+                email: 'matijabogdanovic4@gmail.com',
+                password: 'Matija123!',
+              }),
+            }
+          ).then(async (response) => {
+            if (response.ok) {
+              const data = await response.json();
+
+              console.log('Full data:', data);
+              console.log('Code:', data[0].code);
+            }
+          });
+        }}
+      >
+        Press me!
+      </button>
       <form
         className="flex flex-col gap-3 justify-center items-center w-full h-[89vh]"
         onSubmit={handleSubmit}
