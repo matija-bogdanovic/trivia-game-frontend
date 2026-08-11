@@ -84,6 +84,7 @@ function Page() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder={t('auth.username')}
+            autoComplete="username"
             className={'border border-gray-300 rounded px-2 py-1'}
           />
           <Input
@@ -91,6 +92,7 @@ function Page() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder={t('auth.password')}
+            autoComplete="current-password"
             className={'border border-gray-300 rounded px-2 py-1'}
           />
           <div className="flex flex-col items-center">

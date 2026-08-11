@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getIdentity } from '@/app/helpers/token_operations';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/components/ui/game/avatar';
 
@@ -42,17 +42,27 @@ function Page() {
   const [roomPassword, setRoomPassword] = useState('');
 
   useEffect(() => {
+    const identity = getIdentity();
+    console.log(identity);
     getIdentity().then((id) => {
       setUsername(id?.username ?? null);
       setDisplayName(id?.displayName ?? null);
     });
-    const port = getPort();
     const load = async () => {
       try {
         const [lobbyRes, leaderRes] = await Promise.all([
-          fetch(`${port}/lobbies`),
-          fetch(`${port}/leaderboard`),
+          fetch(
+            `https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/getEveryLobby`,
+            {
+              method: 'POST',
+              body: JSON.stringify({ username }),
+            }
+          ),
+          fetch(
+            `https://t8rq39b02a.execute-api.eu-west-3.amazonaws.com/default/getEveryLeaderboard`
+          ),
         ]);
+        console.log(lobbyRes, leaderRes)
         if (lobbyRes.ok) setLobbies((await lobbyRes.json()).lobbies ?? []);
         if (leaderRes.ok)
           setLeaders((await leaderRes.json()).leaderboard ?? []);
@@ -77,15 +87,12 @@ function Page() {
     setJoining(lobby.code);
     setJoinError('');
     try {
-      const res = await fetch(`${getPort()}/joinRoom`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const res = await apiFetch('/joinRoom', {
+        body: {
           id: username,
           roomCode: lobby.code,
-          username,
           password: lobby.isPrivate ? roomPassword : undefined,
-        }),
+        },
       });
       if (res.ok) {
         const data = await res.json();
@@ -104,7 +111,9 @@ function Page() {
       setJoinError(message);
       // the lobby may have vanished — refresh the list right away
       try {
-        const lobbyRes = await fetch(`${getPort()}/lobbies`);
+        const lobbyRes = await fetch(
+          `https://t8rq39b02a.execute-api.eu-west-3.amazonaws.com/default/getEveryLobby`
+        );
         if (lobbyRes.ok) setLobbies((await lobbyRes.json()).lobbies ?? []);
       } catch {
         // list refresh is best-effort

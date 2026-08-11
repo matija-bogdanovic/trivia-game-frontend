@@ -1,5 +1,3 @@
-import { getPort } from '@/app/helpers/port';
-import { decodeJwt, getCookie } from '@/app/helpers/token_operations';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export interface RoomState {
@@ -45,16 +43,6 @@ const roomOperations = createSlice({
     setUsername: (state, action) => {
       state.username = action.payload;
     },
-    setTokenDetails: (state) => {
-      const cookie = getCookie('token');
-      const token = decodeJwt(cookie);
-      const port = getPort();
-      const code = window.location.pathname.split('/')[2];
-      state.code = code;
-      state.username = token.username;
-      state.port = port;
-      state.decodedToken = cookie as string;
-    },
     cancelLeave: (state) => {
       state.cancel = true;
       state.overlayText = 'Are you sure you want to leave the room?';
@@ -82,6 +70,5 @@ export const {
   setLoading,
   answerCorrect,
   setRoomCode,
-  setTokenDetails,
 } = roomOperations.actions;
 export default roomOperations.reducer;

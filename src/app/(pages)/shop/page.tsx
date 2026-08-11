@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { getUsername } from '@/app/helpers/token_operations';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { useT } from '@/app/lib/i18n';
 
 amplifyConfigure();
@@ -30,19 +30,15 @@ function Page() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
 
-  const loadWallet = async (name: string) => {
-    const res = await fetch(`${getPort()}/wallet`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: name }),
-    });
+  const loadWallet = async () => {
+    const res = await apiFetch('/wallet');
     if (res.ok) setWallet(await res.json());
   };
 
   useEffect(() => {
     getUsername().then((name) => {
       setUsername(name);
-      if (name) loadWallet(name).catch(console.error);
+      if (name) loadWallet().catch(console.error);
     });
   }, []);
 
@@ -51,16 +47,12 @@ function Page() {
     setBusy(itemId);
     setError('');
     try {
-      const res = await fetch(`${getPort()}/shop/buy`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, itemId }),
-      });
+      const res = await apiFetch('/shop/buy', { body: { itemId } });
       const data = await res.json();
       if (!res.ok) {
         setError(data.message ?? 'Purchase failed');
       } else {
-        await loadWallet(username);
+        await loadWallet();
       }
     } catch {
       setError('Network error');

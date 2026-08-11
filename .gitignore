@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...except the documented template of which keys a deployment needs
+!.env.example
 
 # vercel
 .vercel
@@ -41,6 +43,8 @@ yarn-error.log*
 next-env.d.ts
 
 # amplify
+# dead Gen2 scaffolding; files are root-owned so they need `sudo rm -rf amplify`
+/amplify
 .amplify
 amplify_outputs*
 amplifyconfiguration*

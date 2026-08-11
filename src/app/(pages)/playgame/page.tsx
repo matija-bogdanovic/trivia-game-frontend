@@ -2,7 +2,7 @@
 
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { getUsername } from '@/app/helpers/token_operations';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -35,11 +35,7 @@ function Page() {
       setUsername(name);
       if (!name) return;
       try {
-        const res = await fetch(`${getPort()}/wallet`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: name }),
-        });
+        const res = await apiFetch('/wallet');
         if (res.ok) setCredits((await res.json()).credits);
       } catch {
         // credits display is optional
@@ -76,20 +72,13 @@ function Page() {
     try {
       await delay(1000);
 
-      const port = getPort();
-
-      const res = await fetch(`${port}/createRoom`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const res = await apiFetch('/createRoom', {
+        body: {
           playerId: username,
           roomName: roomName,
-          createdBy: username,
           isPrivate,
           password: isPrivate ? password : undefined,
-        }),
+        },
       });
 
       const data = await res.json();

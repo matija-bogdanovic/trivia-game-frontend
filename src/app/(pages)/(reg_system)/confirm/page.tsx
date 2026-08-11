@@ -30,12 +30,17 @@ function Page() {
     []
   );
 
-  // set by the signup page; if someone lands here directly we ask instead
+  // set by the signup page; the ?u= param covers landing here in a fresh tab,
+  // and we only ask for it by hand when neither is available
   useEffect(() => {
-    setUsername(sessionStorage.getItem('signupUsername') ?? '');
+    const fromQuery = new URLSearchParams(window.location.search).get('u');
+    setUsername(fromQuery ?? sessionStorage.getItem('signupUsername') ?? '');
   }, []);
 
-  const handleVerify = async () => {
+  const codeValue = code.join('');
+  const isComplete = codeValue.length === 6 && code.every((c) => c !== '');
+
+  const handleVerify = useCallback(async () => {
     if (!username.trim()) {
       setError(t('confirm.usernamePrompt'));
       return;
@@ -59,7 +64,7 @@ function Page() {
       setError(t(authErrorKey(err)));
       setBusy(false);
     }
-  };
+  }, [codeValue, router, t, username]);
 
   const focusInput = useCallback(
     (idx: number) => {
@@ -165,8 +170,15 @@ function Page() {
       focusInput(Math.min(writeIndex, 5));
     };
 
-  const codeValue = code.join('');
-  const isComplete = codeValue.length === 6 && code.every((c) => c !== '');
+  // six digits in — verify without making them reach for the button. The ref
+  // keeps a rejected code from resubmitting itself on every render.
+  const submittedRef = useRef('');
+  useEffect(() => {
+    if (!isComplete || busy || !username.trim()) return;
+    if (submittedRef.current === codeValue) return;
+    submittedRef.current = codeValue;
+    handleVerify();
+  }, [isComplete, busy, username, codeValue, handleVerify]);
 
   // resend cooldown: 30s, 60s, then doubling, capped at 120 min
   const [resendCount, setResendCount] = useState(0);
@@ -236,6 +248,7 @@ function Page() {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder={t('auth.username')}
+          autoComplete="username"
           className="border border-gray-300 rounded px-2 py-1"
         />
       )}
@@ -250,6 +263,8 @@ function Page() {
             className="w-12 h-14 text-center text-xl rounded-md border border-gray-300 focus:outline-none"
             inputMode="numeric"
             pattern="[0-9]*"
+            // lets the browser offer the emailed code straight from the inbox
+            autoComplete={index === 0 ? 'one-time-code' : 'off'}
             inputRef={inputRefs[index]}
             onChange={handleChange(index)}
             onKeyDown={handleKeyDown(index)}

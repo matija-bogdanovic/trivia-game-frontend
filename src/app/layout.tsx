@@ -1,18 +1,16 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Play } from 'next/font/google';
 import './globals.css';
 import { Providers } from './redux/provider';
 import { LanguageProvider } from './lib/i18n';
 import AgentationToolbar from './components/general/agentation_toolbar';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+// the app-wide UI font — globals.css applies --font-play to body
+const play = Play({
+  variable: '--font-play',
+  weight: ['400', '700'],
+  // sr uses both scripts — dates render in Cyrillic
+  subsets: ['latin', 'latin-ext', 'cyrillic'],
 });
 
 export const metadata: Metadata = {
@@ -27,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${play.variable} antialiased`}>
         <LanguageProvider>
           <Providers>{children}</Providers>
           <AgentationToolbar />

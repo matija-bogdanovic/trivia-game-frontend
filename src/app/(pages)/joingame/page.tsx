@@ -2,7 +2,7 @@
 
 import Button from '@/app/components/general/button';
 import Input from '@/app/components/general/input';
-import { getPort } from '@/app/helpers/port';
+import { apiFetch } from '@/app/helpers/api';
 import { getUsername } from '@/app/helpers/token_operations';
 import { setRoomCode } from '@/app/redux/slicers/room_opeations';
 import { AppDispatch, RootState } from '@/app/redux/store';
@@ -24,13 +24,11 @@ function Page() {
   const [error, setError] = useState<string>('');
   const [needPassword, setNeedPassword] = useState(false);
   const [password, setPassword] = useState('');
-  const port = getPort();
   const router = useRouter();
 
   useEffect(() => {
-    const port = getPort();
     async function getActiveRooms() {
-      const response = await fetch(`${port}/getActiveRooms`);
+      const response = await fetch(`https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/getActiveRooms`);
       const responsedata = await response.json();
       setCurrentlyActiveRooms(responsedata.roundCount);
     }
@@ -52,17 +50,12 @@ function Page() {
     setError('');
 
     try {
-      const res = await fetch(`${port}/joinRoom`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const res = await apiFetch('/joinRoom', {
+        body: {
           id: username,
           roomCode: code.trim(),
-          username,
           password: needPassword ? password : undefined,
-        }),
+        },
       });
 
       const data = await res.json();
