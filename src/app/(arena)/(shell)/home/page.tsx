@@ -1,23 +1,30 @@
 import Link from 'next/link';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import { onlineFriends } from '@/app/(arena)/_mock/players';
-import { homeAchievementTease, homeStats } from '@/app/(arena)/_mock/progress';
+import { achievements, homeStats } from '@/app/(arena)/_mock/progress';
 
+/**
+ * Dashboard, translated from the Angular app's home.html. Static there and
+ * static here — data in, markup out.
+ */
 export default function Page() {
+  /** The teaser row links through to the full achievements screen. */
+  const teasers = achievements.slice(0, 4);
+
   return (
-    <div className="p-8 space-y-8">
-      {/* Stats row */}
-      <div className="grid grid-cols-4 gap-4">
+    <div className="space-y-8 p-4 sm:p-6 lg:p-8">
+      {/* ============================================================ stats */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {homeStats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-g800 border border-white/[0.07] p-5"
+            className="border border-white/[0.07] bg-arena-800 p-5"
           >
-            <div className="text-g200 text-[10px] tracking-[0.2em] uppercase mb-2">
+            <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
               {stat.label}
             </div>
             <div
-              className={`text-3xl font-bold ${stat.accent ? 'text-gold' : 'text-white'}`}
+              className={`text-2xl font-bold sm:text-3xl ${stat.accent ? 'text-gold' : 'text-white'}`}
             >
               {stat.value} {stat.suffix}
             </div>
@@ -25,175 +32,194 @@ export default function Page() {
         ))}
       </div>
 
-      {/* Hero CTA */}
-      <div
-        className="relative bg-g800 border border-white/[0.07] p-10 overflow-hidden"
+      {/* ============================================================= hero */}
+      <section
+        className="relative overflow-hidden border border-white/[0.07] p-6 sm:p-10"
         style={{
           background:
             'linear-gradient(135deg, #0c1c0d 0%, #122513 60%, #162a18 100%)',
         }}
       >
-        <div className="absolute right-0 top-0 bottom-0 w-64 flex items-center justify-center opacity-5 pointer-events-none">
+        <div
+          className="pointer-events-none absolute top-0 right-0 bottom-0 hidden w-64 items-center justify-center opacity-5 sm:flex"
+          aria-hidden="true"
+        >
           <div className="text-[200px] leading-none font-bold text-gold">?</div>
         </div>
         <div className="relative">
-          <div className="text-g200 text-xs tracking-[0.3em] uppercase mb-3">
+          <div className="mb-3 text-xs tracking-[0.3em] text-arena-200 uppercase">
             Ready to compete?
           </div>
-          <h1 className="text-5xl font-bold text-white mb-2 tracking-wide">
+          <h1 className="mb-2 text-3xl font-bold tracking-wide text-white sm:text-5xl">
             TRIVIA DEATHMATCH
           </h1>
-          <p className="text-g200 text-sm mb-8 max-w-md leading-relaxed">
+          <p className="mb-8 max-w-md text-sm leading-relaxed text-arena-200">
             Bet your in-game money on every answer. Outsmart your opponents. Win
             the table.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             <Link
               href="/rooms"
-              className="bg-gold text-g950 font-bold text-sm tracking-[0.2em] uppercase px-10 py-4 hover:bg-gold-light transition-colors"
+              className="bg-gold px-8 py-4 text-sm font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none sm:px-10"
             >
-              ▶ PLAY NOW
+              ▶ Play now
             </Link>
             <Link
               href="/rooms/create"
-              className="border border-white/20 text-white font-bold text-sm tracking-[0.2em] uppercase px-8 py-4 hover:bg-g700 transition-colors"
+              className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
             >
-              CREATE ROOM
+              Create room
             </Link>
             <Link
               href="/rooms/join"
-              className="border border-white/20 text-white font-bold text-sm tracking-[0.15em] uppercase px-8 py-4 hover:bg-g700 transition-colors"
+              className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
             >
-              JOIN ROOM
+              Join room
             </Link>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Content columns */}
-      <div className="grid grid-cols-5 gap-6">
-        {/* Recent matches */}
-        <div className="col-span-3 space-y-3">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-[11px] tracking-[0.25em] uppercase text-g200">
+      {/* ================================================ matches + friends */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <section className="space-y-3 lg:col-span-3">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
               Recent Matches
             </h2>
             <Link
               href="/history"
-              className="text-gold text-[10px] tracking-wider uppercase hover:text-gold-light"
+              className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              View All →
+              View all →
             </Link>
           </div>
+
           {homeRecentMatches.map((match) => (
-            <div
+            <Link
               key={match.id}
-              className="bg-g800 border border-white/[0.07] p-4 flex items-center gap-4 hover:bg-g700 transition-colors cursor-pointer"
+              href="/history"
+              className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              <div
-                className={`w-2 h-12 flex-shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-g400'}`}
+              <span
+                className={`h-12 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
+                aria-hidden="true"
               />
-              <div className="flex-1 min-w-0">
-                <div className="text-white text-sm font-bold mb-0.5">
+              <span className="min-w-0 flex-1">
+                <span className="mb-0.5 block truncate text-sm font-bold text-white">
                   {match.players.join(' · ')}
-                </div>
-                <div className="text-g200 text-[10px] tracking-wider uppercase">
+                </span>
+                <span className="block text-[10px] tracking-wider text-arena-200 uppercase">
                   {match.category} · {match.date}
-                </div>
-              </div>
-              <div className="text-right">
-                <div
-                  className={`font-bold text-sm ${match.result === 'WIN' ? 'text-gold' : 'text-g300'}`}
+                </span>
+              </span>
+              <span className="text-right">
+                <span
+                  className={`block text-sm font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
                 >
                   {match.money}
-                </div>
-                <div className="text-g200 text-[10px] tracking-wider">
+                </span>
+                <span className="block text-[10px] tracking-wider text-arena-200">
                   #{match.placement}
-                </div>
-              </div>
-            </div>
+                </span>
+              </span>
+            </Link>
           ))}
-        </div>
+        </section>
 
-        {/* Online friends */}
-        <div className="col-span-2 space-y-3">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-[11px] tracking-[0.25em] uppercase text-g200">
+        <section className="space-y-3 lg:col-span-2">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
               Friends Online
             </h2>
             <Link
               href="/friends"
-              className="text-gold text-[10px] tracking-wider uppercase hover:text-gold-light"
+              className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               All →
             </Link>
           </div>
+
           {onlineFriends.map((friend) => (
             <div
               key={friend.name}
-              className="bg-g800 border border-white/[0.07] p-3 flex items-center gap-3"
+              className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
             >
-              <div className="relative">
-                <div className="w-9 h-9 bg-g600 flex items-center justify-center text-white font-bold text-sm">
+              <span className="relative">
+                <span
+                  className="flex h-9 w-9 items-center justify-center bg-arena-600 text-sm font-bold text-white"
+                  aria-hidden="true"
+                >
                   {friend.name[0]}
-                </div>
-                <div
-                  className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 border-2 border-g800 rounded-full ${friend.status === 'In Game' ? 'bg-gold' : 'bg-g300'}`}
+                </span>
+                <span
+                  className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-arena-800 ${friend.status === 'In Game' ? 'bg-gold' : 'bg-arena-300'}`}
+                  aria-hidden="true"
                 />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-white text-xs font-bold truncate">
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-bold text-white">
                   {friend.name}
-                </div>
-                <div className="text-g200 text-[10px]">{friend.status}</div>
-              </div>
+                </span>
+                <span className="block text-[10px] text-arena-200">
+                  {friend.status}
+                </span>
+              </span>
               {friend.streak > 0 && (
-                <div className="text-gold text-[10px] font-bold">
+                <span className="text-[10px] font-bold text-gold">
                   🔥 {friend.streak}
-                </div>
+                </span>
               )}
-              <button className="text-[10px] tracking-wider text-g200 border border-g400 px-2 py-1 hover:text-white hover:border-g300 transition-colors uppercase">
+              <button
+                type="button"
+                className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                aria-label={`Invite ${friend.name}`}
+              >
                 Invite
               </button>
             </div>
           ))}
-        </div>
+        </section>
       </div>
 
-      {/* Achievement tease */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[11px] tracking-[0.25em] uppercase text-g200">
+      {/* ===================================================== achievements */}
+      <section>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
             Recent Achievements
           </h2>
           <Link
             href="/achievements"
-            className="text-gold text-[10px] tracking-wider uppercase hover:text-gold-light"
+            className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            View All →
+            View all →
           </Link>
         </div>
-        <div className="grid grid-cols-4 gap-3">
-          {homeAchievementTease.map((a) => (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {teasers.map((achievement) => (
             <div
-              key={a.title}
-              className={`p-4 border text-center ${a.unlocked ? 'bg-g800 border-gold/20' : 'bg-g750 border-white/[0.05] opacity-50'}`}
+              key={achievement.title}
+              className={`border p-4 text-center ${
+                achievement.unlocked
+                  ? 'border-gold/20 bg-arena-800'
+                  : 'border-white/[0.05] bg-arena-750 opacity-50'
+              }`}
             >
-              <div className={`text-2xl mb-2 ${a.unlocked ? '' : 'grayscale'}`}>
-                {a.icon}
+              <div className="mb-2 text-2xl" aria-hidden="true">
+                {achievement.icon}
               </div>
               <div
-                className={`text-xs font-bold mb-1 ${a.unlocked ? 'text-gold' : 'text-g200'}`}
+                className={`mb-1 text-xs font-bold ${achievement.unlocked ? 'text-gold' : 'text-arena-200'}`}
               >
-                {a.title}
+                {achievement.title}
               </div>
-              <div className="text-g200 text-[10px] leading-tight">
-                {a.desc}
+              <div className="text-[10px] leading-tight text-arena-200">
+                {achievement.description}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

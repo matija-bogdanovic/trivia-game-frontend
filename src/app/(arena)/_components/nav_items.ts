@@ -1,7 +1,10 @@
 /**
- * The sidebar's contents, in the order the design lists them. Kept apart from
- * the sidebar component so route stubs can name their own entry without
- * pulling a client component in.
+ * The sidebar's contents, in the order the Angular app's NAV_ITEMS lists them.
+ *
+ * Two entries from that list are not here. Angular routes /lobby and
+ * /live-game as standalone screens; in this app both are phases of
+ * /game/[game] on one socket, so there is no static URL to point at. The
+ * "Play now" button goes to /rooms instead.
  */
 export interface NavItem {
   href: string;

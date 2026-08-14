@@ -3,19 +3,35 @@
  * game server already hydrates. Feeds /home, /profile and /achievements.
  */
 
-/** the home screen's top stat row */
-export interface HomeStat {
+/** the signed-in player's fixture data — real identity comes from Cognito */
+export const ME = {
+  name: 'AlphaWolf',
+  initial: 'A',
+  email: 'alphawolf@example.com',
+  streak: 7,
+  wins: 143,
+  gamesPlayed: 201,
+  balance: 8340,
+  memberSince: 'March 2024',
+};
+
+/**
+ * The home screen's top stat row. Labels are sentence case and uppercased in
+ * CSS rather than shouted in the data, which is what a screen reader gets to
+ * read out.
+ */
+export interface StatTile {
   label: string;
   value: string;
-  accent: boolean;
+  accent?: boolean;
   suffix?: string;
 }
 
-export const homeStats: HomeStat[] = [
-  { label: 'WINNING STREAK', value: '7', accent: true, suffix: '🔥' },
-  { label: 'TOTAL WINS', value: '143', accent: false },
-  { label: 'GAMES PLAYED', value: '201', accent: false },
-  { label: 'BALANCE', value: '$8,340', accent: true },
+export const homeStats: StatTile[] = [
+  { label: 'Winning Streak', value: '7', accent: true, suffix: '🔥' },
+  { label: 'Total Wins', value: '143' },
+  { label: 'Games Played', value: '201' },
+  { label: 'Balance', value: '$8,340', accent: true },
 ];
 
 /** the profile screen's six-up stat grid */
@@ -38,7 +54,7 @@ export const favoriteCategories = [
 export interface Achievement {
   icon: string;
   title: string;
-  desc: string;
+  description: string;
   unlocked: boolean;
   /** set when unlocked */
   date?: string;
@@ -51,35 +67,35 @@ export const achievements: Achievement[] = [
   {
     icon: '★',
     title: 'First Blood',
-    desc: 'Win your first game',
+    description: 'Win your first game',
     unlocked: true,
     date: 'Mar 15, 2024',
   },
   {
     icon: '🔥',
     title: 'On Fire',
-    desc: 'Achieve a 5-win streak',
+    description: 'Achieve a 5-win streak',
     unlocked: true,
     date: 'Apr 2, 2024',
   },
   {
     icon: '⚡',
     title: 'Lightning Reflex',
-    desc: 'Answer a question in under 2 seconds',
+    description: 'Answer a question in under 2 seconds',
     unlocked: true,
     date: 'Apr 18, 2024',
   },
   {
     icon: '◆',
     title: 'Centurion',
-    desc: 'Win 100 games',
+    description: 'Win 100 games',
     unlocked: true,
     date: 'Jun 30, 2024',
   },
   {
     icon: '⚔',
     title: 'Duel Master',
-    desc: 'Win 10 duels',
+    description: 'Win 10 duels',
     unlocked: false,
     progress: 8,
     max: 10,
@@ -87,7 +103,7 @@ export const achievements: Achievement[] = [
   {
     icon: '▲',
     title: 'Unstoppable',
-    desc: 'Achieve a 10-win streak',
+    description: 'Achieve a 10-win streak',
     unlocked: false,
     progress: 7,
     max: 10,
@@ -95,7 +111,7 @@ export const achievements: Achievement[] = [
   {
     icon: '◎',
     title: 'The Gambler',
-    desc: 'Win 50 bets in a row',
+    description: 'Win 50 bets in a row',
     unlocked: false,
     progress: 12,
     max: 50,
@@ -103,7 +119,7 @@ export const achievements: Achievement[] = [
   {
     icon: '◈',
     title: "Oracle's Eye",
-    desc: 'Predict 20 correct outcomes',
+    description: 'Predict 20 correct outcomes',
     unlocked: false,
     progress: 14,
     max: 20,
@@ -111,7 +127,7 @@ export const achievements: Achievement[] = [
   {
     icon: '❋',
     title: 'Apex Predator',
-    desc: 'Reach rank #1 on the global leaderboard',
+    description: 'Reach rank #1 on the global leaderboard',
     unlocked: false,
     progress: 0,
     max: 1,
@@ -119,7 +135,7 @@ export const achievements: Achievement[] = [
   {
     icon: '◇',
     title: 'Speed Demon',
-    desc: 'Win a duel in under 1 second',
+    description: 'Win a duel in under 1 second',
     unlocked: false,
     progress: 0,
     max: 1,
@@ -127,7 +143,7 @@ export const achievements: Achievement[] = [
   {
     icon: '✦',
     title: 'Scholar',
-    desc: 'Answer 500 questions correctly',
+    description: 'Answer 500 questions correctly',
     unlocked: false,
     progress: 143,
     max: 500,
@@ -135,31 +151,14 @@ export const achievements: Achievement[] = [
   {
     icon: '◉',
     title: 'Champion',
-    desc: 'Win 500 games',
+    description: 'Win 500 games',
     unlocked: false,
     progress: 143,
     max: 500,
   },
 ];
 
-/** the compact achievement teasers on /home and /profile */
-export const homeAchievementTease = [
-  {
-    icon: '★',
-    title: 'First Blood',
-    desc: 'Win your first game',
-    unlocked: true,
-  },
-  { icon: '🔥', title: 'On Fire', desc: '5 win streak', unlocked: true },
-  {
-    icon: '⚡',
-    title: 'Lightning',
-    desc: 'Answer in under 2s',
-    unlocked: true,
-  },
-  { icon: '⚔', title: 'Duel Master', desc: 'Win 10 duels', unlocked: false },
-];
-
+/** the profile screen's compact teaser row */
 export const profileAchievementTease = [
   { icon: '★', label: 'First Blood', unlocked: true },
   { icon: '🔥', label: 'On Fire', unlocked: true },

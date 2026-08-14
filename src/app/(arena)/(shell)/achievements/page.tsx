@@ -53,7 +53,7 @@ export default function Page() {
                   {a.title}
                 </div>
                 <div className="text-g200 text-[10px] leading-relaxed mb-3">
-                  {a.desc}
+                  {a.description}
                 </div>
                 <div className="text-g400 text-[9px] tracking-wider">
                   Unlocked {a.date}
@@ -83,7 +83,7 @@ export default function Page() {
                   {a.title}
                 </div>
                 <div className="text-g400 text-[10px] leading-relaxed mb-3">
-                  {a.desc}
+                  {a.description}
                 </div>
                 {a.progress !== undefined && a.max !== undefined && (
                   <>

@@ -33,6 +33,26 @@
   --color-border: rgba(255, 255, 255, 0.07);
   --color-ring: #c9a227;
 
+  /*
+   * The Angular app (~/ipakseokrece) is now the design source, and it names
+   * this ramp arena-*. Same twelve hexes, different prefix — so its templates
+   * copy across verbatim. Defined alongside the g-* names below while the
+   * screens move over one at a time; when the last g-* use is gone, so is
+   * that block.
+   */
+  --color-arena-950: #060f07;
+  --color-arena-900: #091508;
+  --color-arena-800: #0c1c0d;
+  --color-arena-750: #0f2010;
+  --color-arena-700: #122513;
+  --color-arena-650: #162a18;
+  --color-arena-600: #1c3320;
+  --color-arena-500: #253d27;
+  --color-arena-400: #2e4d30;
+  --color-arena-300: #4a7a4e;
+  --color-arena-200: #7ab07e;
+  --color-arena-100: #b0d4b3;
+
   /* the green ramp the screens actually paint with — g950 darkest, g100 lightest */
   --color-g950: #060f07;
   --color-g900: #091508;
@@ -86,7 +106,36 @@ body:has(.arena-root) {
 
 /* the legacy placeholder rules below assume the green; arena inputs are dark */
 .arena-root ::placeholder {
-  color: var(--color-g300);
+  color: var(--color-arena-300);
+}
+
+/*
+ * Opt back in where a scrollbar is the only hint that there is more to see —
+ * a form taller than a short viewport is otherwise indistinguishable from a
+ * truncated one. Class beats the universal rule above.
+ */
+.arena-root .show-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-arena-500) transparent;
+}
+.arena-root .show-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+.arena-root .show-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-arena-500);
+  border-radius: 4px;
+}
+
+/* every animation in here is decorative — none of it carries meaning alone */
+@media (prefers-reduced-motion: reduce) {
+  .arena-root *,
+  .arena-root *::before,
+  .arena-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 html {

@@ -7,5 +7,7 @@
 export default function ArenaLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  return <div className="arena-root h-screen overflow-hidden">{children}</div>;
+  // height is the shell's job now — it uses h-dvh so the mobile URL bar
+  // collapsing does not leave a dead strip at the bottom
+  return <div className="arena-root">{children}</div>;
 }
