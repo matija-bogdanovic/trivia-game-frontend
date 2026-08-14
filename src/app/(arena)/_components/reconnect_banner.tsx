@@ -13,8 +13,13 @@ interface DroppedGame {
   phase: string;
 }
 
-/** nudges a player who dropped out of a running game to jump back in;
- *  re-checks whenever the tab regains focus */
+/**
+ * Nudges a player who dropped out of a running game to jump back in;
+ * re-checks whenever the tab regains focus.
+ *
+ * Lives in the arena shell now — it used to hang off the pre-reskin header,
+ * which would have taken it with it.
+ */
 function ReconnectBanner() {
   const { t } = useT();
   const router = useRouter();
@@ -53,16 +58,23 @@ function ReconnectBanner() {
   if (!room || dismissed === room.code) return null;
 
   return (
-    <div className="fixed top-[92px] left-1/2 -translate-x-1/2 z-20 bg-blue-600 text-white rounded shadow px-4 py-2 flex items-center gap-3 max-w-[92vw]">
-      <span>⏳ {t('reconnect.text', { name: room.roomName })}</span>
+    <div
+      className="fixed bottom-4 left-1/2 z-30 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 border border-gold/30 bg-arena-800 px-4 py-3 sm:bottom-6"
+      role="status"
+    >
+      <span className="text-[12px] text-arena-100">
+        ⏳ {t('reconnect.text', { name: room.roomName })}
+      </span>
       <button
-        className="bg-white text-blue-700 rounded px-3 py-1 font-medium cursor-pointer"
+        type="button"
+        className="cursor-pointer bg-gold px-4 py-2 text-[10px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         onClick={() => router.push(`/game/${room.lobbyId ?? room.code}`)}
       >
         {t('reconnect.button')}
       </button>
       <button
-        className="font-bold cursor-pointer"
+        type="button"
+        className="cursor-pointer px-1 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         aria-label="Dismiss"
         onClick={() => setDismissed(room.code)}
       >

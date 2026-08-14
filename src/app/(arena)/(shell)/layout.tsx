@@ -1,3 +1,4 @@
+import ReconnectBanner from '../_components/reconnect_banner';
 import Sidebar from '../_components/sidebar';
 
 /**
@@ -13,6 +14,7 @@ export default function ShellLayout({
     <div className="flex h-dvh flex-col overflow-hidden bg-arena-900 text-white lg:flex-row">
       <Sidebar />
       <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
+      <ReconnectBanner />
     </div>
   );
 }

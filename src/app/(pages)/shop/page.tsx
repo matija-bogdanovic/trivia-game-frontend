@@ -94,7 +94,9 @@ function Page() {
                 ) : (
                   <button
                     className="bg-blue-600 text-white px-4 py-1.5 rounded hover:bg-blue-700 transition cursor-pointer disabled:opacity-40"
-                    disabled={busy === item.id || !wallet || wallet.coins < item.cost}
+                    disabled={
+                      busy === item.id || !wallet || wallet.coins < item.cost
+                    }
                     onClick={() => buy(item.id)}
                   >
                     {busy === item.id ? '…' : t('shop.buy')}

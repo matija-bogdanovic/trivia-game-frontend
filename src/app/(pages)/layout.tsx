@@ -1,6 +1,10 @@
 import Header from '../components/general/header';
-import ReconnectBanner from '../components/general/reconnect_banner';
 
+/**
+ * All that is left of the pre-reskin chrome. /shop is the only screen still
+ * using it, and it is on hold pending a decision — if it goes, this file and
+ * header.tsx go with it and (pages) disappears entirely.
+ */
 export default function NonDynamicLayout({
   children,
 }: Readonly<{
@@ -9,7 +13,6 @@ export default function NonDynamicLayout({
   return (
     <div className="pt-[100px]">
       <Header />
-      <ReconnectBanner />
       {children}
     </div>
   );
