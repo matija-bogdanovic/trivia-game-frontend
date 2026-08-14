@@ -1,145 +1,151 @@
 import Link from 'next/link';
-import { medals, rankings, yourPerformance } from '@/app/(arena)/_mock/results';
+import Avatar from '@/app/(arena)/_components/avatar';
+import { money } from '@/app/(arena)/_lib/money';
+import { rankings, yourPerformance } from '@/app/(arena)/_mock/results';
+
+const MARKS = ['①', '②', '③', '④'];
+const gained = (change: string) => change.startsWith('+');
 
 export default function Page() {
   const winner = rankings[0];
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      {/* Winner hero */}
-      <div className="bg-arena-800 border border-gold/20 p-10 text-center mb-8 relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-          <div className="text-[300px] font-bold text-gold leading-none">★</div>
+    <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
+      {/* =========================================================== winner */}
+      <section className="relative mb-8 overflow-hidden border border-gold/20 bg-arena-800 p-6 text-center sm:p-10">
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-5"
+          aria-hidden="true"
+        >
+          <div className="text-[300px] leading-none font-bold text-gold">★</div>
         </div>
         <div className="relative">
-          <div className="text-gold text-[11px] tracking-[0.4em] uppercase mb-4">
+          <div className="mb-4 text-[11px] tracking-[0.4em] text-gold uppercase">
             Victory
           </div>
-          <div className="w-20 h-20 bg-gold text-arena-950 flex items-center justify-center font-bold text-4xl mx-auto mb-4">
-            {winner.initial}
+          <div className="mb-4 flex justify-center">
+            <Avatar initial={winner.initial} size="xl" accent />
           </div>
-          <div className="text-white text-4xl font-bold tracking-widest mb-2">
+          <div className="mb-2 text-2xl font-bold tracking-widest text-white sm:text-4xl">
             {winner.name}
           </div>
-          <div className="text-gold text-[11px] tracking-[0.3em] uppercase mb-4">
-            WINNER
+          <div className="mb-4 text-[11px] tracking-[0.3em] text-gold uppercase">
+            Winner
           </div>
-          <div className="flex items-center justify-center gap-8 mt-6">
+
+          <div className="mt-6 flex items-center justify-center gap-6 sm:gap-8">
             <div className="text-center">
-              <div className="text-arena-300 text-[10px] tracking-widest uppercase mb-1">
+              <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
                 Final Balance
               </div>
-              <div className="text-gold text-3xl font-bold">
-                ${winner.money.toLocaleString()}
+              <div className="text-2xl font-bold text-gold tabular-nums sm:text-3xl">
+                {money(winner.money)}
               </div>
             </div>
-            <div className="w-px h-12 bg-white/10" />
+            <div className="h-12 w-px bg-white/10" aria-hidden="true" />
             <div className="text-center">
-              <div className="text-arena-300 text-[10px] tracking-widest uppercase mb-1">
+              <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
                 New Streak
               </div>
-              <div className="text-white text-3xl font-bold">
+              <div className="text-2xl font-bold text-white sm:text-3xl">
                 🔥 {winner.streak}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Rankings */}
-      <div className="mb-8">
-        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-3">
+      {/* ========================================================= rankings */}
+      <section className="mb-8">
+        <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           Final Rankings
-        </div>
-        <div className="space-y-2">
-          {rankings.map((player, i) => (
-            <div
-              key={player.name}
-              className={`flex items-center gap-4 p-4 border ${
-                player.isYou
-                  ? 'bg-gold/10 border-gold/30'
-                  : 'bg-arena-800 border-white/[0.07]'
+        </h2>
+        <ol className="space-y-2">
+          {rankings.map((row, i) => (
+            <li
+              key={row.name}
+              className={`flex items-center gap-3 border p-4 sm:gap-4 ${
+                row.isYou
+                  ? 'border-gold/30 bg-gold/10'
+                  : 'border-white/[0.07] bg-arena-800'
               }`}
             >
-              <div
-                className={`text-xl font-bold w-8 text-center ${i === 0 ? 'text-gold' : 'text-arena-400'}`}
+              <span
+                className={`w-8 text-center text-xl font-bold ${i === 0 ? 'text-gold' : 'text-arena-400'}`}
+                aria-hidden="true"
               >
-                {medals[i]}
-              </div>
-              <div
-                className={`w-10 h-10 flex items-center justify-center font-bold ${
-                  i === 0 ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'
-                }`}
-              >
-                {player.initial}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-white font-bold">{player.name}</span>
-                  {player.isYou && (
-                    <span className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-1.5">
+                {MARKS[i]}
+              </span>
+              <Avatar initial={row.initial} size="md" accent={i === 0} />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="truncate font-bold text-white">
+                    {row.name}
+                  </span>
+                  {row.isYou && (
+                    <span className="border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
                       YOU
                     </span>
                   )}
-                </div>
-                <div className="text-arena-200 text-[10px] mt-0.5">
-                  {player.correct} correct · {player.wrong} wrong ·{' '}
-                  {player.duelsWon} duels won
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-white font-bold">
-                  ${player.money.toLocaleString()}
-                </div>
-                <div
-                  className={`text-[11px] font-bold ${player.change.startsWith('+') ? 'text-gold' : 'text-arena-300'}`}
+                </span>
+                <span className="mt-0.5 block text-[10px] text-arena-200">
+                  {row.correct} correct · {row.wrong} wrong · {row.duelsWon}{' '}
+                  duels won
+                </span>
+              </span>
+              <span className="text-right">
+                <span className="block font-bold text-white tabular-nums">
+                  {money(row.money)}
+                </span>
+                <span
+                  className={`block text-[11px] font-bold ${gained(row.change) ? 'text-gold' : 'text-arena-300'}`}
                 >
-                  {player.change}
-                </div>
-              </div>
-            </div>
+                  {row.change}
+                </span>
+              </span>
+            </li>
           ))}
-        </div>
-      </div>
+        </ol>
+      </section>
 
-      {/* Your stats */}
-      <div className="bg-arena-800 border border-white/[0.07] p-6 mb-8">
-        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-5">
+      {/* ==================================================== your numbers */}
+      <section className="mb-8 border border-white/[0.07] bg-arena-800 p-6">
+        <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           Your Performance
-        </div>
-        <div className="grid grid-cols-4 gap-4">
+        </h2>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {yourPerformance.map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-2xl font-bold text-gold mb-1">
+              <div className="mb-1 text-2xl font-bold text-gold tabular-nums">
                 {stat.value}
               </div>
-              <div className="text-arena-300 text-[10px] tracking-wider uppercase">
+              <div className="text-[10px] tracking-wider text-arena-300 uppercase">
                 {stat.label}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* CTAs */}
-      <div className="flex gap-4">
+      {/* ============================================================= CTAs */}
+      <div className="flex flex-wrap gap-3 sm:gap-4">
         <Link
           href="/rooms"
-          className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
+          className="bg-gold px-8 py-4 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          PLAY AGAIN
+          Play again
         </Link>
         <Link
           href="/home"
-          className="border border-white/20 text-white font-bold text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
+          className="border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          RETURN TO HOME
+          Return to home
         </Link>
         <Link
           href="/rooms/create"
-          className="border border-white/20 text-white font-bold text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
+          className="border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          CREATE NEW ROOM
+          Create new room
         </Link>
       </div>
     </div>

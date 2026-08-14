@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import PageHeader from '@/app/(arena)/_components/page_header';
+import { money } from '@/app/(arena)/_lib/money';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/helpers/api';
@@ -118,46 +120,49 @@ export default function Page() {
 
   if (created) {
     return (
-      <div className="p-8 max-w-2xl">
-        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-6">
+      <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
+        <div className="mb-6 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           Room Created
         </div>
-        <div className="bg-arena-800 border border-gold/20 p-8 text-center mb-6">
+        <div className="mb-6 border border-gold/20 bg-arena-800 p-6 text-center sm:p-8">
           <div className="text-arena-200 text-[11px] tracking-[0.3em] uppercase mb-4">
             Room Code
           </div>
-          <div className="text-6xl font-bold text-gold tracking-[0.3em] mb-6">
+          <div className="mb-6 text-4xl font-bold tracking-[0.2em] text-gold tabular-nums sm:text-6xl sm:tracking-[0.3em]">
             {created.roomCode}
           </div>
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-wrap justify-center gap-3">
             <button
               onClick={copyCode}
               className="border border-gold/40 text-gold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold/10 transition-colors"
             >
-              {copied ? '✓ COPIED' : 'COPY CODE'}
+              {copied ? '✓ Copied' : 'Copy code'}
             </button>
           </div>
+          <p className="sr-only" aria-live="polite">
+            {copied ? 'Room code copied to clipboard' : ''}
+          </p>
         </div>
-        <div className="bg-arena-750 border border-white/[0.07] p-5 mb-6 grid grid-cols-3 gap-4 text-center">
-          <Recap label="Starting Money" value="$500" />
+        <div className="mb-6 grid grid-cols-1 gap-4 border border-white/[0.07] bg-arena-750 p-5 text-center sm:grid-cols-3">
+          <Recap label="Starting Money" value={money(500)} />
           <Recap label="Seats" value="2–6 Players" />
           <Recap
             label="Visibility"
             value={visibility === 'private' ? 'Private' : 'Public'}
           />
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-4">
           <Link
             href={`/game/${created.lobbyId}`}
             className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
           >
-            ENTER LOBBY →
+            Enter lobby →
           </Link>
           <button
             onClick={() => router.push('/rooms')}
             className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
           >
-            BACK TO ROOMS
+            Back to rooms
           </button>
         </div>
       </div>
@@ -165,27 +170,25 @@ export default function Page() {
   }
 
   return (
-    <div className="p-8 max-w-3xl space-y-6">
-      <div className="flex items-end justify-between">
-        <div>
-          <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
-            Multiplayer
-          </div>
-          <h1 className="text-3xl font-bold tracking-wide">CREATE ROOM</h1>
-        </div>
+    <div className="max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <PageHeader eyebrow="Multiplayer" title="CREATE ROOM" />
         {credits !== null && (
-          <div className="text-right">
-            <div className="text-arena-300 text-[10px] tracking-[0.2em] uppercase">
+          <div className="mb-6 text-right">
+            <div className="text-[10px] tracking-[0.2em] text-arena-300 uppercase">
               Lobby Credits
             </div>
-            <div className="text-gold text-2xl font-bold">{credits}</div>
+            <div className="text-2xl font-bold text-gold tabular-nums">
+              {credits}
+            </div>
           </div>
         )}
       </div>
 
       {/* Room Name */}
-      <Section label="Room Name">
+      <Section label="Room Name" htmlFor="room-name">
         <input
+          id="room-name"
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value.toUpperCase())}
@@ -200,18 +203,23 @@ export default function Page() {
       </Section>
 
       {/* Visibility */}
-      <Section label="Room Visibility">
-        <div className="grid grid-cols-2 gap-4">
+      <Section label="Room Visibility" id="visibility-label">
+        <div
+          className="grid gap-4 sm:grid-cols-2"
+          role="group"
+          aria-labelledby="visibility-label"
+        >
           {(['public', 'private'] as const).map((v) => (
             <button
               key={v}
               onClick={() => setVisibility(v)}
               disabled={creating}
+              aria-pressed={visibility === v}
               className={`p-5 border text-left transition-colors ${
                 visibility === v
                   ? 'border-gold/40 bg-gold/10'
                   : 'border-white/10 bg-arena-750 hover:bg-arena-700'
-              }`}
+              } focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none`}
             >
               <div
                 className={`font-bold tracking-widest text-sm mb-1 ${visibility === v ? 'text-gold' : 'text-white'}`}
@@ -243,8 +251,8 @@ export default function Page() {
         label="Room Rules"
         sublabel="Set by the game server — not configurable per room yet"
       >
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <Recap label="Starting Money" value="$500" />
+        <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
+          <Recap label="Starting Money" value={money(500)} />
           <Recap label="Seats" value="2–6 Players" />
           <Recap label="Difficulty" value="Scales with your chain" />
         </div>
@@ -256,7 +264,7 @@ export default function Page() {
         </div>
       )}
 
-      <div className="flex gap-4 pt-2">
+      <div className="flex flex-wrap gap-4 pt-2">
         <button
           onClick={createRoom}
           disabled={creating || credits === 0}
@@ -266,13 +274,13 @@ export default function Page() {
               : 'bg-gold text-arena-950 hover:bg-gold-light'
           }`}
         >
-          {creating ? 'CREATING…' : 'CREATE ROOM →'}
+          {creating ? 'Creating…' : 'Create room →'}
         </button>
         <Link
           href="/home"
           className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
         >
-          CANCEL
+          Cancel
         </Link>
       </div>
     </div>
@@ -282,34 +290,47 @@ export default function Page() {
 function Section({
   label,
   sublabel,
+  htmlFor,
+  id,
   children,
 }: {
   label: string;
   sublabel?: string;
+  /** renders the heading as a <label> for a single control */
+  htmlFor?: string;
+  /** id for aria-labelledby when the section wraps a group */
+  id?: string;
   children: React.ReactNode;
 }) {
+  const heading = 'text-[11px] font-bold tracking-[0.2em] text-white uppercase';
   return (
-    <div className="bg-arena-800 border border-white/[0.07] p-6">
+    <section className="border border-white/[0.07] bg-arena-800 p-6">
       <div className="mb-4">
-        <div className="text-white text-[11px] font-bold tracking-[0.2em] uppercase">
-          {label}
-        </div>
+        {htmlFor ? (
+          <label htmlFor={htmlFor} className={`block ${heading}`}>
+            {label}
+          </label>
+        ) : (
+          <div id={id} className={heading}>
+            {label}
+          </div>
+        )}
         {sublabel && (
-          <div className="text-arena-300 text-[10px] mt-0.5">{sublabel}</div>
+          <div className="mt-0.5 text-[10px] text-arena-300">{sublabel}</div>
         )}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
 function Recap({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-arena-300 text-[10px] tracking-wider uppercase mb-1">
+      <div className="mb-1 text-[10px] tracking-wider text-arena-300 uppercase">
         {label}
       </div>
-      <div className="text-white font-bold">{value}</div>
+      <div className="font-bold text-white">{value}</div>
     </div>
   );
 }
