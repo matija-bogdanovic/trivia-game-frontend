@@ -120,6 +120,146 @@ export const leaderboard: LeaderboardEntry[] = [
 
 export const rankBadges: Record<number, string> = { 1: '★', 2: '◆', 3: '▲' };
 
+/**
+ * The export showed the same ten rows under all four tabs, so the strip was
+ * decorative. Each period gets its own standings, as in the Angular app.
+ */
+export const weeklyLeaderboard: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    name: 'AlphaWolf',
+    initial: 'A',
+    streak: 7,
+    wins: 24,
+    rate: '80%',
+    money: 3120,
+    isYou: true,
+  },
+  {
+    rank: 2,
+    name: 'Cipher',
+    initial: 'C',
+    streak: 11,
+    wins: 22,
+    rate: '76%',
+    money: 2980,
+    isYou: false,
+  },
+  {
+    rank: 3,
+    name: 'ZenMaster',
+    initial: 'Z',
+    streak: 14,
+    wins: 21,
+    rate: '75%',
+    money: 2740,
+    isYou: false,
+  },
+  {
+    rank: 4,
+    name: 'Echo',
+    initial: 'E',
+    streak: 4,
+    wins: 16,
+    rate: '61%',
+    money: 1980,
+    isYou: false,
+  },
+  {
+    rank: 5,
+    name: 'Riptide',
+    initial: 'R',
+    streak: 3,
+    wins: 14,
+    rate: '59%',
+    money: 1640,
+    isYou: false,
+  },
+  {
+    rank: 6,
+    name: 'Specter',
+    initial: 'S',
+    streak: 2,
+    wins: 11,
+    rate: '55%',
+    money: 1210,
+    isYou: false,
+  },
+];
+
+export const monthlyLeaderboard: LeaderboardEntry[] = [
+  {
+    rank: 1,
+    name: 'ZenMaster',
+    initial: 'Z',
+    streak: 14,
+    wins: 96,
+    rate: '77%',
+    money: 11800,
+    isYou: false,
+  },
+  {
+    rank: 2,
+    name: 'NovaMind',
+    initial: 'N',
+    streak: 8,
+    wins: 88,
+    rate: '72%',
+    money: 10400,
+    isYou: false,
+  },
+  {
+    rank: 3,
+    name: 'AlphaWolf',
+    initial: 'A',
+    streak: 7,
+    wins: 81,
+    rate: '73%',
+    money: 9650,
+    isYou: true,
+  },
+  {
+    rank: 4,
+    name: 'Cipher',
+    initial: 'C',
+    streak: 11,
+    wins: 77,
+    rate: '70%',
+    money: 9100,
+    isYou: false,
+  },
+  {
+    rank: 5,
+    name: 'Bolt88',
+    initial: 'B',
+    streak: 5,
+    wins: 64,
+    rate: '66%',
+    money: 7300,
+    isYou: false,
+  },
+  {
+    rank: 6,
+    name: 'Kira9',
+    initial: 'K',
+    streak: 1,
+    wins: 52,
+    rate: '61%',
+    money: 6050,
+    isYou: false,
+  },
+];
+
+/** Who counts as a friend for the friends tab. */
+export const friendNames = new Set([
+  'ZenMaster',
+  'NovaMind',
+  'Specter',
+  'Kira9',
+  'Bolt88',
+  'Cipher',
+]);
+
 export interface Friend {
   name: string;
   initial: string;

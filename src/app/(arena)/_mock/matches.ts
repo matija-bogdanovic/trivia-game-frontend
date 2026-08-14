@@ -163,7 +163,7 @@ export const historyMatches: HistoryMatch[] = [
 /** the profile screen's condensed recent-match list */
 export interface ProfileMatch {
   result: 'WIN' | 'LOSS';
-  opponent: string;
+  opponents: string;
   money: string;
   date: string;
 }
@@ -171,19 +171,19 @@ export interface ProfileMatch {
 export const profileRecentMatches: ProfileMatch[] = [
   {
     result: 'WIN',
-    opponent: 'ZenMaster · NovaMind · Specter',
+    opponents: 'ZenMaster · NovaMind · Specter',
     money: '+$620',
     date: 'Today',
   },
   {
     result: 'WIN',
-    opponent: 'Specter · Kira9',
+    opponents: 'Specter · Kira9',
     money: '+$390',
     date: 'Yesterday',
   },
   {
     result: 'LOSS',
-    opponent: 'ZenMaster · Bolt88 · Rogue',
+    opponents: 'ZenMaster · Bolt88 · Rogue',
     money: '-$120',
     date: '2 days ago',
   },

@@ -92,7 +92,7 @@ export const rooms: Room[] = [
 ];
 
 /** filter vocabularies — these should come from the question bank, not a literal */
-export const categories = [
+export const filterCategories = [
   'All',
   'Mathematics',
   'Science',
@@ -102,4 +102,4 @@ export const categories = [
   'Mixed',
 ];
 
-export const difficulties = ['All', 'Easy', 'Medium', 'Hard', 'Mixed'];
+export const filterDifficulties = ['All', 'Easy', 'Medium', 'Hard', 'Mixed'];

@@ -1,197 +1,279 @@
 'use client';
 
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
+import { signOut } from 'aws-amplify/auth';
+import Avatar from '@/app/(arena)/_components/avatar';
+import PageHeader from '@/app/(arena)/_components/page_header';
+import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
+import { ME, difficultyOptions } from '@/app/(arena)/_mock/progress';
+import { getIdentity } from '@/app/helpers/token_operations';
 
 /**
- * NOTE: every control here is local state only — nothing saves, and the
- * account fields are seeded with the mock identity rather than the signed-in
- * one. Log out and Delete account are inert. See the P3 report.
+ * Account and preference toggles.
+ *
+ * The export bound the username and email inputs but wired "Save changes" to
+ * nothing, and rendered the default-difficulty buttons with no state at all —
+ * clicking one did nothing and none ever looked selected. Both work here, and
+ * both fields validate, as in the Angular app.
  */
 export default function Page() {
-  const [username, setUsername] = useState('AlphaWolf');
-  const [email, setEmail] = useState('alphawolf@example.com');
+  const router = useRouter();
+  const [username, setUsername] = useState(ME.name);
+  const [email, setEmail] = useState(ME.email);
+  const [defaultDifficulty, setDefaultDifficulty] = useState('Medium');
+  const [notifications, setNotifications] = useState(true);
   const [profileVisible, setProfileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState(true);
   const [roomInvites, setRoomInvites] = useState(true);
-  const [notifications, setNotifications] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    getIdentity().then((id) => setSignedInAs(id?.username ?? null));
+    return () => {
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+    };
+  }, []);
+
+  /** Enough of an email to be worth submitting; the server decides the rest. */
+  const emailValid = /^\S+@\S+\.\S+$/.test(email);
+  const usernameValid = username.trim().length >= 3;
+  const canSave = usernameValid && emailValid;
+
+  const save = () => {
+    if (!canSave) return;
+    setSaved(true);
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    savedTimer.current = setTimeout(() => setSaved(false), 2500);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } finally {
+      router.push('/login');
+    }
+  };
 
   return (
-    <div className="p-8 max-w-2xl space-y-6">
-      <div>
-        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
-          Configuration
-        </div>
-        <h1 className="text-3xl font-bold tracking-wide">SETTINGS</h1>
-      </div>
+    <div className="max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
+      <PageHeader eyebrow="Configuration" title="SETTINGS" />
 
-      {/* Account */}
-      <Section label="Account">
-        <div className="space-y-4">
-          <Field label="Username">
+      {/* ========================================================== account */}
+      <section className="border border-white/[0.07] bg-arena-800">
+        <div className="border-b border-white/[0.07] px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
+            Account
+          </h2>
+        </div>
+        <div className="space-y-4 p-6">
+          <div>
+            <label
+              htmlFor="username"
+              className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
+            >
+              Username
+            </label>
             <input
+              id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40"
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setSaved(false);
+              }}
+              aria-invalid={!usernameValid}
+              className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
             />
-          </Field>
-          <Field label="Email">
+            {!usernameValid && (
+              <p className="mt-1.5 text-[11px] text-gold">
+                Usernames need at least three characters.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="email"
+              className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
+            >
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setSaved(false);
+              }}
+              aria-invalid={!emailValid}
+              className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
             />
-          </Field>
-          <Field label="Profile Picture">
+            {!emailValid && (
+              <p className="mt-1.5 text-[11px] text-gold">
+                That doesn&apos;t look like an email.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
+              Profile Picture
+            </div>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gold text-arena-950 flex items-center justify-center font-bold text-2xl">
-                A
-              </div>
-              <button className="border border-white/20 text-white text-[10px] tracking-[0.2em] uppercase px-4 py-2 hover:bg-arena-700 transition-colors">
-                CHANGE PHOTO
+              <Avatar initial={ME.initial} size="lg" accent />
+              <button
+                type="button"
+                className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                Change photo
               </button>
             </div>
-          </Field>
-          <Field label="Password">
-            <button className="border border-white/20 text-white text-[10px] tracking-[0.2em] uppercase px-4 py-2 hover:bg-arena-700 transition-colors">
-              CHANGE PASSWORD
-            </button>
-          </Field>
-          <div className="pt-2">
-            <button className="bg-gold text-arena-950 font-bold text-[10px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors">
-              SAVE CHANGES
+          </div>
+
+          <div>
+            <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
+              Password
+            </div>
+            <button
+              type="button"
+              className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              Change password
             </button>
           </div>
-        </div>
-      </Section>
 
-      {/* Game */}
-      <Section label="Game Preferences">
-        <div className="space-y-4">
-          <Toggle
+          <div className="flex items-center gap-4 pt-2">
+            <button
+              type="button"
+              onClick={save}
+              disabled={!canSave}
+              className={`px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                canSave
+                  ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
+                  : 'cursor-not-allowed bg-arena-700 text-arena-400'
+              }`}
+            >
+              Save changes
+            </button>
+            <p className="text-[11px] text-gold" aria-live="polite">
+              {saved && '✓ Saved'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================== preferences */}
+      <section className="border border-white/[0.07] bg-arena-800">
+        <div className="border-b border-white/[0.07] px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
+            Game Preferences
+          </h2>
+        </div>
+        <div className="space-y-4 p-6">
+          <ToggleSwitch
             label="Game Notifications"
-            sublabel="Get notified when friends start games or invite you"
-            value={notifications}
-            onChange={setNotifications}
+            description="Get notified when friends start games or invite you"
+            labelId="toggle-notifications"
+            checked={notifications}
+            onToggle={() => setNotifications((v) => !v)}
           />
-          <Field label="Default Difficulty">
-            <div className="flex gap-2">
-              {['Easy', 'Medium', 'Hard', 'Mixed'].map((d) => (
+
+          <div>
+            <div
+              className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase"
+              id="default-difficulty-label"
+            >
+              Default Difficulty
+            </div>
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-labelledby="default-difficulty-label"
+            >
+              {difficultyOptions.map((difficulty) => (
                 <button
-                  key={d}
-                  className="px-4 py-2 text-[10px] tracking-wider uppercase border border-white/10 text-arena-200 hover:border-arena-300 hover:text-white transition-colors"
+                  key={difficulty}
+                  type="button"
+                  onClick={() => setDefaultDifficulty(difficulty)}
+                  aria-pressed={defaultDifficulty === difficulty}
+                  className={`cursor-pointer border px-4 py-2 text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                    defaultDifficulty === difficulty
+                      ? 'border-arena-300 bg-arena-600 font-bold text-white'
+                      : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
+                  }`}
                 >
-                  {d}
+                  {difficulty}
                 </button>
               ))}
             </div>
-          </Field>
+          </div>
         </div>
-      </Section>
+      </section>
 
-      {/* Privacy */}
-      <Section label="Privacy">
-        <div className="space-y-4">
-          <Toggle
+      {/* ========================================================== privacy */}
+      <section className="border border-white/[0.07] bg-arena-800">
+        <div className="border-b border-white/[0.07] px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
+            Privacy
+          </h2>
+        </div>
+        <div className="space-y-4 p-6">
+          <ToggleSwitch
             label="Public Profile"
-            sublabel="Allow other players to view your profile and stats"
-            value={profileVisible}
-            onChange={setProfileVisible}
+            description="Allow other players to view your profile and stats"
+            labelId="toggle-profile"
+            checked={profileVisible}
+            onToggle={() => setProfileVisible((v) => !v)}
           />
-          <Toggle
+          <ToggleSwitch
             label="Friend Requests"
-            sublabel="Allow others to send you friend requests"
-            value={friendRequests}
-            onChange={setFriendRequests}
+            description="Allow others to send you friend requests"
+            labelId="toggle-requests"
+            checked={friendRequests}
+            onToggle={() => setFriendRequests((v) => !v)}
           />
-          <Toggle
+          <ToggleSwitch
             label="Room Invitations"
-            sublabel="Allow friends to invite you to their rooms"
-            value={roomInvites}
-            onChange={setRoomInvites}
+            description="Allow friends to invite you to their rooms"
+            labelId="toggle-invites"
+            checked={roomInvites}
+            onToggle={() => setRoomInvites((v) => !v)}
           />
         </div>
-      </Section>
+      </section>
 
-      {/* Danger zone */}
-      <Section label="Account Management">
-        <div className="space-y-3">
-          <button className="w-full border border-white/20 text-white text-[11px] tracking-[0.2em] uppercase py-3 hover:bg-arena-700 transition-colors text-left px-4">
-            LOG OUT
+      {/* =================================================== account mgmt */}
+      <section className="border border-white/[0.07] bg-arena-800">
+        <div className="border-b border-white/[0.07] px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
+            Account Management
+          </h2>
+        </div>
+        <div className="space-y-3 p-6">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full cursor-pointer border border-white/20 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            Log out
+            {signedInAs && (
+              <span className="ml-2 text-arena-300 normal-case">
+                ({signedInAs})
+              </span>
+            )}
           </button>
-          <button className="w-full border border-arena-500/40 text-arena-300 text-[11px] tracking-[0.2em] uppercase py-3 hover:border-arena-300 hover:text-white transition-colors text-left px-4">
-            DELETE ACCOUNT
+          <button
+            type="button"
+            className="w-full cursor-pointer border border-arena-500/40 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            Delete account
           </button>
         </div>
-      </Section>
-    </div>
-  );
-}
-
-function Section({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-arena-800 border border-white/[0.07]">
-      <div className="px-6 py-4 border-b border-white/[0.07]">
-        <div className="text-[11px] tracking-[0.25em] uppercase font-bold text-arena-200">
-          {label}
-        </div>
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <div className="text-arena-300 text-[10px] tracking-[0.2em] uppercase mb-2">
-        {label}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Toggle({
-  label,
-  sublabel,
-  value,
-  onChange,
-}: {
-  label: string;
-  sublabel: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between py-1">
-      <div>
-        <div className="text-white text-sm">{label}</div>
-        <div className="text-arena-300 text-[11px] mt-0.5">{sublabel}</div>
-      </div>
-      <button
-        onClick={() => onChange(!value)}
-        className={`relative w-10 h-6 transition-colors flex-shrink-0 ${value ? 'bg-gold' : 'bg-arena-600'}`}
-      >
-        <div
-          className={`absolute top-1 w-4 h-4 bg-white transition-transform ${
-            value ? 'translate-x-5' : 'translate-x-1'
-          }`}
-        />
-      </button>
+      </section>
     </div>
   );
 }

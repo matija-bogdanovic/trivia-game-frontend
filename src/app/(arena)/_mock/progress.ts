@@ -35,16 +35,16 @@ export const homeStats: StatTile[] = [
 ];
 
 /** the profile screen's six-up stat grid */
-export const profileStats = [
-  { label: 'TOTAL WINS', value: '143' },
-  { label: 'GAMES PLAYED', value: '201' },
-  { label: 'WIN RATE', value: '71%' },
-  { label: 'DUELS WON', value: '38' },
-  { label: 'BETS WON', value: '312' },
-  { label: 'MONEY WON', value: '$8,340' },
+export const profileStats: StatTile[] = [
+  { label: 'Total Wins', value: '143' },
+  { label: 'Games Played', value: '201' },
+  { label: 'Win Rate', value: '71%' },
+  { label: 'Duels Won', value: '38' },
+  { label: 'Bets Won', value: '312' },
+  { label: 'Money Won', value: '$8,340' },
 ];
 
-export const favoriteCategories = [
+export const categoryScores = [
   { name: 'Science', pct: 84 },
   { name: 'Mathematics', pct: 72 },
   { name: 'History', pct: 65 },
@@ -158,20 +158,4 @@ export const achievements: Achievement[] = [
   },
 ];
 
-/** the profile screen's compact teaser row */
-export const profileAchievementTease = [
-  { icon: '★', label: 'First Blood', unlocked: true },
-  { icon: '🔥', label: 'On Fire', unlocked: true },
-  { icon: '⚡', label: 'Lightning', unlocked: true },
-  { icon: '⚔', label: 'Duel Master', unlocked: false },
-  { icon: '◆', label: 'Unstoppable', unlocked: false },
-  { icon: '▲', label: 'Apex', unlocked: false },
-];
-
-/** the profile header — a fake identity, unlike the sidebar's real one */
-export const profileIdentity = {
-  name: 'AlphaWolf',
-  initial: 'A',
-  streak: 7,
-  memberSince: 'Member since March 2024',
-};
+export const difficultyOptions = ['Easy', 'Medium', 'Hard', 'Mixed'];
