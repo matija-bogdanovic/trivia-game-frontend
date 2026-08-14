@@ -183,7 +183,7 @@ function RoomCard({ room }: { room: Room }) {
         </button>
       ) : (
         <Link
-          href="/lobby"
+          href="/rooms/join"
           className="block text-center w-full font-bold text-[11px] tracking-[0.2em] uppercase py-3 transition-colors bg-gold text-g950 hover:bg-gold-light"
         >
           JOIN ROOM →

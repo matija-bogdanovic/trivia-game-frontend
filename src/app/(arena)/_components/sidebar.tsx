@@ -60,7 +60,7 @@ export default function Sidebar() {
 
       <div className="px-3 pb-3">
         <Link
-          href="/live-game"
+          href="/rooms"
           className="block text-center w-full bg-gold text-g950 font-bold text-[11px] tracking-[0.15em] uppercase py-3 hover:bg-gold-light transition-colors"
         >
           ▶ PLAY NOW

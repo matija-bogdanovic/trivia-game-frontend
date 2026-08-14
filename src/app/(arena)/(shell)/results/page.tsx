@@ -124,7 +124,7 @@ export default function Page() {
       {/* CTAs */}
       <div className="flex gap-4">
         <Link
-          href="/lobby"
+          href="/rooms"
           className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
         >
           PLAY AGAIN

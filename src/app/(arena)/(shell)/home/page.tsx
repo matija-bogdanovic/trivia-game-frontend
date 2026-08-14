@@ -49,7 +49,7 @@ export default function Page() {
           </p>
           <div className="flex gap-4">
             <Link
-              href="/live-game"
+              href="/rooms"
               className="bg-gold text-g950 font-bold text-sm tracking-[0.2em] uppercase px-10 py-4 hover:bg-gold-light transition-colors"
             >
               ▶ PLAY NOW
