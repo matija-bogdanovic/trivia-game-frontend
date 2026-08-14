@@ -1,6 +1,5 @@
 'use client';
 
-import Input from '@/app/components/general/input';
 import { authErrorKey } from '@/app/helpers/auth_errors';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
@@ -233,70 +232,110 @@ function Page() {
   }, []);
 
   return (
-    <div className="min-h-[60vh] container w-full flex flex-col items-center justify-center gap-6">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold">{t('confirm.title')}</h1>
-        <p className="text-gray-500 mt-1">{t('confirm.sub')}</p>
-      </div>
-      {error && <p className="text-red-500 max-w-md text-center">{error}</p>}
+    <>
+      <h1 className="mb-1 text-2xl font-bold tracking-wide">
+        {t('confirm.title')}
+      </h1>
+      <p className="mb-6 text-[11px] tracking-wider text-arena-200">
+        {t('confirm.sub')}
+      </p>
+
+      {error && (
+        <p
+          className="mb-5 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          role="alert"
+        >
+          {error}
+        </p>
+      )}
       {notice && (
-        <p className="text-green-600 max-w-md text-center">{notice}</p>
+        <p
+          className="mb-5 border border-arena-400 bg-arena-750 px-4 py-3 text-[12px] leading-relaxed text-arena-100"
+          role="status"
+        >
+          {notice}
+        </p>
       )}
+
       {username === '' && (
-        <Input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder={t('auth.username')}
-          autoComplete="username"
-          className="border border-gray-300 rounded px-2 py-1"
-        />
+        <div className="mb-5">
+          <label
+            htmlFor="confirm-username"
+            className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
+          >
+            {t('auth.username')}
+          </label>
+          <input
+            id="confirm-username"
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-arena-400 focus:border-gold/40"
+          />
+        </div>
       )}
-      <div className="flex items-center gap-3">
+
+      <div
+        className="mb-6 flex justify-center gap-2 sm:gap-3"
+        role="group"
+        aria-label={t('confirm.title')}
+      >
         {code.map((value, index) => (
-          <Input
+          <input
             key={index}
+            ref={inputRefs[index]}
             type="text"
             value={value}
             maxLength={1}
-            maxLengthAllowed={false}
-            className="w-12 h-14 text-center text-xl rounded-md border border-gray-300 focus:outline-none"
             inputMode="numeric"
             pattern="[0-9]*"
             // lets the browser offer the emailed code straight from the inbox
             autoComplete={index === 0 ? 'one-time-code' : 'off'}
-            inputRef={inputRefs[index]}
             onChange={handleChange(index)}
             onKeyDown={handleKeyDown(index)}
             onPaste={handlePaste(index)}
-            placeholder="-"
+            aria-label={`Digit ${index + 1} of 6`}
+            className={`h-12 w-10 border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold sm:h-14 sm:w-12 ${
+              value
+                ? 'border-gold/50 text-gold'
+                : 'border-white/10 text-white focus:border-gold/40'
+            }`}
           />
         ))}
       </div>
-      <div className="flex items-center gap-3 mt-2">
+
+      <button
+        type="button"
+        disabled={!isComplete || busy}
+        onClick={handleVerify}
+        className={`w-full py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
+          !isComplete || busy
+            ? 'cursor-not-allowed bg-arena-700 text-arena-400'
+            : 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
+        }`}
+      >
+        {busy ? '…' : t('confirm.verify')}
+      </button>
+
+      <div className="mt-6 border-t border-white/[0.07] pt-6 text-center">
         <button
-          className="px-4 py-2 rounded-md border border-gray-300 disabled:opacity-40 cursor-pointer"
+          type="button"
           disabled={cooldownSeconds > 0}
           onClick={handleResend}
+          className="cursor-pointer text-[11px] tracking-wider text-gold uppercase transition-colors hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:cursor-not-allowed disabled:text-arena-400"
         >
           {t('confirm.resend')}
         </button>
         {cooldownSeconds > 0 && (
-          <span className="text-gray-500">
+          <p className="mt-2 text-[11px] text-arena-300" aria-live="polite">
             {t('confirm.retryIn', {
               time: `${Math.floor(cooldownSeconds / 60)}:${`${cooldownSeconds % 60}`.padStart(2, '0')}`,
             })}
-          </span>
+          </p>
         )}
       </div>
-      <button
-        className={`px-5 py-2 rounded-md bg-black text-white disabled:opacity-40 cursor-pointer`}
-        disabled={!isComplete || busy}
-        onClick={handleVerify}
-      >
-        {busy ? '…' : t('confirm.verify')}
-      </button>
-    </div>
+    </>
   );
 }
 
