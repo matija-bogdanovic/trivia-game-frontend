@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Cropper, { Area } from 'react-easy-crop';
-import Button from '@/app/components/general/button';
 import { useT } from '@/app/lib/i18n';
 import { CropPixels, cropToAvatarDataUrl } from '@/app/helpers/avatar';
 
@@ -13,7 +12,13 @@ interface AvatarCropperProps {
   onCancel: () => void;
 }
 
-/** modal with drag + zoom and a circular mask matching the round avatar */
+/**
+ * Modal with drag + zoom and a circular mask matching the round avatar.
+ *
+ * react-easy-crop reports the selection back in *source-image* pixels via
+ * onCropComplete, which is what cropToAvatarDataUrl needs — no scaling from
+ * the displayed size to the natural size to get wrong.
+ */
 function AvatarCropper({ imageSrc, onDone, onCancel }: AvatarCropperProps) {
   const { t } = useT();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -33,10 +38,21 @@ function AvatarCropper({ imageSrc, onDone, onCancel }: AvatarCropperProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.6)] flex items-center justify-center p-4">
-      <div className="bg-white rounded-md p-4 flex flex-col gap-4 w-full max-w-md">
-        <h3 className="font-semibold">{t('profile.cropTitle')}</h3>
-        <div className="relative w-full h-72 bg-gray-900 rounded overflow-hidden">
+    <div
+      className="arena-root fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crop-title"
+    >
+      <div className="flex w-full max-w-md flex-col gap-4 border border-white/[0.07] bg-arena-800 p-6">
+        <h3
+          id="crop-title"
+          className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase"
+        >
+          {t('profile.cropTitle')}
+        </h3>
+
+        <div className="relative h-72 w-full overflow-hidden bg-arena-950">
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -51,31 +67,45 @@ function AvatarCropper({ imageSrc, onDone, onCancel }: AvatarCropperProps) {
             }
           />
         </div>
-        <label className="flex items-center gap-3 text-sm text-gray-600">
+
+        <label
+          htmlFor="avatar-zoom"
+          className="flex items-center gap-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase"
+        >
           {t('profile.zoom')}
           <input
+            id="avatar-zoom"
             type="range"
             min={1}
             max={4}
             step={0.05}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="flex-1"
+            className="flex-1 cursor-pointer accent-gold"
           />
         </label>
-        <div className="flex gap-3 justify-end">
+
+        <div className="flex flex-wrap justify-end gap-3">
           <button
-            className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
+            type="button"
             onClick={onCancel}
             disabled={busy}
+            className="cursor-pointer border border-white/20 px-5 py-3 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
           >
             {t('profile.cancel')}
           </button>
-          <Button
-            text={busy ? '…' : t('profile.apply')}
+          <button
+            type="button"
             onClick={apply}
             disabled={busy || !cropPixels}
-          />
+            className={`px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              busy || !cropPixels
+                ? 'cursor-not-allowed bg-arena-700 text-arena-400'
+                : 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
+            }`}
+          >
+            {busy ? '…' : t('profile.apply')}
+          </button>
         </div>
       </div>
     </div>
