@@ -34,11 +34,9 @@
   --color-ring: #c9a227;
 
   /*
-   * The Angular app (~/ipakseokrece) is now the design source, and it names
-   * this ramp arena-*. Same twelve hexes, different prefix — so its templates
-   * copy across verbatim. Defined alongside the g-* names below while the
-   * screens move over one at a time; when the last g-* use is gone, so is
-   * that block.
+   * The ramp the screens paint with — arena-950 darkest, arena-100 lightest.
+   * Names and values match the Angular app at ~/ipakseokrece, which is the
+   * design source, so its templates copy across verbatim.
    */
   --color-arena-950: #060f07;
   --color-arena-900: #091508;
@@ -52,20 +50,6 @@
   --color-arena-300: #4a7a4e;
   --color-arena-200: #7ab07e;
   --color-arena-100: #b0d4b3;
-
-  /* the green ramp the screens actually paint with — g950 darkest, g100 lightest */
-  --color-g950: #060f07;
-  --color-g900: #091508;
-  --color-g800: #0c1c0d;
-  --color-g750: #0f2010;
-  --color-g700: #122513;
-  --color-g650: #162a18;
-  --color-g600: #1c3320;
-  --color-g500: #253d27;
-  --color-g400: #2e4d30;
-  --color-g300: #4a7a4e;
-  --color-g200: #7ab07e;
-  --color-g100: #b0d4b3;
 
   /* the accent: buttons, active states, every number that matters */
   --color-gold: #c9a227;
@@ -87,12 +71,12 @@ html:has(.arena-root) {
 }
 
 body:has(.arena-root) {
-  background-color: var(--color-g900);
+  background-color: var(--color-arena-900);
   color: var(--color-foreground);
 }
 
 .arena-root {
-  background-color: var(--color-g900);
+  background-color: var(--color-arena-900);
   color: var(--color-foreground);
 }
 

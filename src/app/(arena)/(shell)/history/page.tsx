@@ -16,7 +16,7 @@ export default function Page() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
           History
         </div>
         <h1 className="text-3xl font-bold tracking-wide">MATCH HISTORY</h1>
@@ -30,14 +30,14 @@ export default function Page() {
             onClick={() => setFilter(f)}
             className={`text-[10px] tracking-[0.2em] uppercase px-5 py-2.5 border font-bold transition-colors ${
               filter === f
-                ? 'bg-gold text-g950 border-gold'
-                : 'border-white/10 text-g200 hover:border-g300 hover:text-white'
+                ? 'bg-gold text-arena-950 border-gold'
+                : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
             }`}
           >
             {f === 'all' ? 'All Matches' : f === 'wins' ? 'Wins' : 'Losses'}
           </button>
         ))}
-        <div className="ml-auto text-g300 text-[11px] tracking-wider">
+        <div className="ml-auto text-arena-300 text-[11px] tracking-wider">
           {filtered.length} matches
         </div>
       </div>
@@ -45,36 +45,39 @@ export default function Page() {
       {/* Match list */}
       <div className="space-y-2">
         {filtered.map((match) => (
-          <div key={match.id} className="bg-g800 border border-white/[0.07]">
+          <div
+            key={match.id}
+            className="bg-arena-800 border border-white/[0.07]"
+          >
             <button
               onClick={() =>
                 setExpanded(expanded === match.id ? null : match.id)
               }
-              className="w-full flex items-center gap-4 p-5 text-left hover:bg-g750 transition-colors"
+              className="w-full flex items-center gap-4 p-5 text-left hover:bg-arena-750 transition-colors"
             >
               <div
-                className={`w-2 h-12 flex-shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-g400'}`}
+                className={`w-2 h-12 flex-shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1">
                   <span className="text-white font-bold">
                     {match.players.join(' · ')}
                   </span>
-                  <span className="text-[9px] tracking-widest text-g300 border border-g500 px-1.5 py-0.5">
+                  <span className="text-[9px] tracking-widest text-arena-300 border border-arena-500 px-1.5 py-0.5">
                     {match.mode}
                   </span>
                 </div>
-                <div className="text-g200 text-[10px] tracking-wider">
+                <div className="text-arena-200 text-[10px] tracking-wider">
                   {match.category} · {match.difficulty} · {match.date}
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
                 <div
-                  className={`font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-g300'}`}
+                  className={`font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
                 >
                   {match.money}
                 </div>
-                <div className="text-g300 text-[10px] mt-0.5">
+                <div className="text-arena-300 text-[10px] mt-0.5">
                   #{match.placement} Place
                 </div>
               </div>
@@ -82,13 +85,13 @@ export default function Page() {
                 className={`text-[11px] tracking-widest font-bold uppercase px-3 py-1 border ml-2 ${
                   match.result === 'WIN'
                     ? 'border-gold/40 text-gold'
-                    : 'border-g400 text-g300'
+                    : 'border-arena-400 text-arena-300'
                 }`}
               >
                 {match.result}
               </div>
               <div
-                className={`text-g300 text-[10px] ml-2 transition-transform ${expanded === match.id ? 'rotate-180' : ''}`}
+                className={`text-arena-300 text-[10px] ml-2 transition-transform ${expanded === match.id ? 'rotate-180' : ''}`}
               >
                 ▼
               </div>
@@ -115,7 +118,7 @@ export default function Page() {
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-g300 text-[10px] tracking-widest uppercase mb-1">
+      <div className="text-arena-300 text-[10px] tracking-widest uppercase mb-1">
         {label}
       </div>
       <div className="text-white font-bold">{value}</div>

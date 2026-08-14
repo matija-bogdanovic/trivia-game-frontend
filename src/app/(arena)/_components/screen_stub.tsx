@@ -13,14 +13,14 @@ export default function ScreenStub({
 }) {
   return (
     <div className="p-8">
-      <div className="text-g200 text-[10px] tracking-[0.2em] uppercase mb-2">
+      <div className="text-arena-200 text-[10px] tracking-[0.2em] uppercase mb-2">
         Not built yet
       </div>
       <h1 className="text-4xl font-bold text-white tracking-wide mb-4">
         {title}
       </h1>
-      <div className="bg-g800 border border-white/[0.07] p-5 inline-block">
-        <div className="text-g200 text-[11px] tracking-wider uppercase mb-1">
+      <div className="bg-arena-800 border border-white/[0.07] p-5 inline-block">
+        <div className="text-arena-200 text-[11px] tracking-wider uppercase mb-1">
           Ports from
         </div>
         <div className="text-gold text-sm font-bold">{source}</div>

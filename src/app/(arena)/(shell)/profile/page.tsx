@@ -10,12 +10,12 @@ export default function Page() {
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
-      <div className="bg-g800 border border-white/[0.07] p-8 flex items-center gap-8">
-        <div className="w-24 h-24 bg-gold flex items-center justify-center text-g950 font-bold text-4xl flex-shrink-0">
+      <div className="bg-arena-800 border border-white/[0.07] p-8 flex items-center gap-8">
+        <div className="w-24 h-24 bg-gold flex items-center justify-center text-arena-950 font-bold text-4xl flex-shrink-0">
           {profileIdentity.initial}
         </div>
         <div className="flex-1">
-          <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+          <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
             Player Profile
           </div>
           <div className="text-white text-4xl font-bold tracking-wide mb-2">
@@ -23,7 +23,7 @@ export default function Page() {
           </div>
           <div className="flex items-center gap-6">
             <div>
-              <div className="text-g300 text-[10px] tracking-widest uppercase">
+              <div className="text-arena-300 text-[10px] tracking-widest uppercase">
                 Current Streak
               </div>
               <div className="text-gold text-2xl font-bold">
@@ -31,12 +31,12 @@ export default function Page() {
               </div>
             </div>
             <div className="w-px h-10 bg-white/10" />
-            <div className="text-g200 text-sm">
+            <div className="text-arena-200 text-sm">
               {profileIdentity.memberSince}
             </div>
           </div>
         </div>
-        <button className="border border-white/20 text-white text-[11px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-g700 transition-colors">
+        <button className="border border-white/20 text-white text-[11px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors">
           EDIT PROFILE
         </button>
       </div>
@@ -46,10 +46,10 @@ export default function Page() {
         {profileStats.map((s) => (
           <div
             key={s.label}
-            className="bg-g800 border border-white/[0.07] p-4 text-center"
+            className="bg-arena-800 border border-white/[0.07] p-4 text-center"
           >
             <div className="text-2xl font-bold text-gold mb-1">{s.value}</div>
-            <div className="text-g300 text-[9px] tracking-[0.2em] uppercase leading-tight">
+            <div className="text-arena-300 text-[9px] tracking-[0.2em] uppercase leading-tight">
               {s.label}
             </div>
           </div>
@@ -58,8 +58,8 @@ export default function Page() {
 
       <div className="grid grid-cols-2 gap-6">
         {/* Category performance */}
-        <div className="bg-g800 border border-white/[0.07] p-6">
-          <div className="text-[10px] tracking-[0.25em] uppercase text-g200 mb-5">
+        <div className="bg-arena-800 border border-white/[0.07] p-6">
+          <div className="text-[10px] tracking-[0.25em] uppercase text-arena-200 mb-5">
             Category Performance
           </div>
           <div className="space-y-4">
@@ -69,7 +69,7 @@ export default function Page() {
                   <span className="text-white">{cat.name}</span>
                   <span className="text-gold font-bold">{cat.pct}%</span>
                 </div>
-                <div className="h-1.5 bg-g700">
+                <div className="h-1.5 bg-arena-700">
                   <div
                     className="h-full bg-gold"
                     style={{ width: `${cat.pct}%` }}
@@ -81,8 +81,8 @@ export default function Page() {
         </div>
 
         {/* Recent matches */}
-        <div className="bg-g800 border border-white/[0.07] p-6">
-          <div className="text-[10px] tracking-[0.25em] uppercase text-g200 mb-5">
+        <div className="bg-arena-800 border border-white/[0.07] p-6">
+          <div className="text-[10px] tracking-[0.25em] uppercase text-arena-200 mb-5">
             Recent Matches
           </div>
           <div className="space-y-3">
@@ -92,16 +92,16 @@ export default function Page() {
                 className="flex items-center gap-3 py-3 border-b border-white/[0.05]"
               >
                 <div
-                  className={`w-2 h-8 flex-shrink-0 ${m.result === 'WIN' ? 'bg-gold' : 'bg-g400'}`}
+                  className={`w-2 h-8 flex-shrink-0 ${m.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-white text-xs font-bold truncate">
                     {m.opponent}
                   </div>
-                  <div className="text-g300 text-[10px]">{m.date}</div>
+                  <div className="text-arena-300 text-[10px]">{m.date}</div>
                 </div>
                 <div
-                  className={`font-bold text-sm ${m.result === 'WIN' ? 'text-gold' : 'text-g300'}`}
+                  className={`font-bold text-sm ${m.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
                 >
                   {m.money}
                 </div>
@@ -112,8 +112,8 @@ export default function Page() {
       </div>
 
       {/* Achievements row */}
-      <div className="bg-g800 border border-white/[0.07] p-6">
-        <div className="text-[10px] tracking-[0.25em] uppercase text-g200 mb-5">
+      <div className="bg-arena-800 border border-white/[0.07] p-6">
+        <div className="text-[10px] tracking-[0.25em] uppercase text-arena-200 mb-5">
           Achievements
         </div>
         <div className="flex gap-4">
@@ -128,7 +128,7 @@ export default function Page() {
             >
               <div className="text-2xl">{a.icon}</div>
               <div
-                className={`text-[10px] tracking-wider ${a.unlocked ? 'text-gold' : 'text-g300'}`}
+                className={`text-[10px] tracking-wider ${a.unlocked ? 'text-gold' : 'text-arena-300'}`}
               >
                 {a.label}
               </div>

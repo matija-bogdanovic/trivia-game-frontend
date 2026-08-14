@@ -13,7 +13,7 @@ export default function Page() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
           Competition
         </div>
         <h1 className="text-3xl font-bold tracking-wide">LEADERBOARDS</h1>
@@ -27,8 +27,8 @@ export default function Page() {
             onClick={() => setTab(t)}
             className={`px-6 py-3 text-[11px] tracking-[0.2em] uppercase font-bold border transition-colors ${
               tab === t
-                ? 'bg-gold text-g950 border-gold'
-                : 'border-white/10 text-g200 hover:border-g300 hover:text-white'
+                ? 'bg-gold text-arena-950 border-gold'
+                : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
             }`}
           >
             {t}
@@ -50,13 +50,15 @@ export default function Page() {
           return (
             <div
               key={p.name}
-              className={`bg-g800 border p-6 text-center ${
+              className={`bg-arena-800 border p-6 text-center ${
                 order[i] === 0 ? 'border-gold/40' : 'border-white/[0.07]'
               }`}
             >
               <div
                 className={`mx-auto mb-3 flex items-center justify-center font-bold ${avatarSizes[order[i]]} ${
-                  order[i] === 0 ? 'bg-gold text-g950' : 'bg-g600 text-white'
+                  order[i] === 0
+                    ? 'bg-gold text-arena-950'
+                    : 'bg-arena-600 text-white'
                 }`}
               >
                 {p.initial}
@@ -67,12 +69,12 @@ export default function Page() {
                 {p.name}
               </div>
               <div
-                className={`font-bold mb-2 ${sizes[order[i]]} ${order[i] === 0 ? 'text-gold' : 'text-g300'}`}
+                className={`font-bold mb-2 ${sizes[order[i]]} ${order[i] === 0 ? 'text-gold' : 'text-arena-300'}`}
               >
                 {rankBadges[p.rank]}
               </div>
               <div className="text-white font-bold">{p.wins} wins</div>
-              <div className="text-g200 text-[10px] mt-1">
+              <div className="text-arena-200 text-[10px] mt-1">
                 🔥 {p.streak} streak
               </div>
             </div>
@@ -81,8 +83,8 @@ export default function Page() {
       </div>
 
       {/* Full table */}
-      <div className="bg-g800 border border-white/[0.07]">
-        <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 px-5 py-3 border-b border-white/[0.07] text-g300 text-[10px] tracking-[0.2em] uppercase">
+      <div className="bg-arena-800 border border-white/[0.07]">
+        <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 px-5 py-3 border-b border-white/[0.07] text-arena-300 text-[10px] tracking-[0.2em] uppercase">
           <span>#</span>
           <span>Player</span>
           <span>Streak</span>
@@ -96,18 +98,20 @@ export default function Page() {
             className={`grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 px-5 py-4 border-b border-white/[0.05] items-center transition-colors ${
               player.isYou
                 ? 'bg-gold/10 border-l-2 border-l-gold'
-                : 'hover:bg-g750'
+                : 'hover:bg-arena-750'
             }`}
           >
             <div
-              className={`font-bold ${player.rank <= 3 ? 'text-gold' : 'text-g400'}`}
+              className={`font-bold ${player.rank <= 3 ? 'text-gold' : 'text-arena-400'}`}
             >
               {rankBadges[player.rank] || player.rank}
             </div>
             <div className="flex items-center gap-3">
               <div
                 className={`w-8 h-8 flex items-center justify-center font-bold text-sm ${
-                  player.rank === 1 ? 'bg-gold text-g950' : 'bg-g600 text-white'
+                  player.rank === 1
+                    ? 'bg-gold text-arena-950'
+                    : 'bg-arena-600 text-white'
                 }`}
               >
                 {player.initial}
@@ -118,7 +122,7 @@ export default function Page() {
                     {player.name}
                   </span>
                   {player.isYou && (
-                    <span className="text-[9px] tracking-widest text-g300 border border-g400 px-1.5">
+                    <span className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-1.5">
                       YOU
                     </span>
                   )}
@@ -129,7 +133,7 @@ export default function Page() {
               🔥 {player.streak}
             </div>
             <div className="text-white font-bold text-sm">{player.wins}</div>
-            <div className="text-g200 text-sm">{player.rate}</div>
+            <div className="text-arena-200 text-sm">{player.rate}</div>
             <div className="text-gold font-bold text-sm text-right">
               ${player.money.toLocaleString()}
             </div>
@@ -143,7 +147,7 @@ export default function Page() {
           Your Position
         </div>
         <div className="text-white font-bold">Rank #7</div>
-        <div className="text-g200 text-[11px]">· 54 wins from top 3</div>
+        <div className="text-arena-200 text-[11px]">· 54 wins from top 3</div>
       </div>
     </div>
   );

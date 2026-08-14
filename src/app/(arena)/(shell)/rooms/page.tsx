@@ -29,7 +29,7 @@ export default function Page() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
           Multiplayer
         </div>
         <h1 className="text-3xl font-bold tracking-wide">FIND A ROOM</h1>
@@ -39,26 +39,26 @@ export default function Page() {
       <div className="flex gap-4 mb-8">
         <Link
           href="/rooms/create"
-          className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+          className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
         >
           + CREATE ROOM
         </Link>
         <Link
           href="/rooms/join"
-          className="border border-white/20 text-white font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-g700 transition-colors"
+          className="border border-white/20 text-white font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-arena-700 transition-colors"
         >
           → JOIN WITH CODE
         </Link>
       </div>
 
       {/* Filters */}
-      <div className="bg-g800 border border-white/[0.07] p-4 mb-6 flex flex-wrap gap-4 items-center">
+      <div className="bg-arena-800 border border-white/[0.07] p-4 mb-6 flex flex-wrap gap-4 items-center">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search rooms or hosts..."
-          className="bg-g750 border border-white/10 text-white text-sm px-4 py-2 outline-none focus:border-gold/40 placeholder:text-g300 w-56"
+          className="bg-arena-750 border border-white/10 text-white text-sm px-4 py-2 outline-none focus:border-gold/40 placeholder:text-arena-300 w-56"
         />
 
         <div className="flex gap-1">
@@ -68,8 +68,8 @@ export default function Page() {
               onClick={() => setCategory(c)}
               className={`text-[10px] tracking-wider uppercase px-3 py-2 transition-colors ${
                 category === c
-                  ? 'bg-gold text-g950 font-bold'
-                  : 'text-g200 border border-white/10 hover:border-g300'
+                  ? 'bg-gold text-arena-950 font-bold'
+                  : 'text-arena-200 border border-white/10 hover:border-arena-300'
               }`}
             >
               {c}
@@ -84,8 +84,8 @@ export default function Page() {
               onClick={() => setDifficulty(d)}
               className={`text-[10px] tracking-wider uppercase px-3 py-2 transition-colors ${
                 difficulty === d
-                  ? 'bg-g600 text-white font-bold border border-g400'
-                  : 'text-g200 border border-white/10 hover:border-g300'
+                  ? 'bg-arena-600 text-white font-bold border border-arena-400'
+                  : 'text-arena-200 border border-white/10 hover:border-arena-300'
               }`}
             >
               {d}
@@ -96,7 +96,7 @@ export default function Page() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="bg-g750 border border-white/10 text-g200 text-[10px] tracking-wider uppercase px-3 py-2 outline-none ml-auto"
+          className="bg-arena-750 border border-white/10 text-arena-200 text-[10px] tracking-wider uppercase px-3 py-2 outline-none ml-auto"
         >
           <option value="players">Sort: Players</option>
           <option value="money">Sort: Money</option>
@@ -105,7 +105,7 @@ export default function Page() {
       </div>
 
       {/* Room count */}
-      <div className="text-g200 text-[10px] tracking-wider uppercase mb-4">
+      <div className="text-arena-200 text-[10px] tracking-wider uppercase mb-4">
         {filtered.length} ROOMS AVAILABLE
       </div>
 
@@ -117,7 +117,7 @@ export default function Page() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-20 text-g300">
+        <div className="text-center py-20 text-arena-300">
           <div className="text-4xl mb-4">◎</div>
           <div className="text-sm tracking-wider uppercase">
             No rooms match your filters
@@ -134,21 +134,21 @@ function RoomCard({ room }: { room: Room }) {
 
   return (
     <div
-      className={`bg-g800 border border-white/[0.07] p-5 hover:bg-g750 transition-colors ${full ? 'opacity-60' : ''}`}
+      className={`bg-arena-800 border border-white/[0.07] p-5 hover:bg-arena-750 transition-colors ${full ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="text-white font-bold tracking-wide mb-1">
             {room.name}
           </div>
-          <div className="text-g200 text-[11px] tracking-wider">
+          <div className="text-arena-200 text-[11px] tracking-wider">
             Hosted by <span className="text-white">{room.host}</span>
             {room.hostStreak > 0 && (
               <span className="text-gold ml-2">🔥 {room.hostStreak}</span>
             )}
           </div>
         </div>
-        <div className="text-[10px] tracking-wider uppercase text-g300 border border-g400 px-2 py-1">
+        <div className="text-[10px] tracking-wider uppercase text-arena-300 border border-arena-400 px-2 py-1">
           PUBLIC
         </div>
       </div>
@@ -169,7 +169,7 @@ function RoomCard({ room }: { room: Room }) {
         {Array.from({ length: room.maxPlayers }).map((_, i) => (
           <div
             key={i}
-            className={`h-1 flex-1 ${i < room.players ? 'bg-gold' : 'bg-g600'}`}
+            className={`h-1 flex-1 ${i < room.players ? 'bg-gold' : 'bg-arena-600'}`}
           />
         ))}
       </div>
@@ -177,14 +177,14 @@ function RoomCard({ room }: { room: Room }) {
       {full ? (
         <button
           disabled
-          className="w-full font-bold text-[11px] tracking-[0.2em] uppercase py-3 bg-g700 text-g300 cursor-not-allowed"
+          className="w-full font-bold text-[11px] tracking-[0.2em] uppercase py-3 bg-arena-700 text-arena-300 cursor-not-allowed"
         >
           ROOM FULL
         </button>
       ) : (
         <Link
           href="/rooms/join"
-          className="block text-center w-full font-bold text-[11px] tracking-[0.2em] uppercase py-3 transition-colors bg-gold text-g950 hover:bg-gold-light"
+          className="block text-center w-full font-bold text-[11px] tracking-[0.2em] uppercase py-3 transition-colors bg-gold text-arena-950 hover:bg-gold-light"
         >
           JOIN ROOM →
         </Link>
@@ -204,7 +204,7 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="text-g300 text-[9px] tracking-[0.2em] uppercase mb-0.5">
+      <div className="text-arena-300 text-[9px] tracking-[0.2em] uppercase mb-0.5">
         {label}
       </div>
       <div

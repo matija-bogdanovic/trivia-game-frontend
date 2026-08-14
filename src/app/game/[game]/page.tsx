@@ -57,7 +57,7 @@ function Page() {
           <div className="text-gold text-[11px] tracking-[0.4em] uppercase">
             Connecting
           </div>
-          <div className="text-g300 text-sm tracking-wider">
+          <div className="text-arena-300 text-sm tracking-wider">
             {t('game.connecting')}
           </div>
         </div>
@@ -80,7 +80,7 @@ function Page() {
       {joinDenied && !kicked && !terminated && (
         <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
           <form
-            className="flex flex-col gap-4 bg-g800 border border-white/[0.07] p-8 max-w-sm w-full"
+            className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-sm w-full"
             onSubmit={(e) => {
               e.preventDefault();
               if (roomPassword) joinWithPassword(roomPassword);
@@ -91,13 +91,13 @@ function Page() {
                 <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
                   Sign in to play
                 </div>
-                <p className="text-g200 text-sm">
+                <p className="text-arena-200 text-sm">
                   Your session expired or was never started. Sign in and open
                   the room again.
                 </p>
                 <Link
                   href="/login"
-                  className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors text-center"
+                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors text-center"
                 >
                   GO TO SIGN IN
                 </Link>
@@ -107,11 +107,11 @@ function Page() {
                 <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
                   {t('join.roomFullTitle')}
                 </div>
-                <p className="text-g200 text-sm">{t('join.roomFull')}</p>
+                <p className="text-arena-200 text-sm">{t('join.roomFull')}</p>
                 <button
                   type="button"
                   onClick={leaveRoom}
-                  className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
                 >
                   {t('game.leave')}
                 </button>
@@ -122,14 +122,16 @@ function Page() {
                   🔒 {t('game.passwordTitle')}
                 </div>
                 {joinDenied === 'wrong_password' && (
-                  <p className="text-g100 text-sm">{t('join.wrongPassword')}</p>
+                  <p className="text-arena-100 text-sm">
+                    {t('join.wrongPassword')}
+                  </p>
                 )}
                 <input
                   type="password"
                   value={roomPassword}
                   onChange={(e) => setRoomPassword(e.target.value)}
                   placeholder={t('create.passwordPlaceholder')}
-                  className="bg-g750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40 placeholder:text-g400"
+                  className="bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40 placeholder:text-arena-400"
                   autoFocus
                 />
                 <div className="flex gap-3">
@@ -138,15 +140,15 @@ function Page() {
                     disabled={!roomPassword}
                     className={`flex-1 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 transition-colors ${
                       roomPassword
-                        ? 'bg-gold text-g950 hover:bg-gold-light'
-                        : 'bg-g700 text-g400 cursor-not-allowed'
+                        ? 'bg-gold text-arena-950 hover:bg-gold-light'
+                        : 'bg-arena-700 text-arena-400 cursor-not-allowed'
                     }`}
                   >
                     {t('game.enterRoom')}
                   </button>
                   <button
                     type="button"
-                    className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-g700 transition-colors"
+                    className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
                     onClick={leaveRoom}
                   >
                     {t('game.leave')}
@@ -160,13 +162,13 @@ function Page() {
 
       {(kicked || terminated) && (
         <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
-          <div className="flex flex-col gap-4 bg-g800 border border-white/[0.07] p-8 max-w-md text-center">
-            <p className="text-g100 text-sm">
+          <div className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-md text-center">
+            <p className="text-arena-100 text-sm">
               {kicked ? t('game.kickedInfo') : t('game.terminatedInfo')}
             </p>
             <button
               onClick={leaveRoom}
-              className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+              className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
             >
               {t('game.ok')}
             </button>
@@ -178,7 +180,7 @@ function Page() {
 
       {phase === 'countdown' && countdown !== null && !blocked && (
         <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex flex-col justify-center items-center gap-4">
-          <p className="text-g200 text-[11px] tracking-[0.4em] uppercase">
+          <p className="text-arena-200 text-[11px] tracking-[0.4em] uppercase">
             {t('game.startsIn')}
           </p>
           <span className="text-gold text-8xl font-bold">
@@ -189,7 +191,7 @@ function Page() {
 
       {phase === 'gameover' && !blocked && (
         <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex justify-center items-center p-4 overflow-y-auto">
-          <div className="flex flex-col gap-4 bg-g800 border border-gold/20 p-8 min-w-[320px] max-w-[90vw]">
+          <div className="flex flex-col gap-4 bg-arena-800 border border-gold/20 p-8 min-w-[320px] max-w-[90vw]">
             <h2 className="text-2xl font-bold text-center text-white tracking-wide">
               {winner
                 ? winner === username
@@ -199,7 +201,7 @@ function Page() {
                     })
                 : t('game.gameOver')}
             </h2>
-            <p className="text-center text-g300 text-[11px] tracking-wider uppercase">
+            <p className="text-center text-arena-300 text-[11px] tracking-wider uppercase">
               {t('game.questionsAsked', { n: totalRounds })}
             </p>
             <div className="flex flex-col gap-2">
@@ -212,7 +214,7 @@ function Page() {
                       : 'border-white/[0.07]'
                   }`}
                 >
-                  <span className="w-6 text-center font-bold text-g400">
+                  <span className="w-6 text-center font-bold text-arena-400">
                     {i + 1}.
                   </span>
                   <Avatar
@@ -224,7 +226,7 @@ function Page() {
                   <span className="flex-1 truncate text-white text-sm font-bold">
                     {p.displayName}
                     {p.username === username && (
-                      <span className="text-[9px] tracking-widest text-g300 border border-g400 px-1.5 ml-2">
+                      <span className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-1.5 ml-2">
                         {t('game.you')}
                       </span>
                     )}
@@ -236,12 +238,12 @@ function Page() {
             <div className="flex gap-3 justify-center">
               <button
                 onClick={playAgain}
-                className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+                className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
               >
                 {t('game.playAgain')}
               </button>
               <button
-                className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-g700 transition-colors"
+                className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
                 onClick={leaveRoom}
               >
                 {t('game.leave')}
@@ -252,7 +254,7 @@ function Page() {
       )}
 
       {achievementNotice && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-20 bg-gold text-g950 font-bold text-[11px] tracking-wider px-4 py-2 max-w-[90vw]">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-20 bg-gold text-arena-950 font-bold text-[11px] tracking-wider px-4 py-2 max-w-[90vw]">
           {t('game.achUnlocked', {
             name: displayNameOf(players, achievementNotice.username),
             items: achievementNotice.ids
@@ -268,7 +270,7 @@ function Page() {
       )}
 
       {error && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-g800 border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-arena-800 border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
           <span>{error}</span>
           <button
             className="font-bold cursor-pointer text-gold"

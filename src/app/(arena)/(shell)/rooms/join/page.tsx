@@ -120,7 +120,7 @@ export default function Page() {
   return (
     <div className="p-8">
       <div className="mb-6">
-        <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
           Multiplayer
         </div>
         <h1 className="text-3xl font-bold tracking-wide">JOIN A ROOM</h1>
@@ -129,8 +129,8 @@ export default function Page() {
       <div className="grid grid-cols-5 gap-8">
         {/* Code entry */}
         <div className="col-span-2">
-          <div className="bg-g800 border border-white/[0.07] p-8">
-            <div className="text-g200 text-[11px] tracking-[0.25em] uppercase mb-6">
+          <div className="bg-arena-800 border border-white/[0.07] p-8">
+            <div className="text-arena-200 text-[11px] tracking-[0.25em] uppercase mb-6">
               Enter Room Code
             </div>
             <div className="flex gap-3 justify-center mb-6">
@@ -144,7 +144,7 @@ export default function Page() {
                   onChange={(e) => handleDigit(i, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(i, e)}
                   disabled={joining}
-                  className={`digit-input w-12 h-14 bg-g750 text-center text-2xl font-bold border outline-none transition-colors ${
+                  className={`digit-input w-12 h-14 bg-arena-750 text-center text-2xl font-bold border outline-none transition-colors ${
                     error && !d
                       ? 'border-red-500/50 text-white'
                       : d
@@ -161,12 +161,12 @@ export default function Page() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Room password"
-                className="w-full bg-g750 border border-white/10 text-white text-sm px-4 py-3 mb-4 outline-none focus:border-gold/40 placeholder:text-g400"
+                className="w-full bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 mb-4 outline-none focus:border-gold/40 placeholder:text-arena-400"
               />
             )}
 
             {error && (
-              <div className="text-center text-[11px] text-g100 mb-4 tracking-wider">
+              <div className="text-center text-[11px] text-arena-100 mb-4 tracking-wider">
                 {error}
               </div>
             )}
@@ -176,15 +176,15 @@ export default function Page() {
               disabled={joining}
               className={`w-full font-bold text-[11px] tracking-[0.2em] uppercase py-4 transition-colors ${
                 codeComplete && !joining
-                  ? 'bg-gold text-g950 hover:bg-gold-light'
-                  : 'bg-g700 text-g400 cursor-not-allowed'
+                  ? 'bg-gold text-arena-950 hover:bg-gold-light'
+                  : 'bg-arena-700 text-arena-400 cursor-not-allowed'
               }`}
             >
               {joining ? '…' : 'JOIN ROOM →'}
             </button>
 
             <div className="mt-6 pt-6 border-t border-white/[0.07] text-center">
-              <div className="text-g300 text-[10px] tracking-wider uppercase mb-3">
+              <div className="text-arena-300 text-[10px] tracking-wider uppercase mb-3">
                 Or create your own
               </div>
               <Link
@@ -199,25 +199,25 @@ export default function Page() {
 
         {/* Public rooms */}
         <div className="col-span-3">
-          <div className="text-g200 text-[11px] tracking-[0.25em] uppercase mb-4">
+          <div className="text-arena-200 text-[11px] tracking-[0.25em] uppercase mb-4">
             Open Rooms
           </div>
           <div className="space-y-3">
             {lobbies.map((room) => (
               <div
                 key={room.lobbyId}
-                className="bg-g800 border border-white/[0.07] p-5 flex items-center gap-5 hover:bg-g750 transition-colors"
+                className="bg-arena-800 border border-white/[0.07] p-5 flex items-center gap-5 hover:bg-arena-750 transition-colors"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <div className="text-white font-bold tracking-wide truncate">
                       {room.roomName}
                     </div>
-                    <div className="text-[9px] tracking-widest text-g300 border border-g400 px-2 py-0.5">
+                    <div className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-2 py-0.5">
                       {room.isPrivate ? 'PRIVATE' : 'PUBLIC'}
                     </div>
                   </div>
-                  <div className="text-g200 text-[11px] tracking-wider">
+                  <div className="text-arena-200 text-[11px] tracking-wider">
                     Code <span className="text-gold">{room.code}</span>
                     <span className="mx-2">·</span>
                     {room.phase === 'countdown' ? 'Starting' : 'Waiting'}
@@ -227,12 +227,12 @@ export default function Page() {
                   <div className="text-white font-bold">
                     {room.playerCount}/6
                   </div>
-                  <div className="text-g300 text-[10px]">players</div>
+                  <div className="text-arena-300 text-[10px]">players</div>
                 </div>
                 <button
                   onClick={() => join(String(room.code))}
                   disabled={joining}
-                  className="bg-gold text-g950 font-bold text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-gold-light transition-colors disabled:opacity-50"
+                  className="bg-gold text-arena-950 font-bold text-[10px] tracking-[0.2em] uppercase px-5 py-3 hover:bg-gold-light transition-colors disabled:opacity-50"
                 >
                   JOIN →
                 </button>
@@ -240,9 +240,9 @@ export default function Page() {
             ))}
 
             {lobbiesLoaded && lobbies.length === 0 && (
-              <div className="bg-g800 border border-white/[0.07] p-8 text-center">
-                <div className="text-4xl mb-3 text-g500">◎</div>
-                <div className="text-g300 text-[11px] tracking-wider uppercase">
+              <div className="bg-arena-800 border border-white/[0.07] p-8 text-center">
+                <div className="text-4xl mb-3 text-arena-500">◎</div>
+                <div className="text-arena-300 text-[11px] tracking-wider uppercase">
                   No open rooms right now
                 </div>
                 <Link

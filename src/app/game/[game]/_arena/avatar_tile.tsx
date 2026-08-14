@@ -51,7 +51,7 @@ export default function AvatarTile({
 
   return (
     <div
-      className={`${base} ${accent ? 'bg-gold text-g950' : 'bg-g600 text-white'}`}
+      className={`${base} ${accent ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'}`}
     >
       {(displayName || username || '?').charAt(0).toUpperCase()}
     </div>

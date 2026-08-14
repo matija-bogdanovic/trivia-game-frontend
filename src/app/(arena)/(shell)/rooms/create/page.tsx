@@ -119,11 +119,11 @@ export default function Page() {
   if (created) {
     return (
       <div className="p-8 max-w-2xl">
-        <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-6">
+        <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-6">
           Room Created
         </div>
-        <div className="bg-g800 border border-gold/20 p-8 text-center mb-6">
-          <div className="text-g200 text-[11px] tracking-[0.3em] uppercase mb-4">
+        <div className="bg-arena-800 border border-gold/20 p-8 text-center mb-6">
+          <div className="text-arena-200 text-[11px] tracking-[0.3em] uppercase mb-4">
             Room Code
           </div>
           <div className="text-6xl font-bold text-gold tracking-[0.3em] mb-6">
@@ -138,7 +138,7 @@ export default function Page() {
             </button>
           </div>
         </div>
-        <div className="bg-g750 border border-white/[0.07] p-5 mb-6 grid grid-cols-3 gap-4 text-center">
+        <div className="bg-arena-750 border border-white/[0.07] p-5 mb-6 grid grid-cols-3 gap-4 text-center">
           <Recap label="Starting Money" value="$500" />
           <Recap label="Seats" value="2–6 Players" />
           <Recap
@@ -149,13 +149,13 @@ export default function Page() {
         <div className="flex gap-4">
           <Link
             href={`/game/${created.lobbyId}`}
-            className="bg-gold text-g950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
+            className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
           >
             ENTER LOBBY →
           </Link>
           <button
             onClick={() => router.push('/rooms')}
-            className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-g700 transition-colors"
+            className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
           >
             BACK TO ROOMS
           </button>
@@ -168,14 +168,14 @@ export default function Page() {
     <div className="p-8 max-w-3xl space-y-6">
       <div className="flex items-end justify-between">
         <div>
-          <div className="text-g200 text-[10px] tracking-[0.25em] uppercase mb-1">
+          <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
             Multiplayer
           </div>
           <h1 className="text-3xl font-bold tracking-wide">CREATE ROOM</h1>
         </div>
         {credits !== null && (
           <div className="text-right">
-            <div className="text-g300 text-[10px] tracking-[0.2em] uppercase">
+            <div className="text-arena-300 text-[10px] tracking-[0.2em] uppercase">
               Lobby Credits
             </div>
             <div className="text-gold text-2xl font-bold">{credits}</div>
@@ -189,12 +189,12 @@ export default function Page() {
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value.toUpperCase())}
-          className="bg-g750 border border-white/10 text-white text-xl font-bold tracking-widest px-5 py-4 w-full outline-none focus:border-gold/40 placeholder:text-g400 uppercase"
+          className="bg-arena-750 border border-white/10 text-white text-xl font-bold tracking-widest px-5 py-4 w-full outline-none focus:border-gold/40 placeholder:text-arena-400 uppercase"
           placeholder="ARENA NAME"
           maxLength={NAME_MAX}
           disabled={creating}
         />
-        <div className="text-g300 text-[10px] mt-2 tracking-wider">
+        <div className="text-arena-300 text-[10px] mt-2 tracking-wider">
           {NAME_MIN}–{NAME_MAX} characters
         </div>
       </Section>
@@ -210,7 +210,7 @@ export default function Page() {
               className={`p-5 border text-left transition-colors ${
                 visibility === v
                   ? 'border-gold/40 bg-gold/10'
-                  : 'border-white/10 bg-g750 hover:bg-g700'
+                  : 'border-white/10 bg-arena-750 hover:bg-arena-700'
               }`}
             >
               <div
@@ -218,7 +218,7 @@ export default function Page() {
               >
                 {v === 'public' ? '◇ PUBLIC' : '◈ PRIVATE'}
               </div>
-              <div className="text-g200 text-[11px] leading-relaxed">
+              <div className="text-arena-200 text-[11px] leading-relaxed">
                 {v === 'public'
                   ? 'Listed for anyone to find and join.'
                   : 'Only players with the code and password can join.'}
@@ -232,7 +232,7 @@ export default function Page() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Room password (4+ characters)"
-            className="mt-4 bg-g750 border border-white/10 text-white text-sm px-4 py-3 w-full outline-none focus:border-gold/40 placeholder:text-g400"
+            className="mt-4 bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 w-full outline-none focus:border-gold/40 placeholder:text-arena-400"
             disabled={creating}
           />
         )}
@@ -251,7 +251,7 @@ export default function Page() {
       </Section>
 
       {error && (
-        <div className="bg-g800 border border-gold/40 text-g100 text-sm px-4 py-3">
+        <div className="bg-arena-800 border border-gold/40 text-arena-100 text-sm px-4 py-3">
           {error}
         </div>
       )}
@@ -262,15 +262,15 @@ export default function Page() {
           disabled={creating || credits === 0}
           className={`font-bold text-[11px] tracking-[0.2em] uppercase px-10 py-4 transition-colors ${
             creating || credits === 0
-              ? 'bg-g700 text-g400 cursor-not-allowed'
-              : 'bg-gold text-g950 hover:bg-gold-light'
+              ? 'bg-arena-700 text-arena-400 cursor-not-allowed'
+              : 'bg-gold text-arena-950 hover:bg-gold-light'
           }`}
         >
           {creating ? 'CREATING…' : 'CREATE ROOM →'}
         </button>
         <Link
           href="/home"
-          className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-g700 transition-colors"
+          className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
         >
           CANCEL
         </Link>
@@ -289,13 +289,13 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-g800 border border-white/[0.07] p-6">
+    <div className="bg-arena-800 border border-white/[0.07] p-6">
       <div className="mb-4">
         <div className="text-white text-[11px] font-bold tracking-[0.2em] uppercase">
           {label}
         </div>
         {sublabel && (
-          <div className="text-g300 text-[10px] mt-0.5">{sublabel}</div>
+          <div className="text-arena-300 text-[10px] mt-0.5">{sublabel}</div>
         )}
       </div>
       {children}
@@ -306,7 +306,7 @@ function Section({
 function Recap({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-g300 text-[10px] tracking-wider uppercase mb-1">
+      <div className="text-arena-300 text-[10px] tracking-wider uppercase mb-1">
         {label}
       </div>
       <div className="text-white font-bold">{value}</div>
