@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from 'aws-amplify/auth';
 import { getIdentity } from '@/app/helpers/token_operations';
+import { useT } from '@/app/lib/i18n';
 import { ME } from '@/app/(arena)/_mock/progress';
 import LogoPlaceholder from './logo_placeholder';
 import { navItems } from './nav_items';
@@ -20,6 +21,7 @@ import { navItems } from './nav_items';
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { lang, setLang } = useT();
   const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -28,6 +30,22 @@ export default function Sidebar() {
 
   const name = displayName ?? 'Not signed in';
   const initial = displayName ? displayName.charAt(0).toUpperCase() : '·';
+
+  /**
+   * The EN/SR switch used to live in the pre-reskin header, which was the only
+   * place in the app that could call setLang — retiring that header without
+   * this would have left the app bilingual with no way to change language.
+   */
+  const langButton = (extra: string) => (
+    <button
+      type="button"
+      onClick={() => setLang(lang === 'en' ? 'sr' : 'en')}
+      className={`cursor-pointer border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
+      aria-label="Switch language"
+    >
+      {lang === 'en' ? 'SR' : 'EN'}
+    </button>
+  );
 
   const handleSignOut = async () => {
     try {
@@ -112,6 +130,7 @@ export default function Sidebar() {
             </span>
           </Link>
 
+          {langButton('mr-1')}
           <button
             type="button"
             onClick={handleSignOut}
@@ -147,6 +166,7 @@ export default function Sidebar() {
             >
               {initial}
             </Link>
+            {langButton('')}
             <button
               type="button"
               onClick={handleSignOut}
