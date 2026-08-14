@@ -3,10 +3,123 @@
 @theme {
   /* keeps the font-sans utility in step with the app font below */
   --font-sans: var(--font-play), ui-sans-serif, system-ui, sans-serif;
+
+  /* --- legacy theme (the old light-on-forest-green pages) ------------------
+     Being retired route group by route group; see the arena block below. */
   --color-forest-green: #228b22;
   /* text sitting directly on the green, vs. text on a light card */
   --color-on-green: #ffffff;
   --color-on-surface: #171717;
+
+  /* --- arena theme --------------------------------------------------------
+     Ported verbatim from the design export's src/index.css so screens can be
+     brought over without renaming a single utility class. Two intentional
+     omissions from that file: --font-play (next/font owns that variable, set
+     on <body> in layout.tsx) and the Google Fonts @import it needs. */
+
+  /* semantic roles */
+  --color-background: #091508;
+  --color-foreground: #ffffff;
+  --color-card: #0c1c0d;
+  --color-card-foreground: #ffffff;
+  --color-primary: #c9a227;
+  --color-primary-foreground: #060f07;
+  --color-secondary: #102010;
+  --color-secondary-foreground: #7ab07e;
+  --color-muted: #0c1c0d;
+  --color-muted-foreground: #6b8f6e;
+  --color-accent: #c9a227;
+  --color-accent-foreground: #060f07;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-ring: #c9a227;
+
+  /*
+   * The ramp the screens paint with — arena-950 darkest, arena-100 lightest.
+   * Names and values match the Angular app at ~/ipakseokrece, which is the
+   * design source, so its templates copy across verbatim.
+   */
+  --color-arena-950: #060f07;
+  --color-arena-900: #091508;
+  --color-arena-800: #0c1c0d;
+  --color-arena-750: #0f2010;
+  --color-arena-700: #122513;
+  --color-arena-650: #162a18;
+  --color-arena-600: #1c3320;
+  --color-arena-500: #253d27;
+  --color-arena-400: #2e4d30;
+  --color-arena-300: #4a7a4e;
+  --color-arena-200: #7ab07e;
+  --color-arena-100: #b0d4b3;
+
+  /* the accent: buttons, active states, every number that matters */
+  --color-gold: #c9a227;
+  --color-gold-light: #e0b93a;
+  --color-gold-dark: #a07e1a;
+
+  --radius: 0.25rem;
+}
+
+/*
+ * Arena pages opt in by rendering inside .arena-root (the (arena) route
+ * group's layout does this). Everything arena-specific hangs off that class so
+ * the legacy pages below keep their light-on-green styling until each one is
+ * replaced — no half-restyled middle state.
+ */
+html:has(.arena-root) {
+  /* dark UI, so let form controls and scrollbars render dark too */
+  color-scheme: dark;
+}
+
+body:has(.arena-root) {
+  background-color: var(--color-arena-900);
+  color: var(--color-foreground);
+}
+
+.arena-root {
+  background-color: var(--color-arena-900);
+  color: var(--color-foreground);
+}
+
+/* the design hides scrollbars; keep that inside the arena only */
+.arena-root * {
+  scrollbar-width: none;
+}
+.arena-root *::-webkit-scrollbar {
+  display: none;
+}
+
+/* the legacy placeholder rules below assume the green; arena inputs are dark */
+.arena-root ::placeholder {
+  color: var(--color-arena-300);
+}
+
+/*
+ * Opt back in where a scrollbar is the only hint that there is more to see —
+ * a form taller than a short viewport is otherwise indistinguishable from a
+ * truncated one. Class beats the universal rule above.
+ */
+.arena-root .show-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-arena-500) transparent;
+}
+.arena-root .show-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 8px;
+}
+.arena-root .show-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-arena-500);
+  border-radius: 4px;
+}
+
+/* every animation in here is decorative — none of it carries meaning alone */
+@media (prefers-reduced-motion: reduce) {
+  .arena-root *,
+  .arena-root *::before,
+  .arena-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 html {

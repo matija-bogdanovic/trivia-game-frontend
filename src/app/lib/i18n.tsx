@@ -68,6 +68,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.loginSub': 'Login to your account to get started',
     'auth.username': 'Username',
     'auth.password': 'Password',
+    'auth.email': 'Email',
+    'auth.repeatPassword': 'Repeat password',
     'auth.noAccount': "Don't have an account?",
     'auth.signupLink': 'Sign up.',
     'auth.forgot': "Can't remember your password?",
@@ -90,7 +92,8 @@ const dict: Record<Lang, Record<string, string>> = {
       'Is this your account waiting for confirmation? Confirm it here.',
     'authError.nameShort': 'Name must be at least 3 characters long.',
     'authError.nameWhitespace': "Name can't contain spaces.",
-    'authError.nameSpecial': "Name can't contain special characters (<, >, #, !).",
+    'authError.nameSpecial':
+      "Name can't contain special characters (<, >, #, !).",
     'authError.emailInvalid': 'Enter a valid email address.',
     'authError.passwordWeak':
       'Password needs 8+ characters with an uppercase letter, a lowercase letter, a number and a special character.',
@@ -111,7 +114,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'confirm.retryIn': 'Retry in {time}',
     'confirm.resent': 'A new code is on its way — check your inbox.',
     'confirm.usernamePrompt': 'Enter your username to confirm your account.',
-    'footer.rights': '© Ipak se okreće by Matija Bogdanovic. All rights reserved.',
+    'footer.rights':
+      '© Ipak se okreće by Matija Bogdanovic. All rights reserved.',
     'footer.docs': "If it's your first time playing, check out the",
     'footer.docsLink': 'documentation.',
     // reset password
@@ -156,14 +160,18 @@ const dict: Record<Lang, Record<string, string>> = {
     'game.chosen': '🎯 {name}!',
     'game.yourTurn': '🎯 Your turn — answer the question!',
     'game.answering': '{name} is answering…',
-    'game.betsWaitSelf': 'Answer locked in — waiting for players to make their bets…',
+    'game.betsWaitSelf':
+      'Answer locked in — waiting for players to make their bets…',
     'game.betsWait': 'Waiting for players to make their bets on {name}…',
     'game.answerLocked': 'Answer locked in…',
     'game.question': 'Question {n}',
     'game.chain': '🔥 chain ×{n}',
-    'game.correctPicks': '✅ {name} answered correctly and gets to pick who’s next!',
-    'game.wrongLoses': '❌ {name} answered wrong and loses ${n}. The wheel spins again…',
-    'game.timeoutLoses': '❌ {name} ran out of time and loses ${n}. The wheel spins again…',
+    'game.correctPicks':
+      '✅ {name} answered correctly and gets to pick who’s next!',
+    'game.wrongLoses':
+      '❌ {name} answered wrong and loses ${n}. The wheel spins again…',
+    'game.timeoutLoses':
+      '❌ {name} ran out of time and loses ${n}. The wheel spins again…',
     'game.betWon': '💰 {name} bet ${n} on "{bet}" and won ${n}',
     'game.betLost': '💸 {name} bet ${n} on "{bet}" and lost ${n}',
     'game.brokeOut': 'Out of money and eliminated: {names}',
@@ -254,8 +262,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'history.hide': 'Hide',
     'history.standings': 'Final standings',
     'history.detailFailed': "Couldn't load that match.",
-    'history.capped':
-      'Your last {n} matches are kept on your profile.',
+    'history.capped': 'Your last {n} matches are kept on your profile.',
     'ach.first_win': 'First Blood — win your first game',
     'ach.streak_10': 'On Fire — win 10 games in a row',
     'ach.streak_50': 'Unstoppable — win 50 games in a row',
@@ -345,6 +352,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.loginSub': 'Prijavi se na svoj nalog',
     'auth.username': 'Korisničko ime',
     'auth.password': 'Lozinka',
+    'auth.email': 'Mejl',
+    'auth.repeatPassword': 'Ponovi lozinku',
     'auth.noAccount': 'Nemaš nalog?',
     'auth.signupLink': 'Registruj se.',
     'auth.forgot': 'Zaboravio/la si lozinku?',
@@ -363,11 +372,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.registering': 'Pravljenje naloga…',
     'auth.signingIn': 'Prijavljivanje…',
     'auth.google': 'Nastavi sa Google nalogom',
-    'auth.confirmInstead':
-      'Ako je ovo tvoj nepotvrđen nalog, potvrdi ga ovde.',
+    'auth.confirmInstead': 'Ako je ovo tvoj nepotvrđen nalog, potvrdi ga ovde.',
     'authError.nameShort': 'Ime mora imati bar 3 znaka.',
     'authError.nameWhitespace': 'Ime ne sme sadržati razmake.',
-    'authError.nameSpecial': 'Ime ne sme sadržati specijalne znakove (<, >, #, !).',
+    'authError.nameSpecial':
+      'Ime ne sme sadržati specijalne znakove (<, >, #, !).',
     'authError.emailInvalid': 'Unesi ispravnu mejl adresu.',
     'authError.passwordWeak':
       'Lozinka mora imati 8+ znakova, veliko slovo, malo slovo, broj i specijalni znak.',
@@ -387,7 +396,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'confirm.retryIn': 'Ponovo za {time}',
     'confirm.resent': 'Novi kod je na putu — proveri sanduče.',
     'confirm.usernamePrompt': 'Unesi korisničko ime da potvrdiš nalog.',
-    'footer.rights': '© Ipak se okreće — Matija Bogdanović. Sva prava zadržana.',
+    'footer.rights':
+      '© Ipak se okreće — Matija Bogdanović. Sva prava zadržana.',
     'footer.docs': 'Ako igraš prvi put, pogledaj',
     'footer.docsLink': 'dokumentaciju.',
     'reset.title': 'Reset lozinke',
@@ -433,9 +443,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'game.answerLocked': 'Odgovor zaključan…',
     'game.question': 'Pitanje {n}',
     'game.chain': '🔥 niz ×{n}',
-    'game.correctPicks': '✅ {name} je odgovorio/la tačno i bira ko je sledeći!',
-    'game.wrongLoses': '❌ {name} je pogrešio/la i gubi ${n}. Rulet se ponovo vrti…',
-    'game.timeoutLoses': '❌ {name} nije stigao/la da odgovori i gubi ${n}. Rulet se ponovo vrti…',
+    'game.correctPicks':
+      '✅ {name} je odgovorio/la tačno i bira ko je sledeći!',
+    'game.wrongLoses':
+      '❌ {name} je pogrešio/la i gubi ${n}. Rulet se ponovo vrti…',
+    'game.timeoutLoses':
+      '❌ {name} nije stigao/la da odgovori i gubi ${n}. Rulet se ponovo vrti…',
     'game.betWon': '💰 {name} se kladio/la ${n} na "{bet}" i osvojio/la ${n}',
     'game.betLost': '💸 {name} se kladio/la ${n} na "{bet}" i izgubio/la ${n}',
     'game.brokeOut': 'Bankrot i ispadanje: {names}',
@@ -502,7 +515,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'profile.winRate': 'Procenat pobeda',
     'profile.rounds': 'Odigranih rundi',
     'profile.avgRounds': 'Rundi po partiji',
-    'profile.noGames': 'Još nema odigranih partija — istorija se pojavljuje ovde.',
+    'profile.noGames':
+      'Još nema odigranih partija — istorija se pojavljuje ovde.',
     'summary.rookie':
       '{name} tek počinje — {games} partija, {rounds} preživljenih rundi.',
     'summary.regular':

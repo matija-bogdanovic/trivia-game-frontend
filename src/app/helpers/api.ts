@@ -1,6 +1,30 @@
 'use client';
 
 import { fetchAuthSession } from 'aws-amplify/auth';
+import { getPort } from './port';
+
+/**
+ * The legacy REST host. Kept as the default so deployments that never set
+ * NEXT_PUBLIC_API_URL keep hitting exactly what they hit before.
+ */
+const LEGACY_API_GATEWAY =
+  'https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage';
+
+/**
+ * Where REST calls go. .env.example promises NEXT_PUBLIC_API_URL is the one
+ * host for both REST and the WebSocket, and getPort() already resolves it —
+ * so honour it when it is set. Without it, nothing changes: local dev and
+ * production both fall back to the gateway above.
+ *
+ * This matters for running against a local game server: the socket derives
+ * from NEXT_PUBLIC_API_URL, so a hardcoded REST host would send /createRoom
+ * to one backend and the socket to another.
+ */
+function apiBase(): string {
+  return process.env.NEXT_PUBLIC_API_URL?.trim()
+    ? getPort()
+    : LEGACY_API_GATEWAY;
+}
 
 /**
  * The caller's Cognito access token. Amplify refreshes it behind
@@ -33,13 +57,9 @@ export async function apiFetch(
   };
   if (token) headers.Authorization = `Bearer ${token}`;
 
-  return fetch(
-    `https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage/${path}`,
-    {
-      method: options.method ?? 'POST',
-      headers,
-      body:
-        options.body === undefined ? undefined : JSON.stringify(options.body),
-    }
-  );
+  return fetch(`${apiBase()}/${path.replace(/^\/+/, '')}`, {
+    method: options.method ?? 'POST',
+    headers,
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+  });
 }

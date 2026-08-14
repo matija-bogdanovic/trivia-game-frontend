@@ -123,7 +123,10 @@ export interface GameState {
   codeLength: number;
   maxCodeAttempts: number;
   myCodeAttempts: { guess: string[]; exact: number; partial: number }[];
-  codeProgress: Record<string, { attempt: number; exact: number; partial: number }[]>;
+  codeProgress: Record<
+    string,
+    { attempt: number; exact: number; partial: number }[]
+  >;
   secretCode: string[] | null;
   codeCracked: boolean;
   correctValue: number | null;
@@ -135,7 +138,18 @@ export interface GameState {
   kicked: boolean;
   terminated: boolean;
   isPrivate: boolean;
-  joinDenied: 'password_required' | 'wrong_password' | 'room_full' | null;
+  /**
+   * Why the server refused the join. 'unauthenticated' is what it sends for a
+   * missing or expired token — it was missing from this union, so the UI fell
+   * through to the password prompt and asked a signed-out player for a room
+   * password they could never supply.
+   */
+  joinDenied:
+    | 'password_required'
+    | 'wrong_password'
+    | 'room_full'
+    | 'unauthenticated'
+    | null;
   error: string | null;
 }
 

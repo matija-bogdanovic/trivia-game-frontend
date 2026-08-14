@@ -58,11 +58,11 @@ function Header() {
         <div className="flex flex-row gap-4 items-center">
           {!loading && decodedToken ? (
             <>
-              <Link href="/profile">{t('nav.profile')}</Link>
+              <Link href="/legacy/profile">{t('nav.profile')}</Link>
               <Link href="/playgame">{t('nav.play')}</Link>
               <Link href="/joingame">{t('nav.join')}</Link>
               <Link href="/shop">{t('nav.shop')}</Link>
-              <Link href="/friends">{t('nav.friends')}</Link>
+              <Link href="/legacy/friends">{t('nav.friends')}</Link>
               <button
                 className="text-sm text-gray-500 hover:text-gray-800 cursor-pointer"
                 onClick={async () => {

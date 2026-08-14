@@ -62,7 +62,7 @@ function Page() {
             `https://t8rq39b02a.execute-api.eu-west-3.amazonaws.com/default/getEveryLeaderboard`
           ),
         ]);
-        console.log(lobbyRes, leaderRes)
+        console.log(lobbyRes, leaderRes);
         if (lobbyRes.ok) setLobbies((await lobbyRes.json()).lobbies ?? []);
         if (leaderRes.ok)
           setLeaders((await leaderRes.json()).leaderboard ?? []);
