@@ -180,6 +180,16 @@ export default function ArenaLobby() {
           <div className="grid gap-3 sm:grid-cols-2">
             {seated.map((player) => {
               const isMe = player.username === username;
+              /*
+               * The name every other player sees. lobby_state carries a
+               * displayName per player, so this is never the current user's
+               * name stamped on someone else — but the server falls back to
+               * the raw handle when a client joins without sending one, and
+               * an older client could send nothing at all. Falling back here
+               * too means a missing name shows as a handle rather than as
+               * blank space where a player should be.
+               */
+              const shown = player.displayName?.trim() || player.username;
               return (
                 <div
                   key={player.username}
@@ -200,7 +210,7 @@ export default function ArenaLobby() {
 
                   <div className="flex items-center gap-3 mb-4">
                     <Avatar
-                      name={player.displayName}
+                      name={shown}
                       username={player.username}
                       avatar={player.avatar}
                       accent={player.isHost}
@@ -208,7 +218,7 @@ export default function ArenaLobby() {
                     />
                     <div className="min-w-0">
                       <div className="text-white font-bold truncate">
-                        {player.displayName}
+                        {shown}
                       </div>
                       <div className="text-gold text-[11px]">
                         🔥 {player.streak} streak
