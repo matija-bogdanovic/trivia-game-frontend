@@ -70,6 +70,44 @@ export interface BetOutcome {
   moneyDelta: number;
 }
 
+/** the price on offer, derived server-side from the answerer's accuracy */
+export interface Quotas {
+  correct: number;
+  wrong: number;
+  accuracy: number;
+}
+
+/** how a bet settled, once reveal makes the sides public */
+export interface BetResult {
+  username: string;
+  side?: string;
+  amount: number;
+  quota?: number;
+  won?: boolean;
+  delta?: number;
+}
+
+/** the wheel, as durable state — enough to replay the animation after a reload */
+export interface CurrentSpin {
+  target: string;
+  startedAt: number;
+  endsAt: number;
+}
+
+/** who may be picked, at what price, and by which modes */
+export interface PickTarget {
+  username: string;
+  quotas: Quotas | null;
+  duelAnte: number;
+}
+export interface CurrentPick {
+  picker: string;
+  choices: string[];
+  modes: string[];
+  targets: PickTarget[];
+  endsAt: number;
+}
+
 export interface GameState {
   phase: GamePhase;
   roomName: string;
@@ -112,6 +150,30 @@ export interface GameState {
   betOutcomes: BetOutcome[];
   eliminatedNow: string[];
   // picking
+  /** the central pot, and how much of it has been paid out unbacked */
+  pot: number;
+  minted: number;
+  startingMoney: number;
+  quotas: Quotas | null;
+  betResults: BetResult[];
+  currentSpin: CurrentSpin | null;
+  currentPick: CurrentPick | null;
+  /** 'open' when the wheel landed on them, 'challenge' when a picker aimed it */
+  turnMode: 'open' | 'challenge';
+  challengeBet: { username: string; amount: number; quota: number } | null;
+  /** whether the answerer has already submitted, per the server */
+  hasAnswered: boolean;
+  /**
+   * server clock minus client clock, in ms.
+   *
+   * Phase messages carry time REMAINING, which is immune to a skewed client;
+   * game_state carries ABSOLUTE server deadlines, which is not. Holding the
+   * difference lets an absolute server timestamp — currentSpin.startedAt has
+   * no remaining-time twin — be placed on the client's own clock.
+   */
+  serverSkewMs: number;
+  /** absolute server-time deadline for the current phase */
+  phaseEndsAt: number | null;
   picker: string | null;
   pickChoices: string[];
   pickEndsAt: number | null;
@@ -178,6 +240,24 @@ export interface GameState {
   error: string | null;
 }
 
+/**
+ * How far the client's clock sits from the server's.
+ *
+ * Every phase message states its deadline as time REMAINING, and the
+ * game_state that precedes it states the same deadline as an ABSOLUTE server
+ * timestamp. One subtraction turns that pair into the offset, which is the
+ * only way to place a server timestamp that has no remaining-time twin —
+ * currentSpin.startedAt — on the client's own clock.
+ */
+function learnSkew(
+  state: GameState,
+  remainingMs: unknown,
+  receivedAt: number
+): void {
+  if (typeof remainingMs !== 'number' || state.phaseEndsAt === null) return;
+  state.serverSkewMs = state.phaseEndsAt - (receivedAt + remainingMs);
+}
+
 const initialState: GameState = {
   phase: 'connecting',
   roomName: '',
@@ -209,6 +289,18 @@ const initialState: GameState = {
   answererDelta: 0,
   betOutcomes: [],
   eliminatedNow: [],
+  pot: 0,
+  minted: 0,
+  startingMoney: 500,
+  quotas: null,
+  betResults: [],
+  currentSpin: null,
+  currentPick: null,
+  turnMode: 'open',
+  challengeBet: null,
+  hasAnswered: false,
+  serverSkewMs: 0,
+  phaseEndsAt: null,
   picker: null,
   pickChoices: [],
   pickEndsAt: null,
@@ -255,6 +347,14 @@ const gameSlice = createSlice({
       action: PayloadAction<{ message: any; receivedAt: number }>
     ) => {
       const { message, receivedAt } = action.payload;
+      /*
+       * Only what the server actually sends. Nine cases were removed here for
+       * messages nothing has dispatched since the turn engine moved to Lambda
+       * — the code-breaker duel, a client-side countdown, `picked`,
+       * `lobby_terminated`, `achievements_unlocked` — and one, `duel_question`,
+       * was the reason the duel screen could never render: the server sends
+       * `duel_start`.
+       */
       switch (message.type) {
         case 'lobby_state':
           state.phase = message.phase;
@@ -306,13 +406,43 @@ const gameSlice = createSlice({
           if (typeof s.roomName === 'string') state.roomName = s.roomName;
           if (typeof s.minPlayers === 'number') state.minPlayers = s.minPlayers;
           if (typeof s.maxPlayers === 'number') state.maxPlayers = s.maxPlayers;
+          if (typeof s.pot === 'number') state.pot = s.pot;
+          if (typeof s.minted === 'number') state.minted = s.minted;
+          if (typeof s.startingMoney === 'number') {
+            state.startingMoney = s.startingMoney;
+          }
+          state.quotas = s.quotas ?? null;
+          state.betResults = Array.isArray(s.betResults) ? s.betResults : [];
+          state.currentSpin = s.currentSpin ?? null;
+          state.currentPick = s.currentPick ?? null;
+
+          /*
+           * The absolute deadline, kept so the next phase message — which
+           * carries the same deadline as time REMAINING — can be differenced
+           * against it to learn how far the client's clock is from the
+           * server's. See serverSkewMs.
+           */
+          if (typeof s.phaseEndsAt === 'number') {
+            state.phaseEndsAt = s.phaseEndsAt;
+          }
+
+          if (s.turn) {
+            state.answering = s.turn.answering ?? null;
+            state.turnMode = s.turn.mode === 'challenge' ? 'challenge' : 'open';
+            state.picker = s.turn.picker ?? null;
+            state.hasAnswered = Boolean(s.turn.hasAnswered);
+            if (s.turn.question) {
+              state.questionText = s.turn.question.text ?? '';
+              state.options = s.turn.question.options ?? [];
+              state.difficulty = s.turn.question.difficulty ?? 1;
+            }
+          } else {
+            state.hasAnswered = false;
+          }
           break;
         }
-        case 'game_countdown':
-          state.phase = 'countdown';
-          state.countdown = message.seconds;
-          break;
         case 'spin':
+          learnSkew(state, message.spinTimeMs, receivedAt);
           state.phase = 'spin';
           state.spinTarget = message.target;
           state.spinDurationMs = message.spinTimeMs;
@@ -324,87 +454,25 @@ const gameSlice = createSlice({
           state.correctAnswer = null;
           state.myBet = null;
           break;
-        case 'code_duel_start':
-          state.phase = 'duel';
-          state.duelKind = 'code';
-          state.round = message.round;
-          state.duelPlayers = message.players ?? [];
-          state.codeSymbols = message.symbols;
-          state.codeLength = message.codeLength;
-          state.maxCodeAttempts = message.maxAttempts;
-          state.answerDurationMs = message.answerTimeMs;
-          state.answerEndsAt = receivedAt + message.answerTimeMs;
-          state.myCodeAttempts = [];
-          state.codeProgress = {};
-          state.secretCode = null;
-          state.codeCracked = false;
-          state.questionText = '';
-          state.options = [];
-          state.answering = null;
-          state.correctAnswer = null;
-          state.correctValue = null;
-          state.duelGuesses = [];
-          state.spinTarget = null;
-          state.spinEndsAt = null;
-          state.eliminatedNow = [];
-          state.betOutcomes = [];
-          state.duelWinner = null;
-          state.duelLoser = null;
-          state.duelTie = false;
-          break;
-        case 'code_feedback':
-          state.myCodeAttempts.push({
-            guess: message.guess,
-            exact: message.exact,
-            partial: message.partial,
-          });
-          break;
-        case 'code_progress': {
-          const list = state.codeProgress[message.username] ?? [];
-          list.push({
-            attempt: message.attempt,
-            exact: message.exact,
-            partial: message.partial,
-          });
-          state.codeProgress[message.username] = list;
-          break;
-        }
-        case 'code_duel_result':
-          state.phase = 'reveal';
-          state.duelKind = 'code';
-          state.secretCode = message.code;
-          state.codeCracked = message.cracked;
-          state.duelWinner = message.winner;
-          state.duelLoser = message.loser;
-          state.duelTie = message.tie;
-          state.duelLoserDelta = message.loserDelta;
-          state.eliminatedNow = message.eliminated ?? [];
-          // the two duellists, not the room: assigning them to the roster
-          // shrank the player list to whoever happened to be duelling
-          state.duelPlayers = message.players ?? [];
-          state.answerEndsAt = null;
-          break;
-        case 'duel_question':
+        /*
+         * The duel the server actually sends. This reducer listened for
+         * 'duel_question', which nothing has ever dispatched, so the duel
+         * screen could not appear at all.
+         */
+        case 'duel_start':
+          learnSkew(state, message.answerTimeMs, receivedAt);
           state.phase = 'duel';
           state.duelKind = 'guess';
-          state.round = message.round;
-          state.questionText = message.questionText;
+          state.round = message.round ?? state.round;
+          state.chainDepth = message.chainDepth ?? state.chainDepth;
           state.duelPlayers = message.players ?? [];
-          state.answerDurationMs = message.answerTimeMs;
-          state.answerEndsAt = receivedAt + message.answerTimeMs;
-          state.myGuessSubmitted = false;
-          state.correctValue = null;
-          state.duelGuesses = [];
-          state.duelWinner = null;
-          state.duelLoser = null;
-          state.duelTie = false;
-          state.options = [];
-          state.answering = null;
-          state.correctAnswer = null;
-          state.spinTarget = null;
-          state.spinEndsAt = null;
-          state.eliminatedNow = [];
-          state.betOutcomes = [];
+          state.picker = message.picker ?? null;
+          state.questionText = message.questionText ?? '';
+          state.options = message.options ?? [];
+          state.difficulty = message.difficulty ?? 1;
+          state.selectedAnswer = null;
+          state.answerDurationMs = message.answerTimeMs ?? 0;
+          state.answerEndsAt = receivedAt + (message.answerTimeMs ?? 0);
           break;
         case 'duel_result':
           state.phase = 'reveal';
@@ -421,15 +489,29 @@ const gameSlice = createSlice({
           state.answerEndsAt = null;
           break;
         case 'turn_question':
+          learnSkew(state, message.answerTimeMs, receivedAt);
+          // a challenge is the same screen with a banner: who aimed it, and
+          // what they staked. The SIDE stays hidden until reveal.
+          state.turnMode = message.mode === 'challenge' ? 'challenge' : 'open';
+          state.challengeBet = message.challengeBet ?? null;
           state.phase = 'question';
-          state.round = message.round;
-          state.chainDepth = message.chainDepth;
-          state.difficulty = message.difficulty;
-          state.answering = message.answering;
-          state.questionText = message.questionText;
+          /*
+           * Floored, not assigned. A turn_question whose question is missing omits
+           * difficulty and answerTimeMs as well as options, and taking them raw put
+           * "difficulty undefined" on screen and NaN through the clock —
+           * receivedAt + undefined is not a deadline.
+           */
+          state.round = message.round ?? state.round;
+          state.chainDepth = message.chainDepth ?? 0;
+          state.difficulty = message.difficulty ?? 1;
+          state.answering = message.answering ?? null;
+          state.questionText = message.questionText ?? '';
           state.options = message.options ?? [];
-          state.answerDurationMs = message.answerTimeMs;
-          state.answerEndsAt = receivedAt + message.answerTimeMs;
+          state.answerDurationMs = message.answerTimeMs ?? 0;
+          state.answerEndsAt =
+            typeof message.answerTimeMs === 'number'
+              ? receivedAt + message.answerTimeMs
+              : null;
           state.selectedAnswer = null;
           state.correctAnswer = null;
           state.lastAnswer = null;
@@ -453,6 +535,7 @@ const gameSlice = createSlice({
           state.codeProgress = {};
           break;
         case 'bet_start':
+          learnSkew(state, message.betTimeMs, receivedAt);
           state.phase = 'betting';
           state.betDurationMs = message.betTimeMs;
           state.betEndsAt = receivedAt + message.betTimeMs;
@@ -484,14 +567,12 @@ const gameSlice = createSlice({
           state.betEndsAt = null;
           break;
         case 'pick_start':
+          learnSkew(state, message.pickTimeMs, receivedAt);
           state.phase = 'picking';
           state.picker = message.picker;
           state.pickChoices = message.choices;
           state.pickDurationMs = message.pickTimeMs;
           state.pickEndsAt = receivedAt + message.pickTimeMs;
-          break;
-        case 'picked':
-          state.chainDepth = message.chainDepth;
           break;
         case 'game_over':
           state.phase = 'gameover';
@@ -516,13 +597,6 @@ const gameSlice = createSlice({
             );
           }
           break;
-        case 'achievements_unlocked':
-          state.achievementNotice = {
-            username: message.username,
-            ids: message.achievements.map((a: { id: string }) => a.id),
-            names: message.achievements.map((a: { name: string }) => a.name),
-          };
-          break;
         case 'join_denied':
           state.joinDenied = message.reason ?? 'password_required';
           break;
@@ -530,9 +604,6 @@ const gameSlice = createSlice({
           state.kicked = true;
           state.kickedReason =
             typeof message.reason === 'string' ? message.reason : null;
-          break;
-        case 'lobby_terminated':
-          state.terminated = true;
           break;
         case 'room_closed':
           state.roomClosed = message.reason ?? 'closed';

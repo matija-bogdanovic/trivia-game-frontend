@@ -13,6 +13,23 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // in-game arena
+    'arena.game.pot': 'Pot',
+    'arena.game.round': 'Round {n}',
+    'arena.game.hudPlayers': '{n} players · {money} starting',
+    'arena.game.yourTurn': 'Your turn — answer now',
+    'arena.game.isAnswering': '{name} is answering',
+    'arena.game.difficulty': 'Difficulty {n}',
+    'arena.game.watching': 'Watching {name} answer…',
+    'arena.game.lockIn': 'Lock in answer',
+    'arena.game.answerLocked': 'Answer locked in',
+    'arena.game.noOptions': 'Waiting for the question…',
+    'arena.game.quotaCorrect': 'Correct pays',
+    'arena.game.quotaWrong': 'Wrong pays',
+    'arena.game.challengeBanner':
+      '{name} challenged this question for {amount}',
+    'arena.game.challengeBannerPlain': 'Challenge question',
+    'arena.game.phasePending': 'Phase: {phase}',
     // starting coins, chosen at room creation
     'arena.create.startingMoney': 'Starting coins',
     'arena.create.startingMoneyEach': 'per player, 500 to 2500',
@@ -640,6 +657,22 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // in-game arena
+    'arena.game.pot': 'Kasa',
+    'arena.game.round': 'Runda {n}',
+    'arena.game.hudPlayers': '{n} igrača · početno {money}',
+    'arena.game.yourTurn': 'Tvoj red — odgovaraj',
+    'arena.game.isAnswering': '{name} odgovara',
+    'arena.game.difficulty': 'Težina {n}',
+    'arena.game.watching': 'Gledaš kako {name} odgovara…',
+    'arena.game.lockIn': 'Potvrdi odgovor',
+    'arena.game.answerLocked': 'Odgovor je potvrđen',
+    'arena.game.noOptions': 'Čeka se pitanje…',
+    'arena.game.quotaCorrect': 'Tačno plaća',
+    'arena.game.quotaWrong': 'Netačno plaća',
+    'arena.game.challengeBanner': '{name} je izazvao ovo pitanje za {amount}',
+    'arena.game.challengeBannerPlain': 'Izazovno pitanje',
+    'arena.game.phasePending': 'Faza: {phase}',
     // starting coins, chosen at room creation
     'arena.create.startingMoney': 'Početni novac',
     'arena.create.startingMoneyEach': 'po igraču, od 500 do 2500',

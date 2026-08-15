@@ -1,7 +1,6 @@
 'use client';
 
 import Avatar from '@/app/components/ui/game/avatar';
-import QuestionUI from '@/app/components/ui/game/question_ui';
 import SpinWheel from '@/app/components/ui/game/spin_wheel';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import {
@@ -14,8 +13,8 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import SideBar from './side_bar';
-import LeaveButton from './leave_button';
+import GameShell from './_arena/game_shell';
+import ArenaQuestion from './_arena/question';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
@@ -100,15 +99,20 @@ function Page() {
       {inLobby && !blocked && <ArenaLobby />}
 
       {/*
-       * Play phases still render the pre-reskin UI; the arena LiveGame lands
-       * in the last commit of this tier.
+       * The arena in-game UI. Question is built; the remaining phases land in
+       * the following chunks and fall through to a holding state rather than
+       * to the pre-reskin screens, which are being deleted.
        */}
       {!inLobby && phase !== 'connecting' && !blocked && (
-        <div className="p-4 grid grid-cols-[0.3fr_1fr] grid-rows-1 w-full gap-4 h-full">
-          <SideBar />
-          <QuestionUI />
-          <LeaveButton />
-        </div>
+        <GameShell onLeave={() => void leaveRoom()}>
+          {phase === 'question' ? (
+            <ArenaQuestion />
+          ) : (
+            <div className="text-center text-[11px] tracking-[0.3em] text-arena-300 uppercase">
+              {t('arena.game.phasePending', { phase })}
+            </div>
+          )}
+        </GameShell>
       )}
 
       {joinDenied && !kicked && !terminated && (
