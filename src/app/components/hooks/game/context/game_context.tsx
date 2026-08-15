@@ -148,14 +148,34 @@ export default function GameProvider({
     );
   }, [lastJsonMessage, dispatch]);
 
-  // fresh state whenever the game screen unmounts
+  /*
+   * A REFRESH IS A RECONNECT, NEVER A DEPARTURE.
+   *
+   * Nothing here may send `leave` — not this cleanup, not an unload handler.
+   * Only two things end membership: the Leave button (which warns the host
+   * first, because their leaving deletes the room) and being kicked. A reload,
+   * a backgrounded tab and a dropped connection all just close the socket,
+   * which the server treats as $disconnect: it reaps the Connections row and
+   * leaves the Lobbies roster untouched, so the player keeps their seat and
+   * the host keeps the room. Sending `leave` on unload would hand the server
+   * the one message that does tear the room down, and a host who pressed F5
+   * would take everybody else's game with them.
+   *
+   * This cleanup therefore resets local Redux state only, and is safe because
+   * the next mount rejoins from the route's lobbyId and a fresh token.
+   */
   useEffect(() => {
     return () => {
       dispatch(resetGame());
     };
   }, [dispatch]);
 
-  // warn before closing the tab while a game is running
+  /*
+   * A browser confirm, not a departure — it sends nothing. It exists so a
+   * stray Cmd-R mid-question is a deliberate choice; the server resyncs the
+   * in-flight phase on rejoin either way, so refreshing is safe, just
+   * disruptive to whoever is answering.
+   */
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const p = phaseRef.current;
