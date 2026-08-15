@@ -8,12 +8,24 @@ import Avatar from '@/app/(arena)/_components/avatar';
 import GoogleBadge from '@/app/(arena)/_components/google_mark';
 import { achievements } from '@/app/(arena)/_mock/progress';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import { money } from '@/app/(arena)/_lib/money';
+import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
 
-/** Player profile. Static in the export and static here. */
+/** how many of the wallet's matches the profile card shows before /history */
+const RECENT_COUNT = 3;
+
+/** Player profile — the wallet's numbers, and its last few matches. */
 export default function Page() {
-  const { t } = useT();
+  const { t, lang } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
   const badges = achievements.slice(0, 6);
+
+  /*
+   * The same source /history reads, cut to the card's size. matchHistory is
+   * already newest-first from the server, so this is a slice and nothing more
+   * — no sorting that could disagree with the history screen's order.
+   */
+  const recent = (wallet?.matchHistory ?? []).slice(0, RECENT_COUNT);
 
   const stored = useSelector((s: RootState) => s.profile.displayName);
   const name = stored ?? identity?.displayName ?? identity?.username ?? '';
@@ -159,44 +171,68 @@ export default function Page() {
 
         {/* ================================================ recent matches */}
         <section className="border border-white/[0.07] bg-arena-800 p-6">
-          <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            {t('arena.profile.recentMatches')}
-          </h2>
-          <p className="text-[11px] text-arena-300">
-            {t('arena.profile.noMatches')}
-          </p>
-          <div className="space-y-3">
-            {[].map(
-              (match: {
-                opponents: string;
-                result: string;
-                money: string;
-                date: string;
-              }) => (
-                <div
-                  key={match.opponents}
-                  className="flex items-center gap-3 border-b border-white/[0.05] py-3"
-                >
-                  <span
-                    className={`h-8 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
-                    aria-hidden="true"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-xs font-bold text-white">
-                      {match.opponents}
-                    </span>
-                    <span className="block text-[10px] text-arena-300">
-                      {match.date}
-                    </span>
-                  </span>
-                  <span
-                    className={`text-sm font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
-                  >
-                    {match.money}
-                  </span>
-                </div>
-              )
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
+              {t('arena.profile.recentMatches')}
+            </h2>
+            {/* the wallet only keeps the last few; the rest live on /history */}
+            {recent.length > 0 && (
+              <Link
+                href="/history"
+                className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.common.viewAll')}
+              </Link>
             )}
+          </div>
+
+          {/*
+            No session and no matches are different sentences, and neither is
+            an empty list. A never-played account gets the second, not three
+            blank rows where matches would go.
+          */}
+          {loading && (
+            <p className="text-[11px] text-arena-300">
+              {t('arena.common.loading')}
+            </p>
+          )}
+          {!loading && !signedIn && (
+            <p className="text-[11px] text-arena-300">
+              {t('arena.common.signInPrompt')}
+            </p>
+          )}
+          {!loading && signedIn && recent.length === 0 && (
+            <p className="text-[11px] text-arena-300">
+              {t('arena.profile.noMatches')}
+            </p>
+          )}
+
+          <div className="space-y-3">
+            {recent.map((match) => (
+              <div
+                key={match.matchId}
+                className="flex items-center gap-3 border-b border-white/[0.05] py-3"
+              >
+                <span
+                  className={`h-8 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
+                  aria-hidden="true"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs font-bold text-white">
+                    {match.roomName}
+                  </span>
+                  <span className="block text-[10px] text-arena-300">
+                    {playedAtLabel(match.playedAt, lang)} ·{' '}
+                    {t('arena.history.place', { n: match.placement })}
+                  </span>
+                </span>
+                <span
+                  className={`text-sm font-bold tabular-nums ${match.won ? 'text-gold' : 'text-arena-300'}`}
+                >
+                  {money(match.money)}
+                </span>
+              </div>
+            ))}
           </div>
         </section>
       </div>

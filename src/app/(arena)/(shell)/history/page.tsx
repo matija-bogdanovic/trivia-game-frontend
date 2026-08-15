@@ -5,6 +5,7 @@ import PageHeader from '@/app/(arena)/_components/page_header';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import { money } from '@/app/(arena)/_lib/money';
+import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import {
   useMatchDetail,
@@ -18,22 +19,6 @@ const FILTERS: { value: HistoryFilter; labelKey: string }[] = [
   { value: 'wins', labelKey: 'arena.history.wins' },
   { value: 'losses', labelKey: 'arena.history.losses' },
 ];
-
-/** `Aug 11, 2026 · 14:32`, in whichever language the player is reading. */
-function playedAtLabel(playedAt: number, lang: string): string {
-  const locale = lang === 'sr' ? 'sr-Latn-RS' : 'en-US';
-  const d = new Date(playedAt);
-  const date = d.toLocaleDateString(locale, {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-  const time = d.toLocaleTimeString(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  return `${date} · ${time}`;
-}
 
 /** `12m 40s` — matches run in minutes, so the hour is never worth a slot. */
 function durationLabel(ms: number): string {

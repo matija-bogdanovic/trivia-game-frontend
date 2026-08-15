@@ -2,10 +2,10 @@
  * MOCK DATA — see ./README.md. Replace with the match history endpoint.
  * Feeds /home.
  *
- * /history now reads the real thing: `wallet.matchHistory` for the rows and
- * POST /matches/detail for an opened row. The same two sources are what /home
- * and /profile should draw from — the shapes below are what the design wanted,
- * not what the backend has.
+ * /history and /profile read the real thing: `wallet.matchHistory` for the
+ * rows, and POST /matches/detail for a row opened on /history. The same two
+ * sources are what /home should draw from — the shape below is what the design
+ * wanted, not what the backend has.
  */
 
 /** the home screen's recent-match rail */
@@ -55,34 +55,5 @@ export const homeRecentMatches: HomeMatch[] = [
     money: '+$510',
     date: '2 days ago',
     category: 'Mathematics',
-  },
-];
-
-/** the profile screen's condensed recent-match list */
-export interface ProfileMatch {
-  result: 'WIN' | 'LOSS';
-  opponents: string;
-  money: string;
-  date: string;
-}
-
-export const profileRecentMatches: ProfileMatch[] = [
-  {
-    result: 'WIN',
-    opponents: 'ZenMaster · NovaMind · Specter',
-    money: '+$620',
-    date: 'Today',
-  },
-  {
-    result: 'WIN',
-    opponents: 'Specter · Kira9',
-    money: '+$390',
-    date: 'Yesterday',
-  },
-  {
-    result: 'LOSS',
-    opponents: 'ZenMaster · Bolt88 · Rogue',
-    money: '-$120',
-    date: '2 days ago',
   },
 ];
