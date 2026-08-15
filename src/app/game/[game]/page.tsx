@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import GameShell from './_arena/game_shell';
 import ArenaQuestion from './_arena/question';
 import ArenaSpin from './_arena/spin';
+import ArenaReveal from './_arena/reveal';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
@@ -109,6 +110,8 @@ function Page() {
             <ArenaQuestion />
           ) : phase === 'spin' ? (
             <ArenaSpin />
+          ) : phase === 'reveal' ? (
+            <ArenaReveal />
           ) : (
             <div className="text-center text-[11px] tracking-[0.3em] text-arena-300 uppercase">
               {t('arena.game.phasePending', { phase })}

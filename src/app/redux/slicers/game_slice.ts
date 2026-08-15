@@ -62,12 +62,17 @@ export type MyBet =
   | { kind: 'placed'; bet: 'correct' | 'wrong'; amount: number }
   | { kind: 'neutral' };
 
+/** exactly what settleBets pushes — see lambda-ws/lib/pot.mjs */
 export interface BetOutcome {
   username: string;
-  bet: 'correct' | 'wrong';
+  side: string;
   amount: number;
+  quota: number;
   won: boolean;
-  moneyDelta: number;
+  /** stake x quota for a winner, 0 for a loser */
+  payout: number;
+  /** the gain alone: amount x (quota - 1) when won, -amount when lost */
+  net: number;
 }
 
 /** the price on offer, derived server-side from the answerer's accuracy */
@@ -153,6 +158,8 @@ export interface GameState {
   /** the central pot, and how much of it has been paid out unbacked */
   pot: number;
   minted: number;
+  /** minted by this turn alone, as opposed to the running total */
+  mintedThisTurn: number;
   startingMoney: number;
   quotas: Quotas | null;
   betResults: BetResult[];
@@ -291,6 +298,7 @@ const initialState: GameState = {
   eliminatedNow: [],
   pot: 0,
   minted: 0,
+  mintedThisTurn: 0,
   startingMoney: 500,
   quotas: null,
   betResults: [],
@@ -546,13 +554,18 @@ const gameSlice = createSlice({
           break;
         case 'round_result':
           state.phase = 'reveal';
-          state.correctAnswer = message.correctAnswer;
-          state.lastAnswer = message.answer;
-          state.lastCorrect = message.correct;
-          state.timedOut = message.timedOut;
-          state.answererDelta = message.answererDelta;
+          state.correctAnswer = message.correctAnswer ?? null;
+          state.lastAnswer = message.answer ?? null;
+          state.lastCorrect = Boolean(message.correct);
+          state.timedOut = Boolean(message.timedOut);
+          state.answererDelta = Number(message.answererDelta ?? 0);
           state.betOutcomes = message.bets ?? [];
           state.eliminatedNow = message.eliminated ?? [];
+          if (typeof message.pot === 'number') state.pot = message.pot;
+          // what this turn had to mint, and the running total. The pot can go
+          // negative — a payout it cannot fund is minted, never scaled down.
+          state.mintedThisTurn = Number(message.minted ?? 0);
+          state.minted = Number(message.mintedTotal ?? state.minted);
           /*
            * NOT state.players. round_result does not carry a roster — it
            * reports one round: who answered, whether they were right, the
