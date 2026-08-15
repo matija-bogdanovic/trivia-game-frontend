@@ -7,6 +7,8 @@ export interface Identity {
   username: string;
   /** what other players see */
   displayName: string;
+  /** from the id token; absent for accounts without a verified email */
+  email: string | null;
 }
 
 /**
@@ -21,10 +23,12 @@ export async function getIdentity(): Promise<Identity | null> {
     const username = payload?.['cognito:username'];
     if (typeof username === 'string' && username.length > 0) {
       const name = payload?.['name'];
+      const email = payload?.['email'];
       return {
         username,
         displayName:
           typeof name === 'string' && name.length > 0 ? name : username,
+        email: typeof email === 'string' && email.length > 0 ? email : null,
       };
     }
   } catch {

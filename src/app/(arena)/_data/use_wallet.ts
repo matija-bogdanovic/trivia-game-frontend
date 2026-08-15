@@ -1,0 +1,80 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { apiFetch } from '@/app/helpers/api';
+import { getIdentity, type Identity } from '@/app/helpers/token_operations';
+
+/**
+ * The signed-in player's wallet — the backend's record of who they are and how
+ * they have played. POST /wallet derives the user from the bearer token, so
+ * there is nothing to pass.
+ */
+export interface Wallet {
+  credits: number;
+  coins: number;
+  avatar: string | null;
+  wins: number;
+  gamesPlayed: number;
+  roundsPlayed: number;
+  points: number;
+  currentStreak: number;
+  bestStreak: number;
+  matchHistory?: unknown[];
+  achievements?: string[];
+  nextCreditInMs?: number;
+}
+
+export interface WalletState {
+  identity: Identity | null;
+  wallet: Wallet | null;
+  loading: boolean;
+  /** false when there is no session — screens show a prompt, not an error */
+  signedIn: boolean;
+}
+
+/**
+ * Loads the identity and the wallet together, because every screen that wants
+ * one wants the other: the name comes from Cognito, the numbers from the
+ * backend. Failure is not thrown — a screen renders its empty state instead.
+ */
+export function useWallet(): WalletState {
+  const [state, setState] = useState<WalletState>({
+    identity: null,
+    wallet: null,
+    loading: true,
+    signedIn: false,
+  });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      const identity = await getIdentity();
+      if (!identity) {
+        if (!cancelled)
+          setState({
+            identity: null,
+            wallet: null,
+            loading: false,
+            signedIn: false,
+          });
+        return;
+      }
+      try {
+        const res = await apiFetch('/wallet');
+        const wallet = res.ok ? ((await res.json()) as Wallet) : null;
+        if (!cancelled)
+          setState({ identity, wallet, loading: false, signedIn: true });
+      } catch {
+        if (!cancelled)
+          setState({ identity, wallet: null, loading: false, signedIn: true });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return state;
+}

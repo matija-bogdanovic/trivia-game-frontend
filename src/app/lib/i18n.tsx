@@ -573,6 +573,13 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.lobby.chat': 'Lobby Chat',
     'arena.lobby.messagePlaceholder': 'Message...',
     'arena.lobby.send': 'Send message',
+    'arena.common.loading': 'Loading…',
+    'arena.common.signInPrompt': 'Sign in to see this.',
+    'arena.lb.unavailable': 'This period is not available yet.',
+    'arena.lb.empty': 'Nobody has played yet.',
+    'arena.friends.empty': 'No friends yet — add someone above.',
+    'arena.profile.noMatches': 'No matches played yet.',
+    'arena.profile.noCategories': 'Category stats are not tracked yet.',
   },
   sr: {
     'nav.profile': 'Profil',
@@ -1115,6 +1122,13 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.lobby.chat': 'Ćaskanje',
     'arena.lobby.messagePlaceholder': 'Poruka...',
     'arena.lobby.send': 'Pošalji poruku',
+    'arena.common.loading': 'Učitavanje…',
+    'arena.common.signInPrompt': 'Prijavi se da vidiš ovo.',
+    'arena.lb.unavailable': 'Ovaj period još nije dostupan.',
+    'arena.lb.empty': 'Još niko nije igrao.',
+    'arena.friends.empty': 'Još nemaš prijatelje — dodaj nekoga iznad.',
+    'arena.profile.noMatches': 'Još nema odigranih partija.',
+    'arena.profile.noCategories': 'Statistika po kategorijama se još ne prati.',
   },
 };
 

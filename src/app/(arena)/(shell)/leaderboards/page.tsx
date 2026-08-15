@@ -1,18 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { money } from '@/app/(arena)/_lib/money';
-import {
-  friendNames,
-  leaderboard,
-  monthlyLeaderboard,
-  rankBadges,
-  weeklyLeaderboard,
-  type LeaderboardEntry,
-} from '@/app/(arena)/_mock/players';
+import { rankBadges } from '@/app/(arena)/_mock/players';
+import { getPort } from '@/app/helpers/port';
+import { getIdentity } from '@/app/helpers/token_operations';
 
 type Tab = 'global' | 'weekly' | 'monthly' | 'friends';
 const TABS: Tab[] = ['global', 'weekly', 'monthly', 'friends'];
@@ -30,9 +25,50 @@ const PODIUM_BADGE: Record<number, string> = {
 };
 
 const badgeFor = (rank: number) => rankBadges[rank] ?? String(rank);
-/** Ranks follow position in the current table rather than the fixture. */
-const ranked = (rows: LeaderboardEntry[]) =>
-  rows.map((row, i) => ({ ...row, rank: i + 1 }));
+
+/** What GET /leaderboard returns for each player. */
+interface LeaderboardApiRow {
+  username: string;
+  displayName: string;
+  wins: number;
+  gamesPlayed: number;
+  coins: number;
+  points: number;
+  currentStreak: number;
+  bestStreak: number;
+}
+
+interface Row {
+  rank: number;
+  username: string;
+  name: string;
+  initial: string;
+  streak: number;
+  wins: number;
+  rate: string;
+  money: number;
+  isYou: boolean;
+}
+
+/**
+ * The API returns raw counts; the table wants a rank, an initial and a win
+ * percentage. Rank follows position in the returned order rather than being
+ * stored, so a re-sorted response stays correct.
+ */
+const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] =>
+  api.map((r, i) => ({
+    rank: i + 1,
+    username: r.username,
+    name: r.displayName || r.username,
+    initial: (r.displayName || r.username).charAt(0).toUpperCase(),
+    streak: r.currentStreak,
+    wins: r.wins,
+    rate: r.gamesPlayed
+      ? `${Math.round((r.wins / r.gamesPlayed) * 100)}%`
+      : '—',
+    money: r.coins,
+    isYou: me !== null && r.username === me,
+  }));
 
 /**
  * Standings, translated from the Angular app's leaderboards screen.
@@ -45,21 +81,49 @@ const ranked = (rows: LeaderboardEntry[]) =>
 export default function Page() {
   const { t } = useT();
   const [tab, setTab] = useState<Tab>('global');
+  const [api, setApi] = useState<LeaderboardApiRow[]>([]);
+  const [me, setMe] = useState<string | null>(null);
+  const [friendNames, setFriendNames] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
+
+  // the standings are public; the signed-in user is only needed to mark YOU
+  useEffect(() => {
+    fetch(`${getPort()}/leaderboard`)
+      .then((res) => (res.ok ? res.json() : { leaderboard: [] }))
+      .then((d) => setApi(d.leaderboard ?? []))
+      .catch(() => setApi([]))
+      .finally(() => setLoading(false));
+
+    getIdentity().then(async (id) => {
+      if (!id) return;
+      setMe(id.username);
+      try {
+        const { apiFetch } = await import('@/app/helpers/api');
+        const res = await apiFetch('/friends/list');
+        if (!res.ok) return;
+        const data = await res.json();
+        setFriendNames(
+          new Set(
+            (data.friends ?? []).map((f: { username: string }) => f.username)
+          )
+        );
+      } catch {
+        // the friends tab just stays empty
+      }
+    });
+  }, []);
 
   const rows = useMemo(() => {
-    switch (tab) {
-      case 'weekly':
-        return ranked(weeklyLeaderboard);
-      case 'monthly':
-        return ranked(monthlyLeaderboard);
-      case 'friends':
-        return ranked(
-          leaderboard.filter((r) => r.isYou || friendNames.has(r.name))
-        );
-      default:
-        return ranked(leaderboard);
-    }
-  }, [tab]);
+    // the backend keeps one all-time table; weekly and monthly have no
+    // endpoint yet and say so rather than showing the global rows twice
+    if (tab === 'weekly' || tab === 'monthly') return [];
+    const all = toRows(api, me);
+    if (tab === 'friends')
+      return all
+        .filter((r) => r.isYou || friendNames.has(r.username))
+        .map((r, i) => ({ ...r, rank: i + 1 }));
+    return all;
+  }, [tab, api, me, friendNames]);
 
   /** Second, first, third — the order a podium is read in. */
   const podium = useMemo(() => {
@@ -104,100 +168,125 @@ export default function Page() {
         ))}
       </div>
 
+      {loading && (
+        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+          {t('arena.common.loading')}
+        </div>
+      )}
+
+      {!loading && rows.length === 0 && (
+        <div className="py-16 text-center text-arena-300">
+          <div className="mb-4 text-4xl" aria-hidden="true">
+            ◎
+          </div>
+          <div className="text-sm tracking-wider uppercase">
+            {tab === 'weekly' || tab === 'monthly'
+              ? t('arena.lb.unavailable')
+              : t('arena.lb.empty')}
+          </div>
+        </div>
+      )}
+
       {/* =========================================================== podium */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-3">
-        {podium.map((slot) => (
-          <div
-            key={slot.row.name}
-            className={`border bg-arena-800 p-6 text-center ${
-              slot.place === 1 ? 'border-gold/40' : 'border-white/[0.07]'
-            }`}
-          >
-            <div className="mb-3 flex justify-center">
-              <Avatar
-                initial={slot.row.initial}
-                size={PODIUM_AVATAR[slot.place] ?? 'sm'}
-                accent={slot.place === 1}
-              />
-            </div>
+      {rows.length > 0 && (
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
+          {podium.map((slot) => (
             <div
-              className={`mb-1 font-bold ${slot.place === 1 ? 'text-lg text-gold' : 'text-white'}`}
-            >
-              {slot.row.name}
-            </div>
-            <div
-              className={`mb-2 font-bold ${PODIUM_BADGE[slot.place] ?? 'text-2xl'} ${
-                slot.place === 1 ? 'text-gold' : 'text-arena-300'
-              }`}
-              aria-hidden="true"
-            >
-              {badgeFor(slot.place)}
-            </div>
-            <div className="font-bold text-white tabular-nums">
-              {t('arena.lb.winsCount', { n: slot.row.wins })}
-            </div>
-            <div className="mt-1 text-[10px] text-arena-200">
-              🔥 {t('arena.lb.streakCount', { n: slot.row.streak })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ============================================================ table */}
-      <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
-        <div className="min-w-[42rem]">
-          <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 border-b border-white/[0.07] px-5 py-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-            <span>#</span>
-            <span>{t('arena.lb.player')}</span>
-            <span>{t('arena.lb.streak')}</span>
-            <span>{t('arena.lb.wins')}</span>
-            <span>{t('arena.lb.rate')}</span>
-            <span className="text-right">{t('arena.lb.moneyWon')}</span>
-          </div>
-
-          {rows.map((row) => (
-            <div
-              key={row.name}
-              className={`grid grid-cols-[40px_1fr_80px_60px_60px_100px] items-center gap-4 border-b border-white/[0.05] px-5 py-4 transition-colors ${
-                row.isYou
-                  ? 'border-l-2 border-l-gold bg-gold/10'
-                  : 'hover:bg-arena-750'
+              key={slot.row.username}
+              className={`border bg-arena-800 p-6 text-center ${
+                slot.place === 1 ? 'border-gold/40' : 'border-white/[0.07]'
               }`}
             >
-              <div
-                className={`font-bold ${row.rank <= 3 ? 'text-gold' : 'text-arena-400'}`}
-              >
-                {badgeFor(row.rank)}
-              </div>
-              <div className="flex min-w-0 items-center gap-3">
+              <div className="mb-3 flex justify-center">
                 <Avatar
-                  initial={row.initial}
-                  size="xs"
-                  accent={row.rank === 1}
+                  initial={slot.row.initial}
+                  size={PODIUM_AVATAR[slot.place] ?? 'sm'}
+                  accent={slot.place === 1}
                 />
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="truncate text-sm font-bold text-white">
-                    {row.name}
-                  </span>
-                  {row.isYou && (
-                    <span className="shrink-0 border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
-                      {t('arena.common.you')}
-                    </span>
-                  )}
-                </div>
               </div>
-              <div className="text-sm font-bold text-gold">🔥 {row.streak}</div>
-              <div className="text-sm font-bold text-white tabular-nums">
-                {row.wins}
+              <div
+                className={`mb-1 font-bold ${slot.place === 1 ? 'text-lg text-gold' : 'text-white'}`}
+              >
+                {slot.row.name}
               </div>
-              <div className="text-sm text-arena-200">{row.rate}</div>
-              <div className="text-right text-sm font-bold text-gold tabular-nums">
-                {money(row.money)}
+              <div
+                className={`mb-2 font-bold ${PODIUM_BADGE[slot.place] ?? 'text-2xl'} ${
+                  slot.place === 1 ? 'text-gold' : 'text-arena-300'
+                }`}
+                aria-hidden="true"
+              >
+                {badgeFor(slot.place)}
+              </div>
+              <div className="font-bold text-white tabular-nums">
+                {t('arena.lb.winsCount', { n: slot.row.wins })}
+              </div>
+              <div className="mt-1 text-[10px] text-arena-200">
+                🔥 {t('arena.lb.streakCount', { n: slot.row.streak })}
               </div>
             </div>
           ))}
         </div>
-      </div>
+      )}
+
+      {/* ============================================================ table */}
+      {rows.length > 0 && (
+        <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
+          <div className="min-w-[42rem]">
+            <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 border-b border-white/[0.07] px-5 py-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
+              <span>#</span>
+              <span>{t('arena.lb.player')}</span>
+              <span>{t('arena.lb.streak')}</span>
+              <span>{t('arena.lb.wins')}</span>
+              <span>{t('arena.lb.rate')}</span>
+              <span className="text-right">{t('arena.lb.moneyWon')}</span>
+            </div>
+
+            {rows.map((row) => (
+              <div
+                key={row.username}
+                className={`grid grid-cols-[40px_1fr_80px_60px_60px_100px] items-center gap-4 border-b border-white/[0.05] px-5 py-4 transition-colors ${
+                  row.isYou
+                    ? 'border-l-2 border-l-gold bg-gold/10'
+                    : 'hover:bg-arena-750'
+                }`}
+              >
+                <div
+                  className={`font-bold ${row.rank <= 3 ? 'text-gold' : 'text-arena-400'}`}
+                >
+                  {badgeFor(row.rank)}
+                </div>
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar
+                    initial={row.initial}
+                    size="xs"
+                    accent={row.rank === 1}
+                  />
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-sm font-bold text-white">
+                      {row.name}
+                    </span>
+                    {row.isYou && (
+                      <span className="shrink-0 border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
+                        {t('arena.common.you')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-sm font-bold text-gold">
+                  🔥 {row.streak}
+                </div>
+                <div className="text-sm font-bold text-white tabular-nums">
+                  {row.wins}
+                </div>
+                <div className="text-sm text-arena-200">{row.rate}</div>
+                <div className="text-right text-sm font-bold text-gold tabular-nums">
+                  {money(row.money)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ==================================================== your position */}
       {you && (
