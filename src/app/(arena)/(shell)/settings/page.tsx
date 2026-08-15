@@ -6,8 +6,8 @@ import { signOut } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
-import { ME, difficultyOptions } from '@/app/(arena)/_mock/progress';
-import { getIdentity } from '@/app/helpers/token_operations';
+import { difficultyOptions } from '@/app/(arena)/_mock/progress';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import Button from '@/app/components/general/button';
 import { apiFetch } from '@/app/helpers/api';
@@ -27,8 +27,10 @@ import AvatarCropper from '@/app/components/ui/avatar_cropper';
 export default function Page() {
   const router = useRouter();
   const { t } = useT();
-  const [username, setUsername] = useState(ME.name);
-  const [email, setEmail] = useState(ME.email);
+  const { identity, wallet, loading, signedIn } = useWallet();
+  const showSignInPrompt = !loading && !signedIn;
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [defaultDifficulty, setDefaultDifficulty] = useState('Medium');
   const [notifications, setNotifications] = useState(true);
   const [profileVisible, setProfileVisible] = useState(true);
@@ -47,13 +49,20 @@ export default function Page() {
   const [uploading, setUploading] = useState(false);
   const [avatarError, setAvatarError] = useState('');
 
+  /**
+   * The account fields show what Cognito and the wallet actually hold, rather
+   * than a fixture. They seed once the session resolves and are not overwritten
+   * afterwards, so typing is never clobbered by a late response.
+   */
   useEffect(() => {
-    getIdentity().then((id) => setSignedInAs(id?.username ?? null));
-    // the wallet holds the avatar the server already has
-    apiFetch('/wallet')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setCurrentAvatar(data?.avatar ?? null))
-      .catch(() => {});
+    if (loading) return;
+    setSignedInAs(identity?.username ?? null);
+    setUsername((current) => current || identity?.displayName || '');
+    setEmail((current) => current || identity?.email || '');
+    setCurrentAvatar(wallet?.avatar ?? null);
+  }, [loading, identity, wallet]);
+
+  useEffect(() => {
     return () => {
       if (savedTimer.current) clearTimeout(savedTimer.current);
     };
@@ -147,9 +156,15 @@ export default function Page() {
           </h2>
         </div>
         <div className="space-y-4 p-6">
+          {showSignInPrompt && (
+            <p className="mb-4 text-[11px] text-arena-300">
+              {t('arena.common.signInPrompt')}
+            </p>
+          )}
           <div>
             <Formik
-              initialValues={{ username: ME.name, email: ME.email }}
+              initialValues={{ username, email }}
+              enableReinitialize
               validate={(values) => {
                 const errors: { username?: string; email?: string } = {};
                 if (!values.username || values.username.trim().length < 3) {
@@ -224,7 +239,13 @@ export default function Page() {
                   className="h-12 w-12 shrink-0 object-cover"
                 />
               ) : (
-                <Avatar initial={ME.initial} size="lg" accent />
+                <Avatar
+                  initial={(username || identity?.username || '?')
+                    .charAt(0)
+                    .toUpperCase()}
+                  size="lg"
+                  accent
+                />
               )}
 
               <input

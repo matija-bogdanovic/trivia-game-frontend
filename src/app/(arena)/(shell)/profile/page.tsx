@@ -3,31 +3,52 @@
 import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/(arena)/_components/avatar';
-import { profileRecentMatches } from '@/app/(arena)/_mock/matches';
-import {
-  ME,
-  achievements,
-  categoryScores,
-  profileStats,
-} from '@/app/(arena)/_mock/progress';
+import { achievements } from '@/app/(arena)/_mock/progress';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 
 /** Player profile. Static in the export and static here. */
 export default function Page() {
   const { t } = useT();
+  const { identity, wallet, loading, signedIn } = useWallet();
   const badges = achievements.slice(0, 6);
+
+  const name = identity?.displayName ?? identity?.username ?? '';
+  const initial = (name || '?').charAt(0).toUpperCase();
+
+  /**
+   * Everything the wallet actually tracks. Duels and bets are not among its
+   * counters, so those tiles are simply not rendered rather than shown as a
+   * confident zero.
+   */
+  const stats = wallet
+    ? [
+        { labelKey: 'arena.stat.totalWins', value: String(wallet.wins) },
+        {
+          labelKey: 'arena.stat.gamesPlayed',
+          value: String(wallet.gamesPlayed),
+        },
+        {
+          labelKey: 'arena.stat.winRate',
+          value: wallet.gamesPlayed
+            ? `${Math.round((wallet.wins / wallet.gamesPlayed) * 100)}%`
+            : '—',
+        },
+        { labelKey: 'arena.stat.balance', value: `$${wallet.coins}` },
+      ]
+    : [];
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* =========================================================== header */}
       <section className="flex flex-col items-start gap-6 border border-white/[0.07] bg-arena-800 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8">
-        <Avatar initial={ME.initial} size="xl" accent />
+        <Avatar initial={initial} size="xl" accent />
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.eyebrow')}
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-wide text-white sm:text-4xl">
-            {ME.name}
+            {loading ? '…' : name || t('arena.nav.notSignedIn')}
           </h1>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div>
@@ -35,7 +56,9 @@ export default function Page() {
                 {t('arena.profile.currentStreak')}
               </div>
               <div className="text-2xl font-bold text-gold">
-                {t('arena.profile.streakWins', { n: ME.streak })}
+                {t('arena.profile.streakWins', {
+                  n: wallet?.currentStreak ?? 0,
+                })}
               </div>
             </div>
             <div
@@ -43,7 +66,7 @@ export default function Page() {
               aria-hidden="true"
             />
             <div className="text-sm text-arena-200">
-              {t('arena.profile.memberSince', { date: ME.memberSince })}
+              {signedIn && identity?.email ? identity.email : ''}
             </div>
           </div>
         </div>
@@ -58,7 +81,7 @@ export default function Page() {
 
       {/* ============================================================ stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {profileStats.map((stat) => (
+        {stats.map((stat) => (
           <div
             key={stat.labelKey}
             className="border border-white/[0.07] bg-arena-800 p-4 text-center"
@@ -79,8 +102,11 @@ export default function Page() {
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.categoryPerformance')}
           </h2>
+          <p className="text-[11px] text-arena-300">
+            {t('arena.profile.noCategories')}
+          </p>
           <div className="space-y-4">
-            {categoryScores.map((category) => (
+            {[].map((category: { name: string; pct: number }) => (
               <div key={category.name}>
                 <div className="mb-1.5 flex justify-between text-[11px]">
                   <span className="text-white">{category.name}</span>
@@ -113,31 +139,41 @@ export default function Page() {
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.recentMatches')}
           </h2>
+          <p className="text-[11px] text-arena-300">
+            {t('arena.profile.noMatches')}
+          </p>
           <div className="space-y-3">
-            {profileRecentMatches.map((match) => (
-              <div
-                key={match.opponents}
-                className="flex items-center gap-3 border-b border-white/[0.05] py-3"
-              >
-                <span
-                  className={`h-8 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-xs font-bold text-white">
-                    {match.opponents}
-                  </span>
-                  <span className="block text-[10px] text-arena-300">
-                    {match.date}
-                  </span>
-                </span>
-                <span
-                  className={`text-sm font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
+            {[].map(
+              (match: {
+                opponents: string;
+                result: string;
+                money: string;
+                date: string;
+              }) => (
+                <div
+                  key={match.opponents}
+                  className="flex items-center gap-3 border-b border-white/[0.05] py-3"
                 >
-                  {match.money}
-                </span>
-              </div>
-            ))}
+                  <span
+                    className={`h-8 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold text-white">
+                      {match.opponents}
+                    </span>
+                    <span className="block text-[10px] text-arena-300">
+                      {match.date}
+                    </span>
+                  </span>
+                  <span
+                    className={`text-sm font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
+                  >
+                    {match.money}
+                  </span>
+                </div>
+              )
+            )}
           </div>
         </section>
       </div>

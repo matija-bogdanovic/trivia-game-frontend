@@ -1,15 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { useT } from '@/app/lib/i18n';
-import {
-  friendRequests as initialRequests,
-  friends as initialFriends,
-  type Friend,
-  type FriendRequest,
-} from '@/app/(arena)/_mock/players';
+import { apiFetch } from '@/app/helpers/api';
+import { getIdentity } from '@/app/helpers/token_operations';
+
+/** A row of POST /friends/list. `online` is degraded while the game is not serverless. */
+interface Friend {
+  username: string;
+  displayName: string;
+  online: boolean;
+  points: number;
+  currentStreak: number;
+  wins: number;
+}
+
+interface FriendRequest {
+  username?: string;
+  name?: string;
+}
 
 /**
  * Friend list, search and incoming requests.
@@ -20,15 +31,51 @@ import {
  */
 export default function Page() {
   const { t } = useT();
-  const [friends, setFriends] = useState<Friend[]>(initialFriends);
-  const [requests, setRequests] = useState<FriendRequest[]>(initialRequests);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const id = await getIdentity();
+      if (!id) {
+        if (!cancelled) {
+          setSignedIn(false);
+          setLoading(false);
+        }
+        return;
+      }
+      if (!cancelled) setSignedIn(true);
+      try {
+        const res = await apiFetch('/friends/list');
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) {
+            setFriends(data.friends ?? []);
+            setRequests(data.requests ?? []);
+          }
+        }
+      } catch {
+        // the list just stays empty
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [search, setSearch] = useState('');
   const [addName, setAddName] = useState('');
   const [sentTo, setSentTo] = useState<string | null>(null);
 
   const term = search.trim().toLowerCase();
   const matching = term
-    ? friends.filter((f) => f.name.toLowerCase().includes(term))
+    ? friends.filter((f) =>
+        (f.displayName || f.username).toLowerCase().includes(term)
+      )
     : friends;
   const online = matching.filter((f) => f.online);
   const offline = matching.filter((f) => !f.online);
@@ -42,23 +89,16 @@ export default function Page() {
     setAddName('');
   };
 
-  const dismiss = (request: FriendRequest) =>
-    setRequests((current) => current.filter((r) => r.name !== request.name));
+  const nameOf = (r: FriendRequest) => r.username ?? r.name ?? '';
 
-  /** Accepting moves the requester into the friend list as offline. */
-  const accept = (request: FriendRequest) => {
-    setFriends((current) => [
-      ...current,
-      {
-        name: request.name,
-        initial: request.initial,
-        streak: 0,
-        wins: request.wins,
-        online: false,
-        status: 'Just added',
-      },
-    ]);
-    dismiss(request);
+  const act = async (request: FriendRequest, action: 'accept' | 'decline') => {
+    const target = nameOf(request);
+    setRequests((current) => current.filter((r) => nameOf(r) !== target));
+    try {
+      await apiFetch('/friends/action', { body: { target, action } });
+    } catch {
+      // optimistic — the list reloads on the next visit
+    }
   };
 
   return (
@@ -85,7 +125,25 @@ export default function Page() {
             />
           </div>
 
-          {matching.length === 0 && (
+          {loading && (
+            <div className="py-8 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+              {t('arena.common.loading')}
+            </div>
+          )}
+
+          {!loading && !signedIn && (
+            <div className="py-8 text-center text-[11px] text-arena-300">
+              {t('arena.common.signInPrompt')}
+            </div>
+          )}
+
+          {!loading && signedIn && friends.length === 0 && (
+            <div className="py-8 text-center text-[11px] text-arena-300">
+              {t('arena.friends.empty')}
+            </div>
+          )}
+
+          {!loading && friends.length > 0 && matching.length === 0 && (
             <div className="py-16 text-center text-arena-300">
               <div className="mb-4 text-4xl" aria-hidden="true">
                 ◎
@@ -103,7 +161,7 @@ export default function Page() {
               </h2>
               <div className="space-y-2">
                 {online.map((friend) => (
-                  <FriendRow key={friend.name} friend={friend} />
+                  <FriendRow key={friend.username} friend={friend} />
                 ))}
               </div>
             </section>
@@ -116,7 +174,7 @@ export default function Page() {
               </h2>
               <div className="space-y-2">
                 {offline.map((friend) => (
-                  <FriendRow key={friend.name} friend={friend} />
+                  <FriendRow key={friend.username} friend={friend} />
                 ))}
               </div>
             </section>
@@ -176,32 +234,35 @@ export default function Page() {
               </h2>
               <div className="space-y-3">
                 {requests.map((request) => (
-                  <div key={request.name} className="flex items-center gap-3">
-                    <Avatar initial={request.initial} size="sm" />
+                  <div
+                    key={nameOf(request)}
+                    className="flex items-center gap-3"
+                  >
+                    <Avatar
+                      initial={nameOf(request).charAt(0).toUpperCase()}
+                      size="sm"
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-bold text-white">
-                        {request.name}
-                      </div>
-                      <div className="text-[10px] text-arena-300">
-                        {request.wins} wins
+                        {nameOf(request)}
                       </div>
                     </div>
                     <button
                       type="button"
-                      onClick={() => accept(request)}
+                      onClick={() => act(request, 'accept')}
                       className="cursor-pointer border border-gold/40 px-2 py-1 text-[10px] text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.accept', {
-                        name: request.name,
+                        name: nameOf(request),
                       })}
                     >
                       ✓
                     </button>
                     <button
                       type="button"
-                      onClick={() => dismiss(request)}
+                      onClick={() => act(request, 'decline')}
                       className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.decline', {
-                        name: request.name,
+                        name: nameOf(request),
                       })}
                     >
                       ✗
@@ -222,7 +283,12 @@ function FriendRow({ friend }: { friend: Friend }) {
   return (
     <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
       <div className="relative">
-        <Avatar initial={friend.initial} size="md" />
+        <Avatar
+          initial={(friend.displayName || friend.username)
+            .charAt(0)
+            .toUpperCase()}
+          size="md"
+        />
         <span
           className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-arena-800 ${friend.online ? 'bg-arena-200' : 'bg-arena-500'}`}
           aria-hidden="true"
@@ -231,16 +297,13 @@ function FriendRow({ friend }: { friend: Friend }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-bold text-white">
-            {friend.name}
+            {friend.displayName || friend.username}
           </span>
-          {friend.streak > 0 && (
-            <span className="text-[10px] text-gold">🔥 {friend.streak}</span>
+          {friend.currentStreak > 0 && (
+            <span className="text-[10px] text-gold">
+              🔥 {friend.currentStreak}
+            </span>
           )}
-        </div>
-        <div
-          className={`text-[11px] ${friend.online ? 'text-arena-200' : 'text-arena-400'}`}
-        >
-          {friend.status}
         </div>
       </div>
       <div className="hidden text-[11px] text-arena-300 sm:block">
@@ -250,7 +313,9 @@ function FriendRow({ friend }: { friend: Friend }) {
         <button
           type="button"
           className="cursor-pointer bg-gold px-4 py-2 text-[10px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          aria-label={t('arena.friends.inviteName', { name: friend.name })}
+          aria-label={t('arena.friends.inviteName', {
+            name: friend.displayName || friend.username,
+          })}
         >
           {t('arena.friends.invite')}
         </button>
@@ -258,7 +323,9 @@ function FriendRow({ friend }: { friend: Friend }) {
         <button
           type="button"
           className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.15em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          aria-label={t('arena.friends.profileOf', { name: friend.name })}
+          aria-label={t('arena.friends.profileOf', {
+            name: friend.displayName || friend.username,
+          })}
         >
           {t('arena.friends.profile')}
         </button>
