@@ -21,14 +21,14 @@ import { navItems } from './nav_items';
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { lang, setLang } = useT();
+  const { lang, setLang, t } = useT();
   const [displayName, setDisplayName] = useState<string | null>(null);
 
   useEffect(() => {
     getIdentity().then((id) => setDisplayName(id?.displayName ?? null));
   }, []);
 
-  const name = displayName ?? 'Not signed in';
+  const name = displayName ?? t('arena.nav.notSignedIn');
   const initial = displayName ? displayName.charAt(0).toUpperCase() : '·';
 
   /**
@@ -41,7 +41,7 @@ export default function Sidebar() {
       type="button"
       onClick={() => setLang(lang === 'en' ? 'sr' : 'en')}
       className={`cursor-pointer border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
-      aria-label="Switch language"
+      aria-label={t('arena.nav.switchLanguage')}
     >
       {lang === 'en' ? 'SR' : 'EN'}
     </button>
@@ -71,7 +71,7 @@ export default function Sidebar() {
 
         <nav
           className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4"
-          aria-label="Main"
+          aria-label={t('arena.nav.main')}
         >
           {navItems.map((item) => {
             const active = pathname === item.href;
@@ -93,7 +93,7 @@ export default function Sidebar() {
                   {item.icon}
                 </span>
                 <span className="text-[11px] tracking-wider uppercase">
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               </Link>
             );
@@ -105,7 +105,7 @@ export default function Sidebar() {
             href="/rooms"
             className="block w-full bg-gold py-3 text-center text-[11px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-950 focus-visible:outline-none"
           >
-            ▶ Play now
+            ▶ {t('arena.nav.playNow')}
           </Link>
         </div>
 
@@ -125,7 +125,7 @@ export default function Sidebar() {
                 {name}
               </span>
               <span className="block text-[10px] tracking-wider text-gold">
-                🔥 {ME.streak} streak
+                🔥 {t('arena.nav.streak', { n: ME.streak })}
               </span>
             </span>
           </Link>
@@ -135,8 +135,8 @@ export default function Sidebar() {
             type="button"
             onClick={handleSignOut}
             className="mr-2 cursor-pointer px-2 py-2 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-            aria-label="Sign out"
-            title="Sign out"
+            aria-label={t('arena.nav.signOut')}
+            title={t('arena.nav.signOut')}
           >
             <span className="text-sm" aria-hidden="true">
               ⏻
@@ -157,12 +157,12 @@ export default function Sidebar() {
               href="/rooms"
               className="bg-gold px-4 py-2 text-[10px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              ▶ Play
+              ▶ {t('arena.nav.play')}
             </Link>
             <Link
               href="/profile"
               className="flex h-8 w-8 shrink-0 items-center justify-center bg-gold text-sm font-bold text-arena-950 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-              aria-label={`${name} profile`}
+              aria-label={t('arena.nav.profileOf', { name })}
             >
               {initial}
             </Link>
@@ -171,7 +171,7 @@ export default function Sidebar() {
               type="button"
               onClick={handleSignOut}
               className="cursor-pointer px-1 py-2 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-              aria-label="Sign out"
+              aria-label={t('arena.nav.signOut')}
             >
               <span className="text-sm" aria-hidden="true">
                 ⏻
@@ -180,7 +180,10 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <nav className="flex gap-1 overflow-x-auto px-3 pb-2" aria-label="Main">
+        <nav
+          className="flex gap-1 overflow-x-auto px-3 pb-2"
+          aria-label={t('arena.nav.main')}
+        >
           {navItems.map((item) => {
             const active = pathname === item.href;
             return (
@@ -194,7 +197,7 @@ export default function Sidebar() {
                     : 'text-arena-200 hover:bg-arena-700'
                 }`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

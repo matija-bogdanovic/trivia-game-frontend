@@ -71,8 +71,8 @@ export const medals = ['①', '②', '③', '④'];
 
 /** the "your performance" grid — duplicated from rankings[0] in the design */
 export const yourPerformance = [
-  { label: 'Correct', value: '8' },
-  { label: 'Wrong', value: '2' },
-  { label: 'Bets Won', value: '5' },
-  { label: 'Duels Won', value: '2' },
+  { labelKey: 'arena.stat.correct', value: '8' },
+  { labelKey: 'arena.stat.wrong', value: '2' },
+  { labelKey: 'arena.stat.betsWon', value: '5' },
+  { labelKey: 'arena.stat.duelsWon', value: '2' },
 ];

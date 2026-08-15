@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { money } from '@/app/(arena)/_lib/money';
 import { rankings, yourPerformance } from '@/app/(arena)/_mock/results';
@@ -7,6 +10,7 @@ const MARKS = ['①', '②', '③', '④'];
 const gained = (change: string) => change.startsWith('+');
 
 export default function Page() {
+  const { t } = useT();
   const winner = rankings[0];
 
   return (
@@ -21,7 +25,7 @@ export default function Page() {
         </div>
         <div className="relative">
           <div className="mb-4 text-[11px] tracking-[0.4em] text-gold uppercase">
-            Victory
+            {t('arena.results.victory')}
           </div>
           <div className="mb-4 flex justify-center">
             <Avatar initial={winner.initial} size="xl" accent />
@@ -30,13 +34,13 @@ export default function Page() {
             {winner.name}
           </div>
           <div className="mb-4 text-[11px] tracking-[0.3em] text-gold uppercase">
-            Winner
+            {t('arena.results.winner')}
           </div>
 
           <div className="mt-6 flex items-center justify-center gap-6 sm:gap-8">
             <div className="text-center">
               <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                Final Balance
+                {t('arena.results.finalBalance')}
               </div>
               <div className="text-2xl font-bold text-gold tabular-nums sm:text-3xl">
                 {money(winner.money)}
@@ -45,7 +49,7 @@ export default function Page() {
             <div className="h-12 w-px bg-white/10" aria-hidden="true" />
             <div className="text-center">
               <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                New Streak
+                {t('arena.results.newStreak')}
               </div>
               <div className="text-2xl font-bold text-white sm:text-3xl">
                 🔥 {winner.streak}
@@ -58,7 +62,7 @@ export default function Page() {
       {/* ========================================================= rankings */}
       <section className="mb-8">
         <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          Final Rankings
+          {t('arena.results.finalRankings')}
         </h2>
         <ol className="space-y-2">
           {rankings.map((row, i) => (
@@ -84,13 +88,16 @@ export default function Page() {
                   </span>
                   {row.isYou && (
                     <span className="border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
-                      YOU
+                      {t('arena.common.you')}
                     </span>
                   )}
                 </span>
                 <span className="mt-0.5 block text-[10px] text-arena-200">
-                  {row.correct} correct · {row.wrong} wrong · {row.duelsWon}{' '}
-                  duels won
+                  {t('arena.results.breakdown', {
+                    correct: row.correct,
+                    wrong: row.wrong,
+                    duels: row.duelsWon,
+                  })}
                 </span>
               </span>
               <span className="text-right">
@@ -111,16 +118,16 @@ export default function Page() {
       {/* ==================================================== your numbers */}
       <section className="mb-8 border border-white/[0.07] bg-arena-800 p-6">
         <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          Your Performance
+          {t('arena.results.yourPerformance')}
         </h2>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {yourPerformance.map((stat) => (
-            <div key={stat.label} className="text-center">
+            <div key={stat.labelKey} className="text-center">
               <div className="mb-1 text-2xl font-bold text-gold tabular-nums">
                 {stat.value}
               </div>
               <div className="text-[10px] tracking-wider text-arena-300 uppercase">
-                {stat.label}
+                {t(stat.labelKey)}
               </div>
             </div>
           ))}
@@ -133,19 +140,19 @@ export default function Page() {
           href="/rooms"
           className="bg-gold px-8 py-4 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          Play again
+          {t('arena.results.playAgain')}
         </Link>
         <Link
           href="/home"
           className="border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          Return to home
+          {t('arena.results.returnHome')}
         </Link>
         <Link
           href="/rooms/create"
           className="border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          Create new room
+          {t('arena.results.createNew')}
         </Link>
       </div>
     </div>

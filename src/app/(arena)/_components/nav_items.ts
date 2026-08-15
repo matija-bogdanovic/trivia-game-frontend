@@ -8,20 +8,21 @@
  */
 export interface NavItem {
   href: string;
-  label: string;
+  /** i18n key — the sidebar resolves it through useT */
+  labelKey: string;
   icon: string;
 }
 
 export const navItems: NavItem[] = [
-  { href: '/home', label: 'Home', icon: 'H' },
-  { href: '/rooms', label: 'Find a Room', icon: 'F' },
-  { href: '/rooms/create', label: 'Create Room', icon: '+' },
-  { href: '/rooms/join', label: 'Join Room', icon: '→' },
-  { href: '/leaderboards', label: 'Leaderboards', icon: '▲' },
-  { href: '/friends', label: 'Friends', icon: '◆' },
-  { href: '/history', label: 'Match History', icon: '◷' },
-  { href: '/achievements', label: 'Achievements', icon: '★' },
-  { href: '/profile', label: 'Profile', icon: '◎' },
-  { href: '/settings', label: 'Settings', icon: '⚙' },
-  { href: '/results', label: 'Game Results', icon: '◑' },
+  { href: '/home', labelKey: 'arena.nav.home', icon: 'H' },
+  { href: '/rooms', labelKey: 'arena.nav.rooms', icon: 'F' },
+  { href: '/rooms/create', labelKey: 'arena.nav.create', icon: '+' },
+  { href: '/rooms/join', labelKey: 'arena.nav.join', icon: '→' },
+  { href: '/leaderboards', labelKey: 'arena.nav.leaderboards', icon: '▲' },
+  { href: '/friends', labelKey: 'arena.nav.friends', icon: '◆' },
+  { href: '/history', labelKey: 'arena.nav.history', icon: '◷' },
+  { href: '/achievements', labelKey: 'arena.nav.achievements', icon: '★' },
+  { href: '/profile', labelKey: 'arena.nav.profile', icon: '◎' },
+  { href: '/settings', labelKey: 'arena.nav.settings', icon: '⚙' },
+  { href: '/results', labelKey: 'arena.nav.results', icon: '◑' },
 ];

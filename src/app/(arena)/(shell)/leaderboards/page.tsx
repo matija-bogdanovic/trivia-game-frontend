@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
+import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { money } from '@/app/(arena)/_lib/money';
 import {
@@ -42,6 +43,7 @@ const ranked = (rows: LeaderboardEntry[]) =>
  * for the fixture it shipped with. Both are derived here.
  */
 export default function Page() {
+  const { t } = useT();
   const [tab, setTab] = useState<Tab>('global');
 
   const rows = useMemo(() => {
@@ -76,28 +78,28 @@ export default function Page() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="Competition" title="LEADERBOARDS" />
+      <PageHeader eyebrow={t('arena.lb.eyebrow')} title={t('arena.lb.title')} />
 
       {/* ============================================================= tabs */}
       <div
         className="mb-8 flex flex-wrap gap-1"
         role="tablist"
-        aria-label="Leaderboard period"
+        aria-label={t('arena.lb.period')}
       >
-        {TABS.map((t) => (
+        {TABS.map((tabName) => (
           <button
-            key={t}
+            key={tabName}
             type="button"
             role="tab"
-            aria-selected={tab === t}
-            onClick={() => setTab(t)}
+            aria-selected={tab === tabName}
+            onClick={() => setTab(tabName)}
             className={`cursor-pointer border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
-              tab === t
+              tab === tabName
                 ? 'border-gold bg-gold text-arena-950'
                 : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
             }`}
           >
-            {t}
+            {t(`arena.lb.${tabName}`)}
           </button>
         ))}
       </div>
@@ -132,10 +134,10 @@ export default function Page() {
               {badgeFor(slot.place)}
             </div>
             <div className="font-bold text-white tabular-nums">
-              {slot.row.wins} wins
+              {t('arena.lb.winsCount', { n: slot.row.wins })}
             </div>
             <div className="mt-1 text-[10px] text-arena-200">
-              🔥 {slot.row.streak} streak
+              🔥 {t('arena.lb.streakCount', { n: slot.row.streak })}
             </div>
           </div>
         ))}
@@ -146,11 +148,11 @@ export default function Page() {
         <div className="min-w-[42rem]">
           <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 border-b border-white/[0.07] px-5 py-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
             <span>#</span>
-            <span>Player</span>
-            <span>Streak</span>
-            <span>Wins</span>
-            <span>Rate</span>
-            <span className="text-right">Money Won</span>
+            <span>{t('arena.lb.player')}</span>
+            <span>{t('arena.lb.streak')}</span>
+            <span>{t('arena.lb.wins')}</span>
+            <span>{t('arena.lb.rate')}</span>
+            <span className="text-right">{t('arena.lb.moneyWon')}</span>
           </div>
 
           {rows.map((row) => (
@@ -179,7 +181,7 @@ export default function Page() {
                   </span>
                   {row.isYou && (
                     <span className="shrink-0 border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
-                      YOU
+                      {t('arena.common.you')}
                     </span>
                   )}
                 </div>
@@ -204,13 +206,15 @@ export default function Page() {
           aria-live="polite"
         >
           <div className="text-[10px] tracking-widest text-gold uppercase">
-            Your Position
+            {t('arena.lb.yourPosition')}
           </div>
-          <div className="font-bold text-white">Rank #{you.rank}</div>
+          <div className="font-bold text-white">
+            {t('arena.lb.rank', { n: you.rank })}
+          </div>
           <div className="text-[11px] text-arena-200">
             {winsFromPodium > 0
-              ? `· ${winsFromPodium} wins from top 3`
-              : '· on the podium'}
+              ? t('arena.lb.fromPodium', { n: winsFromPodium })
+              : t('arena.lb.onPodium')}
           </div>
         </div>
       )}

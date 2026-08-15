@@ -1,3 +1,6 @@
+'use client';
+
+import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { achievements, type Achievement } from '@/app/(arena)/_mock/progress';
 
@@ -9,6 +12,7 @@ function progressPercent(a: Achievement): number {
 
 /** Achievement gallery, split into unlocked and in-progress. */
 export default function Page() {
+  const { t } = useT();
   const unlocked = achievements.filter((a) => a.unlocked);
   const inProgress = achievements.filter((a) => !a.unlocked);
   const percentComplete = Math.round(
@@ -17,13 +21,16 @@ export default function Page() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="Progress" title="ACHIEVEMENTS" />
+      <PageHeader
+        eyebrow={t('arena.achv.eyebrow')}
+        title={t('arena.achv.title')}
+      />
 
       {/* ========================================================= progress */}
       <section className="mb-8 flex flex-col gap-4 border border-white/[0.07] bg-arena-800 p-5 sm:flex-row sm:items-center sm:gap-6">
         <div>
           <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-            Unlocked
+            {t('arena.achv.unlocked')}
           </div>
           <div className="text-3xl font-bold text-gold tabular-nums">
             {unlocked.length} / {achievements.length}
@@ -36,7 +43,7 @@ export default function Page() {
             aria-valuenow={percentComplete}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Achievement completion"
+            aria-label={t('arena.achv.completion')}
           >
             <div
               className="h-full bg-gold transition-all"
@@ -44,7 +51,7 @@ export default function Page() {
             />
           </div>
           <div className="mt-1 text-[10px] tracking-wider text-arena-300">
-            {percentComplete}% complete
+            {t('arena.achv.percent', { n: percentComplete })}
           </div>
         </div>
       </section>
@@ -52,7 +59,7 @@ export default function Page() {
       {/* ========================================================= unlocked */}
       <section className="mb-8">
         <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          Unlocked
+          {t('arena.achv.unlocked')}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {unlocked.map((a) => (
@@ -78,7 +85,7 @@ export default function Page() {
       {/* ====================================================== in progress */}
       <section>
         <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          In Progress
+          {t('arena.achv.inProgress')}
         </h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {inProgress.map((a) => (
@@ -107,7 +114,7 @@ export default function Page() {
                     aria-valuenow={a.progress}
                     aria-valuemin={0}
                     aria-valuemax={a.max}
-                    aria-label={`${a.title} progress`}
+                    aria-label={t('arena.achv.progressOf', { title: a.title })}
                   >
                     <div
                       className="h-full bg-arena-300 transition-all"

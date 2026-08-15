@@ -21,27 +21,28 @@ export const ME = {
  * read out.
  */
 export interface StatTile {
-  label: string;
+  /** i18n key — screens resolve it through useT */
+  labelKey: string;
   value: string;
   accent?: boolean;
   suffix?: string;
 }
 
 export const homeStats: StatTile[] = [
-  { label: 'Winning Streak', value: '7', accent: true, suffix: '🔥' },
-  { label: 'Total Wins', value: '143' },
-  { label: 'Games Played', value: '201' },
-  { label: 'Balance', value: '$8,340', accent: true },
+  { labelKey: 'arena.stat.winningStreak', value: '7', accent: true, suffix: '🔥' },
+  { labelKey: 'arena.stat.totalWins', value: '143' },
+  { labelKey: 'arena.stat.gamesPlayed', value: '201' },
+  { labelKey: 'arena.stat.balance', value: '$8,340', accent: true },
 ];
 
 /** the profile screen's six-up stat grid */
 export const profileStats: StatTile[] = [
-  { label: 'Total Wins', value: '143' },
-  { label: 'Games Played', value: '201' },
-  { label: 'Win Rate', value: '71%' },
-  { label: 'Duels Won', value: '38' },
-  { label: 'Bets Won', value: '312' },
-  { label: 'Money Won', value: '$8,340' },
+  { labelKey: 'arena.stat.totalWins', value: '143' },
+  { labelKey: 'arena.stat.gamesPlayed', value: '201' },
+  { labelKey: 'arena.stat.winRate', value: '71%' },
+  { labelKey: 'arena.stat.duelsWon', value: '38' },
+  { labelKey: 'arena.stat.betsWon', value: '312' },
+  { labelKey: 'arena.stat.moneyWon', value: '$8,340' },
 ];
 
 export const categoryScores = [

@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { profileRecentMatches } from '@/app/(arena)/_mock/matches';
 import {
@@ -10,6 +13,7 @@ import {
 
 /** Player profile. Static in the export and static here. */
 export default function Page() {
+  const { t } = useT();
   const badges = achievements.slice(0, 6);
 
   return (
@@ -20,7 +24,7 @@ export default function Page() {
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            Player Profile
+            {t('arena.profile.eyebrow')}
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-wide text-white sm:text-4xl">
             {ME.name}
@@ -28,10 +32,10 @@ export default function Page() {
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div>
               <div className="text-[10px] tracking-widest text-arena-300 uppercase">
-                Current Streak
+                {t('arena.profile.currentStreak')}
               </div>
               <div className="text-2xl font-bold text-gold">
-                🔥 {ME.streak} WINS
+                {t('arena.profile.streakWins', { n: ME.streak })}
               </div>
             </div>
             <div
@@ -39,7 +43,7 @@ export default function Page() {
               aria-hidden="true"
             />
             <div className="text-sm text-arena-200">
-              Member since {ME.memberSince}
+              {t('arena.profile.memberSince', { date: ME.memberSince })}
             </div>
           </div>
         </div>
@@ -48,7 +52,7 @@ export default function Page() {
           href="/settings"
           className="border border-white/20 px-5 py-3 text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          Edit profile
+          {t('arena.profile.edit')}
         </Link>
       </section>
 
@@ -56,14 +60,14 @@ export default function Page() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {profileStats.map((stat) => (
           <div
-            key={stat.label}
+            key={stat.labelKey}
             className="border border-white/[0.07] bg-arena-800 p-4 text-center"
           >
             <div className="mb-1 text-2xl font-bold text-gold tabular-nums">
               {stat.value}
             </div>
             <div className="text-[9px] leading-tight tracking-[0.2em] text-arena-300 uppercase">
-              {stat.label}
+              {t(stat.labelKey)}
             </div>
           </div>
         ))}
@@ -73,7 +77,7 @@ export default function Page() {
         {/* ================================================ category scores */}
         <section className="border border-white/[0.07] bg-arena-800 p-6">
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            Category Performance
+            {t('arena.profile.categoryPerformance')}
           </h2>
           <div className="space-y-4">
             {categoryScores.map((category) => (
@@ -90,7 +94,9 @@ export default function Page() {
                   aria-valuenow={category.pct}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`${category.name} accuracy`}
+                  aria-label={t('arena.profile.accuracy', {
+                    name: category.name,
+                  })}
                 >
                   <div
                     className="h-full bg-gold"
@@ -105,7 +111,7 @@ export default function Page() {
         {/* ================================================ recent matches */}
         <section className="border border-white/[0.07] bg-arena-800 p-6">
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            Recent Matches
+            {t('arena.profile.recentMatches')}
           </h2>
           <div className="space-y-3">
             {profileRecentMatches.map((match) => (
@@ -140,13 +146,13 @@ export default function Page() {
       <section className="border border-white/[0.07] bg-arena-800 p-6">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            Achievements
+            {t('arena.profile.achievements')}
           </h2>
           <Link
             href="/achievements"
             className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            View all →
+            {t('arena.common.viewAll')}
           </Link>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-4">

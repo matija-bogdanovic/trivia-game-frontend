@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useT } from '@/app/lib/i18n';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import { onlineFriends } from '@/app/(arena)/_mock/players';
 import { achievements, homeStats } from '@/app/(arena)/_mock/progress';
@@ -8,6 +11,7 @@ import { achievements, homeStats } from '@/app/(arena)/_mock/progress';
  * static here — data in, markup out.
  */
 export default function Page() {
+  const { t } = useT();
   /** The teaser row links through to the full achievements screen. */
   const teasers = achievements.slice(0, 4);
 
@@ -17,11 +21,11 @@ export default function Page() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {homeStats.map((stat) => (
           <div
-            key={stat.label}
+            key={t(stat.labelKey)}
             className="border border-white/[0.07] bg-arena-800 p-5"
           >
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
-              {stat.label}
+              {t(stat.labelKey)}
             </div>
             <div
               className={`text-2xl font-bold sm:text-3xl ${stat.accent ? 'text-gold' : 'text-white'}`}
@@ -48,33 +52,32 @@ export default function Page() {
         </div>
         <div className="relative">
           <div className="mb-3 text-xs tracking-[0.3em] text-arena-200 uppercase">
-            Ready to compete?
+            {t('arena.home.readyToCompete')}
           </div>
           <h1 className="mb-2 text-3xl font-bold tracking-wide text-white sm:text-5xl">
-            TRIVIA DEATHMATCH
+            {t('arena.home.title')}
           </h1>
           <p className="mb-8 max-w-md text-sm leading-relaxed text-arena-200">
-            Bet your in-game money on every answer. Outsmart your opponents. Win
-            the table.
+            {t('arena.home.tagline')}
           </p>
           <div className="flex flex-wrap gap-3 sm:gap-4">
             <Link
               href="/rooms"
               className="bg-gold px-8 py-4 text-sm font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none sm:px-10"
             >
-              ▶ Play now
+              ▶ {t('arena.nav.playNow')}
             </Link>
             <Link
               href="/rooms/create"
               className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
             >
-              Create room
+              {t('arena.home.createRoom')}
             </Link>
             <Link
               href="/rooms/join"
               className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
             >
-              Join room
+              {t('arena.home.joinRoom')}
             </Link>
           </div>
         </div>
@@ -85,13 +88,13 @@ export default function Page() {
         <section className="space-y-3 lg:col-span-3">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
-              Recent Matches
+              {t('arena.home.recentMatches')}
             </h2>
             <Link
               href="/history"
               className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              View all →
+              {t('arena.common.viewAll')}
             </Link>
           </div>
 
@@ -130,13 +133,13 @@ export default function Page() {
         <section className="space-y-3 lg:col-span-2">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
-              Friends Online
+              {t('arena.home.friendsOnline')}
             </h2>
             <Link
               href="/friends"
               className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              All →
+              {t('arena.common.all')}
             </Link>
           </div>
 
@@ -173,9 +176,9 @@ export default function Page() {
               <button
                 type="button"
                 className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-                aria-label={`Invite ${friend.name}`}
+                aria-label={t('arena.home.inviteName', { name: friend.name })}
               >
-                Invite
+                {t('arena.home.invite')}
               </button>
             </div>
           ))}
@@ -186,13 +189,13 @@ export default function Page() {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
-            Recent Achievements
+            {t('arena.home.recentAchievements')}
           </h2>
           <Link
             href="/achievements"
             className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            View all →
+            {t('arena.common.viewAll')}
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

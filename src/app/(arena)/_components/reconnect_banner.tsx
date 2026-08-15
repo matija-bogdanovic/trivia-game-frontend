@@ -75,7 +75,7 @@ function ReconnectBanner() {
       <button
         type="button"
         className="cursor-pointer px-1 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-        aria-label="Dismiss"
+        aria-label={t('arena.nav.dismiss')}
         onClick={() => setDismissed(room.code)}
       >
         ×
