@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { achievements } from '@/app/(arena)/_mock/progress';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
@@ -12,7 +14,8 @@ export default function Page() {
   const { identity, wallet, loading, signedIn } = useWallet();
   const badges = achievements.slice(0, 6);
 
-  const name = identity?.displayName ?? identity?.username ?? '';
+  const stored = useSelector((s: RootState) => s.profile.displayName);
+  const name = stored ?? identity?.displayName ?? identity?.username ?? '';
   const initial = (name || '?').charAt(0).toUpperCase();
 
   /**

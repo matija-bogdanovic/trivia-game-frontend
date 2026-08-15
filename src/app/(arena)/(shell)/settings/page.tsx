@@ -1,11 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
-import type { AppDispatch } from '@/app/redux/store';
+import { setDisplayName } from '@/app/redux/slicers/profile_slice';
+import type { AppDispatch, RootState } from '@/app/redux/store';
 import { useEffect, useRef, useState } from 'react';
-import { signOut } from 'aws-amplify/auth';
+import { signOut, updateUserAttributes } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
@@ -31,6 +32,7 @@ export default function Page() {
   const dispatch = useDispatch<AppDispatch>();
   const { t } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
+  const storedName = useSelector((s: RootState) => s.profile.displayName);
   const showSignInPrompt = !loading && !signedIn;
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -40,6 +42,8 @@ export default function Page() {
   const [friendRequests, setFriendRequests] = useState(true);
   const [roomInvites, setRoomInvites] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -60,10 +64,12 @@ export default function Page() {
   useEffect(() => {
     if (loading) return;
     setSignedInAs(identity?.username ?? null);
-    setUsername((current) => current || identity?.displayName || '');
+    setUsername(
+      (current) => current || storedName || identity?.displayName || ''
+    );
     setEmail((current) => current || identity?.email || '');
     setCurrentAvatar(wallet?.avatar ?? null);
-  }, [loading, identity, wallet]);
+  }, [loading, identity, wallet, storedName]);
 
   useEffect(() => {
     return () => {
@@ -76,11 +82,43 @@ export default function Page() {
   const usernameValid = username.trim().length >= 3;
   const canSave = usernameValid && emailValid;
 
-  const save = () => {
-    if (!canSave) return;
-    setSaved(true);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaved(false), 2500);
+  /**
+   * Save the display name.
+   *
+   * Two writes, because two things read it. The wallet is what every
+   * server-sourced screen shows — leaderboard, friends, lobby, in-game — and
+   * the Cognito `name` attribute is what survives into the next session's id
+   * token, which is where the sidebar and profile header get it from on a
+   * fresh load.
+   *
+   * Only surrounding whitespace is stripped. The casing is the whole point of
+   * this screen, so nothing here normalises it, and the Cognito *username* is
+   * untouched — that handle is immutable and case-insensitive by pool config.
+   */
+  const save = async () => {
+    const name = username.trim();
+    if (!canSave || saving || !name) return;
+    setSaving(true);
+    setSaveError('');
+    setSaved(false);
+    try {
+      const res = await apiFetch('/wallet', { body: { displayName: name } });
+      if (!res.ok) throw new Error('wallet');
+
+      // the id token keeps the old name until it refreshes, so the store is
+      // what updates the sidebar and profile header right now
+      await updateUserAttributes({ userAttributes: { name } });
+      dispatch(setDisplayName(name));
+
+      setSaved(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('Saving the display name failed:', err);
+      setSaveError(t('arena.settings.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,17 +346,17 @@ export default function Page() {
             <button
               type="button"
               onClick={save}
-              disabled={!canSave}
+              disabled={!canSave || saving}
               className={`px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 canSave
                   ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              {t('arena.settings.save')}
+              {saving ? t('arena.settings.saving') : t('arena.settings.save')}
             </button>
             <p className="text-[11px] text-gold" aria-live="polite">
-              {saved && t('arena.settings.saved')}
+              {saveError || (saved && t('arena.settings.saved'))}
             </p>
           </div>
         </div>

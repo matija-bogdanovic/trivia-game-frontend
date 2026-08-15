@@ -6,6 +6,8 @@ import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/app/redux/store';
 import { ME } from '@/app/(arena)/_mock/progress';
 import LogoPlaceholder from './logo_placeholder';
 import { navItems } from './nav_items';
@@ -29,7 +31,10 @@ export default function Sidebar() {
    */
   const { identity, wallet } = useWallet();
 
-  const displayName = identity?.displayName ?? null;
+  // the store wins so a rename in Settings shows here immediately; the token
+  // value is the fallback until the store is seeded
+  const stored = useSelector((s: RootState) => s.profile.displayName);
+  const displayName = stored ?? identity?.displayName ?? null;
   const name = displayName ?? t('arena.nav.notSignedIn');
   const initial = displayName ? displayName.charAt(0).toUpperCase() : '·';
 

@@ -590,6 +590,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.create.categories': 'Question Categories',
     'arena.create.needCategory':
       'Pick at least one category — a room needs a question pool.',
+    'arena.settings.saveFailed': 'Could not save. Try again.',
+    'arena.settings.saving': 'Saving…',
+    'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
     'nav.profile': 'Profil',
@@ -1149,6 +1152,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.create.categories': 'Kategorije pitanja',
     'arena.create.needCategory':
       'Izaberi bar jednu kategoriju — soba mora imati pitanja.',
+    'arena.settings.saveFailed': 'Čuvanje nije uspelo. Pokušaj ponovo.',
+    'arena.settings.saving': 'Čuvanje…',
+    'arena.settings.emailFixed': 'Vezan za tvoj nalog — ovde se ne menja.',
   },
 };
 

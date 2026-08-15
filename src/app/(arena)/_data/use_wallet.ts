@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
+import { setDisplayName } from '@/app/redux/slicers/profile_slice';
 import type { AppDispatch } from '@/app/redux/store';
 import { apiFetch } from '@/app/helpers/api';
 import { getIdentity, type Identity } from '@/app/helpers/token_operations';
@@ -54,6 +55,7 @@ export function useWallet(): WalletState {
 
     (async () => {
       const identity = await getIdentity();
+      if (identity) dispatch(setDisplayName(identity.displayName));
       if (!identity) {
         if (!cancelled)
           setState({
