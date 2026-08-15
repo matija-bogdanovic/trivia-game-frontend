@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { RootState } from '@/app/redux/store';
-import AvatarTile from './avatar_tile';
+import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 
 /**
@@ -174,12 +174,12 @@ export default function ArenaLobby() {
                   )}
 
                   <div className="flex items-center gap-3 mb-4">
-                    <AvatarTile
+                    <Avatar
+                      name={player.displayName}
                       username={player.username}
-                      displayName={player.displayName}
                       avatar={player.avatar}
                       accent={player.isHost}
-                      className="w-12 h-12 text-lg"
+                      size="lg"
                     />
                     <div className="min-w-0">
                       <div className="text-white font-bold truncate">
