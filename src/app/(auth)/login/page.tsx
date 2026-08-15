@@ -23,11 +23,24 @@ function Page() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // already signed in? straight to the game
+  /**
+   * Where to land after signing in. Middleware puts the blocked destination on
+   * ?next= when it bounces someone here. Only same-site paths are honoured —
+   * a value like //evil.com is a parser-dependent open redirect, so anything
+   * that is not a single-slash-prefixed path falls back to the home screen.
+   */
+  const destination = () => {
+    if (typeof window === 'undefined') return '/home';
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//')) return next;
+    return '/home';
+  };
+
+  // already signed in? straight through
   useEffect(() => {
     fetchAuthSession()
       .then((session) => {
-        if (session.tokens) router.replace('/');
+        if (session.tokens) router.replace(destination());
       })
       .catch(() => {});
   }, [router]);
@@ -45,11 +58,11 @@ function Page() {
         router.push('/confirm');
         return;
       }
-      router.push('/');
+      router.push(destination());
     } catch (err) {
       const name = (err as { name?: string })?.name;
       if (name === 'UserAlreadyAuthenticatedException') {
-        router.push('/');
+        router.push(destination());
         return;
       }
       if (name === 'UserNotConfirmedException') {
