@@ -13,6 +13,10 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // host removing a player
+    'arena.lobby.removeNamed': 'Remove {name} from the room',
+    'arena.lobby.kickConfirm': 'Remove {name} from the room?',
+    'arena.lobby.kickedTitle': 'Removed from the room',
     // lobby seats + room capacity
     'arena.lobby.activePlayers': '{n} of {total} players active',
     'arena.lobby.ofCapacity': '· {max} seats',
@@ -632,6 +636,10 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // host removing a player
+    'arena.lobby.removeNamed': 'Izbaci igrača {name} iz sobe',
+    'arena.lobby.kickConfirm': 'Izbaciti {name}?',
+    'arena.lobby.kickedTitle': 'Izbačen iz sobe',
     // lobby seats + room capacity
     'arena.lobby.activePlayers': 'Aktivnih igrača: {n} od {total}',
     'arena.lobby.ofCapacity': '· {max} mesta',

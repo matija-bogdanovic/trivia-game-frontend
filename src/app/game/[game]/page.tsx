@@ -68,6 +68,18 @@ function Page() {
     return () => clearTimeout(id);
   }, [closedOnMe, router]);
 
+  /*
+   * Being kicked ends this player's business with the room the same way, so it
+   * leaves the same way. No `leave` is sent: the host already removed them, and
+   * telling the server they are leaving a room they are no longer in would at
+   * best be a no-op. They are simply routed out.
+   */
+  React.useEffect(() => {
+    if (!kicked) return;
+    const id = setTimeout(() => router.push('/rooms'), 6000);
+    return () => clearTimeout(id);
+  }, [kicked, router]);
+
   const blocked = kicked || terminated || joinDenied !== null || closedOnMe;
   const inLobby = phase === 'lobby' || phase === 'countdown';
 
@@ -203,16 +215,21 @@ function Page() {
       )}
 
       {(kicked || terminated) && (
-        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
-          <div className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-md text-center">
-            <p className="text-arena-100 text-sm">
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+          <div className="flex max-w-md flex-col gap-4 border border-white/[0.07] bg-arena-800 p-8 text-center">
+            <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+              {kicked
+                ? t('arena.lobby.kickedTitle')
+                : t('arena.lobby.roomClosedTitle')}
+            </div>
+            <p className="text-sm text-arena-100">
               {kicked ? t('game.kickedInfo') : t('game.terminatedInfo')}
             </p>
             <button
-              onClick={leaveRoom}
-              className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+              onClick={() => (kicked ? router.push('/rooms') : leaveRoom())}
+              className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              {t('game.ok')}
+              {t('arena.lobby.backToRooms')}
             </button>
           </div>
         </div>

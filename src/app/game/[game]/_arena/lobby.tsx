@@ -45,6 +45,11 @@ export default function ArenaLobby() {
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  /** the player the host is about to remove, held for the confirm */
+  const [confirmingKick, setConfirmingKick] = useState<{
+    username: string;
+    name: string;
+  } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -246,11 +251,27 @@ export default function ArenaLobby() {
                     </div>
                   </div>
 
+                  {/*
+                    Host-only, and never on the host's own tile — the same
+                    isHost the start button and the leave warning read, so a
+                    player who cannot start a match cannot remove someone from
+                    it either. The confirm is here because the action is
+                    immediate and aimed at a named person.
+                  */}
                   {iAmHost && !isMe && (
                     <button
-                      onClick={() => kickPlayer(player.username)}
-                      className="mt-3 w-full text-[10px] tracking-wider uppercase text-arena-300 border border-arena-500 py-1.5 hover:text-white hover:border-arena-300 transition-colors"
+                      type="button"
+                      onClick={() =>
+                        setConfirmingKick({
+                          username: player.username,
+                          name: shown,
+                        })
+                      }
+                      aria-label={t('arena.lobby.removeNamed', { name: shown })}
+                      title={t('arena.lobby.removeNamed', { name: shown })}
+                      className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                     >
+                      <span aria-hidden="true">✕</span>
                       {t('arena.lobby.remove')}
                     </button>
                   )}
@@ -390,6 +411,40 @@ export default function ArenaLobby() {
           </div>
         </div>
       </div>
+
+      {confirmingKick && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="kick-confirm"
+        >
+          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8">
+            <p id="kick-confirm" className="text-sm text-arena-100">
+              {t('arena.lobby.kickConfirm', { name: confirmingKick.name })}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  kickPlayer(confirmingKick.username);
+                  setConfirmingKick(null);
+                }}
+                className="flex-1 cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.lobby.remove')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingKick(null)}
+                className="cursor-pointer border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.lobby.hostLeaveCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmingLeave && (
         <div
