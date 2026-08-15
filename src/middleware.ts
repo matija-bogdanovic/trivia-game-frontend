@@ -9,17 +9,17 @@ import { NextRequest, NextResponse } from 'next/server';
  * before the page renders, rather than as a flash of protected UI followed by
  * a client-side bounce.
  *
- * It checks that Amplify's SSR session cookie is *present*, and deliberately
- * does not validate the signature. That is not the security boundary — the API
- * verifies every token against the pool's JWKS and answers 401 otherwise,
- * which is proven: a forged bearer gets 401 from /wallet today. This is the UX
- * layer, and keeping it to a cookie read means no crypto and no network call in
- * middleware.
+ * This is the UX layer, not the security boundary. The API verifies every
+ * token against the pool's JWKS and answers 401 otherwise — a forged bearer
+ * already gets a 401 from /wallet — so nothing here validates a signature.
  *
- * Presence, specifically, rather than expiry: an expired access token with a
- * live refresh token still means "signed in", and Amplify refreshes it on the
- * client. Rejecting on `exp` here would bounce people who are genuinely logged
- * in.
+ * What it does have to get right is *not locking anyone out*. Amplify leaves
+ * cookies behind: a sign-out that half-completes, a session that expires, a
+ * stale value from an earlier build. Treating any of those as "signed in"
+ * bounces the user off /login while the app itself considers them signed out,
+ * and there is then no way back in. So the checks below are asymmetric —
+ * generous about letting people reach the login page, strict about calling
+ * someone authenticated.
  */
 
 const CLIENT_ID =
@@ -39,27 +39,80 @@ const PROTECTED = [
   '/game',
 ];
 
-/** Signed in, these bounce to /home — a logged-in user has no use for them. */
+/**
+ * Signed in, these bounce to /home. Nothing here may ever appear in PROTECTED:
+ * /login is where the protected redirect points, so gating it would be a loop
+ * with no exit.
+ */
 const AUTH_ROUTES = ['/login', '/signup', '/confirm', '/reset-password'];
 
 const startsWithSegment = (pathname: string, base: string) =>
   pathname === base || pathname.startsWith(`${base}/`);
 
 /**
- * Amplify writes `CognitoIdentityServiceProvider.<clientId>.LastAuthUser` plus
- * `...<username>.accessToken` for the signed-in user. A long token can be split
- * across `.accessToken.0`, `.accessToken.1`, … so the token cookie is matched
- * by prefix rather than exact name.
+ * Amplify stores the access token as
+ * `CognitoIdentityServiceProvider.<clientId>.<user>.accessToken`, and splits a
+ * long one across `.accessToken.0`, `.accessToken.1`, … Chunks are reassembled
+ * in index order; an unchunked cookie is returned as-is.
  */
-function hasSession(request: NextRequest): boolean {
-  const prefix = `CognitoIdentityServiceProvider.${CLIENT_ID}`;
-  const lastUser = request.cookies.get(`${prefix}.LastAuthUser`)?.value;
-  if (!lastUser) return false;
+function readAccessToken(request: NextRequest): string | null {
+  const lastUser = request.cookies.get(
+    `CognitoIdentityServiceProvider.${CLIENT_ID}.LastAuthUser`
+  )?.value;
+  if (!lastUser) return null;
 
-  const tokenPrefix = `${prefix}.${lastUser}.accessToken`;
-  return request.cookies
+  const base = `CognitoIdentityServiceProvider.${CLIENT_ID}.${lastUser}.accessToken`;
+
+  const whole = request.cookies.get(base)?.value;
+  if (whole) return whole;
+
+  const chunks = request.cookies
     .getAll()
-    .some((c) => c.name.startsWith(tokenPrefix) && c.value.length > 0);
+    .filter((c) => c.name.startsWith(`${base}.`))
+    .map((c) => ({ i: Number(c.name.slice(base.length + 1)), v: c.value }))
+    .filter((c) => Number.isInteger(c.i))
+    .sort((a, b) => a.i - b.i);
+
+  if (chunks.length === 0) return null;
+  const joined = chunks.map((c) => c.v).join('');
+  return joined.length > 0 ? joined : null;
+}
+
+interface TokenState {
+  /** shaped like a JWT with a payload that parses — not merely non-empty */
+  plausible: boolean;
+  /** true only when the payload carries an exp that has passed */
+  expired: boolean;
+}
+
+/**
+ * Inspect the token without verifying it. The signature is the API's business;
+ * all this needs to know is whether the cookie holds a real token rather than
+ * a leftover husk, and whether it has already lapsed.
+ */
+function inspectToken(token: string | null): TokenState {
+  if (!token) return { plausible: false, expired: false };
+
+  const parts = token.split('.');
+  if (parts.length !== 3 || parts.some((p) => p.length === 0)) {
+    // "dummy", a truncated chunk, anything that is not a JWT
+    return { plausible: false, expired: false };
+  }
+
+  try {
+    const padded = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(
+      atob(padded + '='.repeat((4 - (padded.length % 4)) % 4))
+    ) as { exp?: number };
+    return {
+      plausible: true,
+      expired:
+        typeof payload.exp === 'number' && payload.exp * 1000 <= Date.now(),
+    };
+  } catch {
+    // shaped like a JWT but the payload is not decodable JSON
+    return { plausible: false, expired: false };
+  }
 }
 
 export function middleware(request: NextRequest) {
@@ -74,16 +127,27 @@ export function middleware(request: NextRequest) {
   // anything else — the root redirect, a public page — passes straight through
   if (!isProtected && !isAuthRoute) return NextResponse.next();
 
-  const signedIn = hasSession(request);
+  const { plausible, expired } = inspectToken(readAccessToken(request));
 
-  if (isProtected && !signedIn) {
+  /*
+   * Protected routes accept an expired token. An expired access token
+   * alongside a live refresh token still means signed in, and Amplify renews
+   * it on the client — rejecting on exp here would bounce people who are
+   * genuinely logged in.
+   */
+  if (isProtected && !plausible) {
     const login = new URL('/login', request.url);
-    // so login can send them back where they were headed
     login.searchParams.set('next', `${pathname}${search}`);
     return NextResponse.redirect(login);
   }
 
-  if (isAuthRoute && signedIn) {
+  /*
+   * Auth pages are stricter, in the safe direction: only a token that is both
+   * real and unexpired sends someone away. Anyone whose session has lapsed can
+   * always reach /login to sign in again, which is what makes the lockout
+   * impossible.
+   */
+  if (isAuthRoute && plausible && !expired) {
     return NextResponse.redirect(new URL('/home', request.url));
   }
 
