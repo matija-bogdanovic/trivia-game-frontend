@@ -287,6 +287,8 @@ function FriendRow({ friend }: { friend: Friend }) {
           initial={(friend.displayName || friend.username)
             .charAt(0)
             .toUpperCase()}
+          username={friend.username}
+          alt={friend.displayName || friend.username}
           size="md"
         />
         <span

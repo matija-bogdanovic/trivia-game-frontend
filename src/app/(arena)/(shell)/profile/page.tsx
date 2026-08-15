@@ -41,7 +41,20 @@ export default function Page() {
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* =========================================================== header */}
       <section className="flex flex-col items-start gap-6 border border-white/[0.07] bg-arena-800 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8">
-        <Avatar initial={initial} size="xl" accent />
+        {/*
+          username and avatar are both required for a picture to resolve:
+          useAvatarSource needs the username to build the URL and the wallet's
+          avatar string for the version. Without them this renders initials
+          even for a player who has uploaded a photo.
+        */}
+        <Avatar
+          initial={initial}
+          username={identity?.username}
+          avatar={wallet?.avatar}
+          alt={name}
+          size="xl"
+          accent
+        />
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
