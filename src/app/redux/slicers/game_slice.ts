@@ -35,11 +35,13 @@ export interface GamePlayer {
 
 /** what to call a player on screen, given their unique username */
 export function displayNameOf(
-  players: GamePlayer[],
+  players: GamePlayer[] | undefined | null,
   username: string | null | undefined
 ): string {
   if (!username) return '';
-  return players.find((p) => p.username === username)?.displayName ?? username;
+  // tolerant of a missing list: this is called from render paths with
+  // whatever array the caller has, and a name is never worth a crash
+  return players?.find((p) => p.username === username)?.displayName ?? username;
 }
 
 export interface AchievementNotice {
@@ -264,7 +266,7 @@ const gameSlice = createSlice({
             typeof message.minPlayers === 'number' ? message.minPlayers : null;
           state.maxPlayers =
             typeof message.maxPlayers === 'number' ? message.maxPlayers : null;
-          state.players = message.players;
+          state.players = message.players ?? [];
           state.round = message.round;
           if (message.phase === 'lobby') {
             state.questionText = '';
@@ -283,6 +285,29 @@ const gameSlice = createSlice({
             state.eliminatedNow = [];
           }
           break;
+        /*
+         * The authoritative match state, and the only message that carries a
+         * roster once a game is running — money, alive, streak and all. The
+         * server sends it immediately before every phase message ("state first
+         * so the client can render off it, then the phase event"), and this
+         * reducer ignored it completely: there was no case for it at all.
+         *
+         * That absence is why the phase messages were being mined for a
+         * `players` field they do not have. Phase is deliberately not taken
+         * from here — the phase message that follows owns that, and it carries
+         * the remaining time with it.
+         */
+        case 'game_state': {
+          const s = message.state ?? {};
+          if (Array.isArray(s.players)) state.players = s.players;
+          if (typeof s.round === 'number') state.round = s.round;
+          if (typeof s.chainDepth === 'number') state.chainDepth = s.chainDepth;
+          if (typeof s.code === 'number') state.code = s.code;
+          if (typeof s.roomName === 'string') state.roomName = s.roomName;
+          if (typeof s.minPlayers === 'number') state.minPlayers = s.minPlayers;
+          if (typeof s.maxPlayers === 'number') state.maxPlayers = s.maxPlayers;
+          break;
+        }
         case 'game_countdown':
           state.phase = 'countdown';
           state.countdown = message.seconds;
@@ -303,7 +328,7 @@ const gameSlice = createSlice({
           state.phase = 'duel';
           state.duelKind = 'code';
           state.round = message.round;
-          state.duelPlayers = message.players;
+          state.duelPlayers = message.players ?? [];
           state.codeSymbols = message.symbols;
           state.codeLength = message.codeLength;
           state.maxCodeAttempts = message.maxAttempts;
@@ -354,7 +379,9 @@ const gameSlice = createSlice({
           state.duelTie = message.tie;
           state.duelLoserDelta = message.loserDelta;
           state.eliminatedNow = message.eliminated ?? [];
-          state.players = message.players;
+          // the two duellists, not the room: assigning them to the roster
+          // shrank the player list to whoever happened to be duelling
+          state.duelPlayers = message.players ?? [];
           state.answerEndsAt = null;
           break;
         case 'duel_question':
@@ -362,7 +389,7 @@ const gameSlice = createSlice({
           state.duelKind = 'guess';
           state.round = message.round;
           state.questionText = message.questionText;
-          state.duelPlayers = message.players;
+          state.duelPlayers = message.players ?? [];
           state.answerDurationMs = message.answerTimeMs;
           state.answerEndsAt = receivedAt + message.answerTimeMs;
           state.myGuessSubmitted = false;
@@ -388,7 +415,9 @@ const gameSlice = createSlice({
           state.duelTie = message.tie;
           state.duelLoserDelta = message.loserDelta;
           state.eliminatedNow = message.eliminated ?? [];
-          state.players = message.players;
+          // the two duellists, not the room: assigning them to the roster
+          // shrank the player list to whoever happened to be duelling
+          state.duelPlayers = message.players ?? [];
           state.answerEndsAt = null;
           break;
         case 'turn_question':
@@ -398,7 +427,7 @@ const gameSlice = createSlice({
           state.difficulty = message.difficulty;
           state.answering = message.answering;
           state.questionText = message.questionText;
-          state.options = message.options;
+          state.options = message.options ?? [];
           state.answerDurationMs = message.answerTimeMs;
           state.answerEndsAt = receivedAt + message.answerTimeMs;
           state.selectedAnswer = null;
@@ -441,7 +470,16 @@ const gameSlice = createSlice({
           state.answererDelta = message.answererDelta;
           state.betOutcomes = message.bets ?? [];
           state.eliminatedNow = message.eliminated ?? [];
-          state.players = message.players;
+          /*
+           * NOT state.players. round_result does not carry a roster — it
+           * reports one round: who answered, whether they were right, the
+           * pot, the bet settlements and who went out. This line assigned
+           * the missing field anyway, so answering a question set
+           * state.players to undefined and the next render threw
+           * "Cannot read properties of undefined (reading 'find')" out of
+           * the betting panel. The roster arrives on game_state, which the
+           * server broadcasts immediately before every phase message.
+           */
           state.answerEndsAt = null;
           state.betEndsAt = null;
           break;
@@ -459,10 +497,10 @@ const gameSlice = createSlice({
           state.phase = 'gameover';
           state.winner = message.winner;
           state.totalRounds = message.rounds;
-          state.standings = message.standings;
+          state.standings = message.standings ?? [];
           break;
         case 'chat_history':
-          state.chatMessages = message.messages;
+          state.chatMessages = message.messages ?? [];
           break;
         case 'chat_message':
           state.chatMessages.push({
