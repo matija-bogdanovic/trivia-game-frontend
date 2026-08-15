@@ -17,10 +17,15 @@ interface Friend {
   wins: number;
 }
 
-interface FriendRequest {
-  username?: string;
-  name?: string;
-}
+/**
+ * POST /friends/list returns `requests` as bare usernames — `requests:
+ * [username]` in the handler's contract, read straight off me.friendRequests.
+ * It was typed as an object here, so nameOf() resolved every row to the empty
+ * string: the rows rendered blank and accept/decline posted target: "", which
+ * the backend answers with 400 "target and action required". The panel has
+ * never worked. The object form is tolerated in case the shape ever grows.
+ */
+type FriendRequest = string | { username?: string; name?: string };
 
 /**
  * Friend list, search and incoming requests.
@@ -69,7 +74,25 @@ export default function Page() {
   }, []);
   const [search, setSearch] = useState('');
   const [addName, setAddName] = useState('');
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  /** the outcome of the last send, shown under the field */
+  const [addNotice, setAddNotice] = useState<{
+    kind: 'sent' | 'accepted' | 'error';
+    text: string;
+  } | null>(null);
+
+  /** reload after anything that changes the friendship graph */
+  const reload = async () => {
+    try {
+      const res = await apiFetch('/friends/list');
+      if (!res.ok) return;
+      const data = await res.json();
+      setFriends(data.friends ?? []);
+      setRequests(data.requests ?? []);
+    } catch {
+      // the list just stays as it was
+    }
+  };
 
   const term = search.trim().toLowerCase();
   const matching = term
@@ -81,21 +104,74 @@ export default function Page() {
   const offline = matching.filter((f) => !f.online);
   const canSendRequest = addName.trim().length > 0;
 
-  const sendRequest = (event: React.FormEvent) => {
+  /**
+   * Send a friend request by exact username.
+   *
+   * There is no user-search endpoint, so the name has to be exact — the
+   * backend answers an unknown one with "User not found" rather than
+   * suggesting anybody. Its refusals come back as English strings on a 400,
+   * and they are matched here rather than shown raw, because they are
+   * server-internal wording and this screen is Serbian by default.
+   *
+   * "request" can also come back as "accepted": if the person had already
+   * asked you, the backend treats your request as taking them up on it. That
+   * is a different outcome and says so.
+   */
+  const sendRequest = async (event: React.FormEvent) => {
     event.preventDefault();
     const name = addName.trim();
-    if (!name) return;
-    setSentTo(name);
-    setAddName('');
+    if (!name || sending) return;
+
+    setSending(true);
+    setAddNotice(null);
+    try {
+      const res = await apiFetch('/friends/action', {
+        body: { target: name, action: 'request' },
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const accepted = data.status === 'accepted';
+        setAddNotice({
+          kind: accepted ? 'accepted' : 'sent',
+          text: accepted
+            ? t('arena.friends.nowFriends', { name })
+            : t('arena.friends.requestSent', { name }),
+        });
+        setAddName('');
+        await reload();
+      } else {
+        const reason = String(data.message ?? '');
+        const key =
+          reason === "That's you"
+            ? 'arena.friends.errSelf'
+            : reason === 'User not found'
+              ? 'arena.friends.errNoUser'
+              : reason === 'Already friends'
+                ? 'arena.friends.errAlready'
+                : reason === 'Request already sent'
+                  ? 'arena.friends.errPending'
+                  : 'arena.friends.errFailed';
+        setAddNotice({ kind: 'error', text: t(key, { name }) });
+      }
+    } catch {
+      setAddNotice({ kind: 'error', text: t('arena.friends.errUnreachable') });
+    } finally {
+      setSending(false);
+    }
   };
 
-  const nameOf = (r: FriendRequest) => r.username ?? r.name ?? '';
+  const nameOf = (r: FriendRequest): string =>
+    typeof r === 'string' ? r : (r.username ?? r.name ?? '');
 
   const act = async (request: FriendRequest, action: 'accept' | 'decline') => {
     const target = nameOf(request);
     setRequests((current) => current.filter((r) => nameOf(r) !== target));
+    if (!target) return;
     try {
       await apiFetch('/friends/action', { body: { target, action } });
+      // accepting adds a friend row, so the list has to come back
+      if (action === 'accept') await reload();
     } catch {
       // optimistic — the list reloads on the next visit
     }
@@ -200,30 +276,41 @@ export default function Page() {
               value={addName}
               onChange={(e) => {
                 setAddName(e.target.value);
-                setSentTo(null);
+                setAddNotice(null);
               }}
+              autoComplete="off"
+              disabled={sending}
               placeholder={t('arena.friends.usernamePlaceholder')}
               className="mb-3 w-full border border-white/10 bg-arena-750 px-3 py-2.5 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
             />
             <button
               type="submit"
-              disabled={!canSendRequest}
+              disabled={!canSendRequest || sending}
               className={`w-full py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
-                canSendRequest
+                canSendRequest && !sending
                   ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              {t('arena.friends.send')}
+              {sending ? '…' : t('arena.friends.send')}
             </button>
-            <p className="mt-3 text-[11px] text-arena-200" aria-live="polite">
-              {sentTo && (
-                <>
-                  {t('arena.friends.sentTo')}{' '}
-                  <span className="font-bold text-gold">{sentTo}</span>.
-                </>
-              )}
-            </p>
+            {/*
+              A receipt for the action just taken, not a durable state. The
+              backend records a request only on the RECIPIENT's wallet, so
+              there is nothing to read back that would say "still pending" on
+              a later visit — see the note above the friend list.
+            */}
+            {addNotice && (
+              <p
+                className={`mt-3 text-[11px] ${
+                  addNotice.kind === 'error' ? 'text-gold' : 'text-arena-200'
+                }`}
+                role={addNotice.kind === 'error' ? 'alert' : undefined}
+                aria-live="polite"
+              >
+                {addNotice.text}
+              </p>
+            )}
           </form>
 
           {/* requests */}

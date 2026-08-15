@@ -13,6 +13,16 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // adding a friend — by exact username; there is no user search
+    'arena.friends.requestSent': 'Request sent to {name}.',
+    'arena.friends.nowFriends':
+      '{name} had already asked — you are now friends.',
+    'arena.friends.errSelf': 'That is you.',
+    'arena.friends.errNoUser': 'No player called {name}.',
+    'arena.friends.errAlready': 'You are already friends with {name}.',
+    'arena.friends.errPending': 'A request to {name} is already waiting.',
+    'arena.friends.errFailed': 'The request could not be sent.',
+    'arena.friends.errUnreachable': 'Could not reach the server.',
     // private-room password prompt
     'arena.join.lockedTitle': 'Room is locked',
     'arena.join.lockedNamed': '{name} is private. Enter the password to join.',
@@ -687,6 +697,16 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // dodavanje prijatelja — po tačnom korisničkom imenu, pretrage nema
+    'arena.friends.requestSent': 'Zahtev poslat igraču {name}.',
+    'arena.friends.nowFriends':
+      '{name} te je već pozvao — sada ste prijatelji.',
+    'arena.friends.errSelf': 'To si ti.',
+    'arena.friends.errNoUser': 'Nema igrača sa imenom {name}.',
+    'arena.friends.errAlready': 'Već ste prijatelji sa {name}.',
+    'arena.friends.errPending': 'Zahtev za {name} već čeka.',
+    'arena.friends.errFailed': 'Zahtev nije poslat.',
+    'arena.friends.errUnreachable': 'Server nije dostupan.',
     // private-room password prompt
     'arena.join.lockedTitle': 'Soba je zaključana',
     'arena.join.lockedNamed': '{name} je zaključana. Unesi šifru da uđeš.',
