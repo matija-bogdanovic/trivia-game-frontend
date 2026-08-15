@@ -9,6 +9,32 @@ import { apiFetch } from '@/app/helpers/api';
 import { getIdentity, type Identity } from '@/app/helpers/token_operations';
 
 /**
+ * One finished match as the wallet keeps it: the player's own slice of the
+ * full match record, written when the game ends. Newest first, and only the
+ * most recent handful — the server caps the list. Anything not here (who else
+ * was at the table, how long it ran) comes from POST /matches/detail.
+ */
+export interface MatchHistoryEntry {
+  matchId: string;
+  /** epoch ms the match ended */
+  playedAt: number;
+  roomName: string;
+  winner: string | null;
+  winnerName: string | null;
+  /** did this player win it */
+  won: boolean;
+  /** 1 = winner */
+  placement: number;
+  playerCount: number;
+  /** how far ahead of the runner-up the winner finished ($) */
+  margin: number;
+  /** what this player finished with */
+  money: number;
+  /** rounds this player was in the game for */
+  roundsPlayed: number;
+}
+
+/**
  * The signed-in player's wallet — the backend's record of who they are and how
  * they have played. POST /wallet derives the user from the bearer token, so
  * there is nothing to pass.
@@ -23,7 +49,7 @@ export interface Wallet {
   points: number;
   currentStreak: number;
   bestStreak: number;
-  matchHistory?: unknown[];
+  matchHistory?: MatchHistoryEntry[];
   achievements?: string[];
   nextCreditInMs?: number;
 }

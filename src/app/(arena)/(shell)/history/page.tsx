@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
-import { historyMatches } from '@/app/(arena)/_mock/matches';
+import { money } from '@/app/(arena)/_lib/money';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import {
+  useMatchDetail,
+  type MatchRecord,
+} from '@/app/(arena)/_data/use_match_detail';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
@@ -13,17 +19,59 @@ const FILTERS: { value: HistoryFilter; labelKey: string }[] = [
   { value: 'losses', labelKey: 'arena.history.losses' },
 ];
 
-/** Match list with its win/loss filter and the expanded row. */
-export default function Page() {
-  const { t } = useT();
-  const [filter, setFilter] = useState<HistoryFilter>('all');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-
-  const matches = historyMatches.filter((m) => {
-    if (filter === 'wins') return m.result === 'WIN';
-    if (filter === 'losses') return m.result === 'LOSS';
-    return true;
+/** `Aug 11, 2026 · 14:32`, in whichever language the player is reading. */
+function playedAtLabel(playedAt: number, lang: string): string {
+  const locale = lang === 'sr' ? 'sr-Latn-RS' : 'en-US';
+  const d = new Date(playedAt);
+  const date = d.toLocaleDateString(locale, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   });
+  const time = d.toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return `${date} · ${time}`;
+}
+
+/** `12m 40s` — matches run in minutes, so the hour is never worth a slot. */
+function durationLabel(ms: number): string {
+  const total = Math.max(0, Math.round(ms / 1000));
+  return `${Math.floor(total / 60)}m ${String(total % 60).padStart(2, '0')}s`;
+}
+
+/**
+ * Match history, from the wallet.
+ *
+ * The row itself is drawn entirely from `wallet.matchHistory` — the trimmed
+ * per-player copy the server writes when a game ends. It carries the result,
+ * the placement, the money and the room, but nothing about the other players.
+ * Those come from POST /matches/detail, fetched only when a row is opened, so
+ * a history of twenty matches is still one request on arrival.
+ *
+ * The design's category, difficulty and per-question counters are not tracked
+ * by the backend at all; the expanded row shows what a match record does hold
+ * — how long it ran, how many rounds, and the final standings.
+ */
+export default function Page() {
+  const { t, lang } = useT();
+  const { identity, wallet, loading, signedIn } = useWallet();
+  const [filter, setFilter] = useState<HistoryFilter>('all');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const { state: detail, retry } = useMatchDetail(expandedId);
+
+  const history = useMemo(() => wallet?.matchHistory ?? [], [wallet]);
+
+  const matches = useMemo(
+    () =>
+      history.filter((m) => {
+        if (filter === 'wins') return m.won;
+        if (filter === 'losses') return !m.won;
+        return true;
+      }),
+    [history, filter]
+  );
 
   const changeFilter = (next: HistoryFilter) => {
     setFilter(next);
@@ -69,46 +117,96 @@ export default function Page() {
         </div>
       </div>
 
+      {loading && (
+        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+          {t('arena.common.loading')}
+        </div>
+      )}
+
+      {/*
+        Four different nothings, and they are not interchangeable: no session,
+        a wallet that would not load, no matches ever, and none under this
+        filter. A fresh account hits the third — it gets the empty state, never
+        an empty list frame, and never "no matches" for a failed request.
+      */}
+      {!loading && !signedIn && (
+        <div className="py-16 text-center text-arena-300">
+          <div className="mb-4 text-4xl" aria-hidden="true">
+            ◎
+          </div>
+          <div className="text-sm tracking-wider uppercase">
+            {t('arena.common.signInPrompt')}
+          </div>
+        </div>
+      )}
+
+      {!loading && signedIn && !wallet && (
+        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+          {t('arena.history.failed')}
+        </div>
+      )}
+
+      {!loading && signedIn && wallet && history.length === 0 && (
+        <div className="py-16 text-center text-arena-300">
+          <div className="mb-4 text-4xl" aria-hidden="true">
+            ◎
+          </div>
+          <div className="text-sm tracking-wider uppercase">
+            {t('arena.history.empty')}
+          </div>
+          <p className="mt-2 text-[11px] text-arena-300">
+            {t('arena.history.emptyHint')}
+          </p>
+        </div>
+      )}
+
+      {!loading && signedIn && history.length > 0 && matches.length === 0 && (
+        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+          {t('arena.history.noneForFilter')}
+        </div>
+      )}
+
       {/* ========================================================== matches */}
       <div className="space-y-2">
         {matches.map((match) => {
-          const expanded = expandedId === match.id;
+          const expanded = expandedId === match.matchId;
           return (
             <div
-              key={match.id}
+              key={match.matchId}
               className="border border-white/[0.07] bg-arena-800"
             >
               <button
                 type="button"
-                onClick={() => setExpandedId(expanded ? null : match.id)}
+                onClick={() => setExpandedId(expanded ? null : match.matchId)}
                 aria-expanded={expanded}
-                aria-controls={`match-detail-${match.id}`}
+                aria-controls={`match-detail-${match.matchId}`}
                 className="flex w-full cursor-pointer flex-wrap items-center gap-3 p-4 text-left transition-colors hover:bg-arena-750 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:flex-nowrap sm:gap-4 sm:p-5"
               >
                 <span
-                  className={`h-12 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
+                  className={`h-12 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
                   aria-hidden="true"
                 />
 
                 <span className="min-w-0 flex-1">
                   <span className="mb-1 flex flex-wrap items-center gap-2 sm:gap-3">
                     <span className="font-bold text-white">
-                      {match.players.join(' · ')}
+                      {match.roomName}
                     </span>
                     <span className="border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
-                      {match.mode}
+                      {t('arena.history.players', { n: match.playerCount })}
                     </span>
                   </span>
                   <span className="block text-[10px] tracking-wider text-arena-200">
-                    {match.category} · {match.difficulty} · {match.date}
+                    {playedAtLabel(match.playedAt, lang)} ·{' '}
+                    {t('arena.history.roundsPlayed', { n: match.roundsPlayed })}
                   </span>
                 </span>
 
                 <span className="shrink-0 text-right">
                   <span
-                    className={`block font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
+                    className={`block font-bold ${match.won ? 'text-gold' : 'text-arena-300'}`}
                   >
-                    {match.money}
+                    {money(match.money)}
                   </span>
                   <span className="mt-0.5 block text-[10px] text-arena-300">
                     {t('arena.history.place', { n: match.placement })}
@@ -117,14 +215,12 @@ export default function Page() {
 
                 <span
                   className={`ml-2 border px-3 py-1 text-[11px] font-bold tracking-widest uppercase ${
-                    match.result === 'WIN'
+                    match.won
                       ? 'border-gold/40 text-gold'
                       : 'border-arena-400 text-arena-300'
                   }`}
                 >
-                  {match.result === 'WIN'
-                    ? t('arena.history.win')
-                    : t('arena.history.loss')}
+                  {match.won ? t('arena.history.win') : t('arena.history.loss')}
                 </span>
 
                 <span
@@ -137,39 +233,36 @@ export default function Page() {
 
               {expanded && (
                 <div
-                  id={`match-detail-${match.id}`}
-                  className="grid grid-cols-2 gap-4 border-t border-white/[0.07] px-5 py-4 sm:grid-cols-4"
+                  id={`match-detail-${match.matchId}`}
+                  className="border-t border-white/[0.07] px-5 py-4"
                 >
-                  <div>
-                    <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      {t('arena.history.correct')}
+                  {detail.status === 'loading' && (
+                    <p className="py-4 text-center text-[11px] tracking-wider text-arena-300 uppercase">
+                      {t('arena.common.loading')}
+                    </p>
+                  )}
+
+                  {detail.status === 'error' && (
+                    <div className="flex flex-wrap items-center justify-center gap-3 py-4">
+                      <span className="text-[11px] text-arena-200">
+                        {t('arena.history.detailFailed')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={retry}
+                        className="cursor-pointer border border-white/20 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                      >
+                        {t('arena.history.retry')}
+                      </button>
                     </div>
-                    <div className="font-bold text-white tabular-nums">
-                      {match.correct}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      {t('arena.history.wrong')}
-                    </div>
-                    <div className="font-bold text-white tabular-nums">
-                      {match.wrong}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      {t('arena.history.duels')}
-                    </div>
-                    <div className="font-bold text-white tabular-nums">
-                      {match.duels}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      {t('arena.common.category')}
-                    </div>
-                    <div className="font-bold text-white">{match.category}</div>
-                  </div>
+                  )}
+
+                  {detail.status === 'ok' && (
+                    <MatchDetailBody
+                      match={detail.match}
+                      me={identity?.username ?? null}
+                    />
+                  )}
                 </div>
               )}
             </div>
@@ -177,5 +270,101 @@ export default function Page() {
         })}
       </div>
     </div>
+  );
+}
+
+/** The expanded row: what the match record holds, and who finished where. */
+function MatchDetailBody({
+  match,
+  me,
+}: {
+  match: MatchRecord;
+  me: string | null;
+}) {
+  const { t } = useT();
+  const standings = [...match.standings].sort(
+    (a, b) => a.placement - b.placement
+  );
+
+  const facts = [
+    { key: 'arena.history.rounds', value: String(match.rounds) },
+    { key: 'arena.history.duration', value: durationLabel(match.durationMs) },
+    {
+      key: 'arena.history.winner',
+      value: match.winnerName || match.winner || '—',
+    },
+    { key: 'arena.history.margin', value: money(match.margin) },
+  ];
+
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {facts.map((fact) => (
+          <div key={fact.key}>
+            <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
+              {t(fact.key)}
+            </div>
+            <div className="truncate font-bold text-white tabular-nums">
+              {fact.value}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 mb-2 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
+        {t('arena.history.standings')}
+      </div>
+      <ul className="space-y-1">
+        {standings.map((row) => {
+          const name = row.displayName || row.username;
+          const isYou = me !== null && row.username === me;
+          return (
+            <li
+              key={row.username}
+              className={`flex items-center gap-3 border-l-2 py-2 pl-3 ${
+                row.placement === 1 ? 'border-gold' : 'border-white/[0.07]'
+              }`}
+            >
+              <span
+                className={`w-6 shrink-0 text-center text-xs font-bold tabular-nums ${
+                  row.placement === 1 ? 'text-gold' : 'text-arena-300'
+                }`}
+              >
+                {row.placement}
+              </span>
+              <Avatar
+                initial={name.charAt(0).toUpperCase()}
+                username={row.username}
+                avatar={row.avatar}
+                alt={name}
+                size="xs"
+                accent={row.placement === 1}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-xs font-bold text-white">
+                  {name}
+                  {isYou && (
+                    <span className="ml-2 text-[9px] tracking-widest text-gold">
+                      {t('arena.common.you')}
+                    </span>
+                  )}
+                </span>
+                <span className="block text-[10px] text-arena-300">
+                  {t('arena.history.roundsPlayed', { n: row.roundsPlayed })}
+                  {!row.survived && ` · ${t('arena.history.out')}`}
+                </span>
+              </span>
+              <span
+                className={`shrink-0 text-sm font-bold tabular-nums ${
+                  row.placement === 1 ? 'text-gold' : 'text-arena-300'
+                }`}
+              >
+                {money(row.money)}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
