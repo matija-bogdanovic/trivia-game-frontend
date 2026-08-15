@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Hub } from 'aws-amplify/utils';
 import { fetchAuthSession } from 'aws-amplify/auth';
 import { useT } from '@/app/lib/i18n';
+import { waitForSession } from '@/app/lib/wait_for_session';
 
 /**
  * Completes the hosted-UI round trip.
@@ -13,13 +13,34 @@ import { useT } from '@/app/lib/i18n';
  * Amplify exchanges that code for tokens on its own — but only if the page
  * that receives it actually runs Amplify in the browser. The root used to be a
  * server component that redirected to /home unconditionally, which threw the
- * query string away before any client code saw it: the sign-in silently never
- * completed and Google users landed back on the login screen. So the root only
- * redirects when there is no code to lose, and hands the callback here.
+ * query string away before any client code saw it. So the root only redirects
+ * when there is no code to lose, and hands the callback here.
  *
- * Amplify announces the outcome on the Hub, but the exchange can also finish
- * before this effect subscribes, so the session is polled once as well —
- * whichever resolves first wins.
+ * ONE THING DECIDES THE OUTCOME: whether a session exists. Not whether an
+ * event arrived, not whether one arrived in time.
+ *
+ * This screen used to infer failure from silence. It listened on the Hub for
+ * signInWithRedirect, probed fetchAuthSession once at mount, and showed the
+ * error screen if neither had answered within eight seconds. All three are
+ * unreliable in the same direction — they miss a success that did happen:
+ *
+ *   - Amplify starts the exchange inside Amplify.configure(), which runs at
+ *     module scope in Providers. That is before React renders, so the success
+ *     event can be dispatched before this component mounts to hear it. Hub
+ *     does not replay, so the event is then gone for good.
+ *   - The single fetchAuthSession() ran concurrently with the in-flight
+ *     exchange, so it usually saw no tokens, and never looked again.
+ *   - signInWithRedirect_failure was treated as fatal without checking for a
+ *     session, so a benign duplicate exchange — a code already spent by a
+ *     first attempt that succeeded — could condemn a working session.
+ *
+ * With all three missing, the timer fired and announced failure over a
+ * perfectly good sign-in. The window is widest exactly where it was reported:
+ * on the tunnel, where slower chunk loading puts more time between configure()
+ * and hydration.
+ *
+ * Polling the session removes the race instead of narrowing it, so the Hub
+ * listener is gone rather than fixed.
  */
 export default function OAuthReturn({ failed }: { failed: boolean }) {
   const router = useRouter();
@@ -27,49 +48,25 @@ export default function OAuthReturn({ failed }: { failed: boolean }) {
   const [error, setError] = useState(failed);
 
   useEffect(() => {
+    // Cognito said no before the exchange ever started; nothing to wait for
     if (failed) return;
-    let done = false;
 
-    const finish = () => {
-      if (done) return;
-      done = true;
-      // replace, so the code never sits in history
-      router.replace('/home');
+    const control = { cancelled: false };
+
+    const hasSession = async () => {
+      const session = await fetchAuthSession();
+      return Boolean(session.tokens?.idToken);
     };
 
-    const stop = Hub.listen('auth', ({ payload }) => {
-      if (payload.event === 'signInWithRedirect') finish();
-      if (payload.event === 'signInWithRedirect_failure') {
-        if (!done) {
-          done = true;
-          setError(true);
-        }
-      }
+    void waitForSession({ hasSession, control }).then((signedIn) => {
+      if (control.cancelled) return;
+      // replace, so the spent code never sits in history
+      if (signedIn) router.replace('/home');
+      else setError(true);
     });
 
-    fetchAuthSession()
-      .then((session) => {
-        if (session.tokens?.idToken) finish();
-      })
-      .catch(() => {
-        /* the Hub listener is still the primary path */
-      });
-
-    /*
-     * If neither fires, the exchange is wedged — an unlisted redirect URI, a
-     * reused code. Sending them to /login is recoverable; a spinner forever
-     * is not.
-     */
-    const timer = setTimeout(() => {
-      if (!done) {
-        done = true;
-        setError(true);
-      }
-    }, 8000);
-
     return () => {
-      stop();
-      clearTimeout(timer);
+      control.cancelled = true;
     };
   }, [failed, router]);
 
