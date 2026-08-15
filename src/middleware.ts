@@ -34,7 +34,6 @@ const PROTECTED = [
   '/friends',
   '/history',
   '/achievements',
-  '/results',
   '/leaderboards',
   '/game',
 ];

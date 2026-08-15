@@ -4,14 +4,57 @@ import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { money } from '@/app/(arena)/_lib/money';
-import { rankings, yourPerformance } from '@/app/(arena)/_mock/results';
+
+/**
+ * DEFERRED — the end-of-match screen, not a route.
+ *
+ * This is the arena Results design, kept intact. It used to be browsable at
+ * /results with mock standings, which meant anyone could open a victory screen
+ * for a match that never happened. It is not a place you can go; it is what a
+ * finished game looks like.
+ *
+ * Nothing renders it yet. In Phase 3 it belongs in game/[game]/page.tsx behind
+ * `phase === 'gameover'`, replacing the plain standings dialog that sits there
+ * now. It takes its data as props precisely so that wiring is a matter of
+ * mapping game_slice's standings to ResultRow — the mock fixtures it used to
+ * import are gone, so there is no fake data left to render by accident.
+ */
+
+export interface ResultRow {
+  name: string;
+  initial: string;
+  money: number;
+  /** signed, pre-formatted delta, e.g. "+$740" */
+  change: string;
+  correct: number;
+  wrong: number;
+  duelsWon: number;
+  betsWon: number;
+  streak: number;
+  isYou: boolean;
+}
+
+export interface PerformanceStat {
+  /** i18n key, resolved here */
+  labelKey: string;
+  value: string;
+}
 
 const MARKS = ['①', '②', '③', '④'];
 const gained = (change: string) => change.startsWith('+');
 
-export default function Page() {
+export default function ArenaResults({
+  /** finishing order, winner first */
+  rankings,
+  /** the "your performance" grid */
+  yourPerformance,
+}: {
+  rankings: ResultRow[];
+  yourPerformance: PerformanceStat[];
+}) {
   const { t } = useT();
   const winner = rankings[0];
+  if (!winner) return null;
 
   return (
     <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
