@@ -65,7 +65,18 @@ export function useWallet(): WalletState {
         return;
       }
       try {
-        const res = await apiFetch('/wallet');
+        /*
+         * Send the Cognito `name` along. The pool is case-insensitive, so the
+         * username Cognito stores is normalised to lower case and cannot be
+         * changed — but `name` keeps whatever the player typed at signup. The
+         * wallet's displayName defaults to null, and everything server-sourced
+         * (leaderboard, friends, lobby players, in-game) falls back to the
+         * normalised username when it is null. Syncing it here is what makes
+         * those screens show the casing the player actually chose.
+         */
+        const res = await apiFetch('/wallet', {
+          body: { displayName: identity.displayName },
+        });
         const wallet = res.ok ? ((await res.json()) as Wallet) : null;
         if (cancelled) return;
         // whoever loads the wallet first seeds the avatar version for everyone
