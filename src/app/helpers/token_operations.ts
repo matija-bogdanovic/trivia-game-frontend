@@ -9,6 +9,44 @@ export interface Identity {
   displayName: string;
   /** from the id token; absent for accounts without a verified email */
   email: string | null;
+  /** how this account signs in — federated Google, or a pool password */
+  provider: 'google' | 'cognito';
+}
+
+/**
+ * Which identity provider is behind this token.
+ *
+ * Cognito records federation two ways and neither is guaranteed: the
+ * `identities` claim is the reliable one but is absent on some token versions,
+ * and the username of a federated user is prefixed with the provider name
+ * (`Google_1234…`). Reading both means the badge does not disappear because of
+ * a claim-shape difference.
+ */
+function providerOf(
+  payload: Record<string, unknown> | undefined,
+  username: string
+): 'google' | 'cognito' {
+  const identities = payload?.['identities'];
+  const list =
+    typeof identities === 'string'
+      ? // it arrives JSON-encoded from some endpoints
+        (() => {
+          try {
+            return JSON.parse(identities);
+          } catch {
+            return null;
+          }
+        })()
+      : identities;
+  if (Array.isArray(list)) {
+    for (const entry of list) {
+      const provider = (entry as { providerName?: unknown })?.providerName;
+      if (typeof provider === 'string' && provider.toLowerCase() === 'google') {
+        return 'google';
+      }
+    }
+  }
+  return username.toLowerCase().startsWith('google_') ? 'google' : 'cognito';
 }
 
 /**
@@ -29,6 +67,7 @@ export async function getIdentity(): Promise<Identity | null> {
         displayName:
           typeof name === 'string' && name.length > 0 ? name : username,
         email: typeof email === 'string' && email.length > 0 ? email : null,
+        provider: providerOf(payload, username),
       };
     }
   } catch {

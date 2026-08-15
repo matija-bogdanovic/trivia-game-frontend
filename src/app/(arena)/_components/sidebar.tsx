@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
+import GoogleBadge from './google_mark';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
 import { useSelector } from 'react-redux';
@@ -129,8 +130,17 @@ export default function Sidebar() {
               accent
             />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-xs font-bold text-white">
-                {name}
+              <span className="flex items-center gap-1.5">
+                <span className="min-w-0 truncate text-xs font-bold text-white">
+                  {name}
+                </span>
+                {/* only federated accounts are marked; password accounts get nothing */}
+                {identity?.provider === 'google' && (
+                  <GoogleBadge
+                    label={t('arena.auth.googleAccount')}
+                    size="sm"
+                  />
+                )}
               </span>
               <span className="block text-[10px] tracking-wider text-gold">
                 🔥 {t('arena.nav.streak', { n: ME.streak })}

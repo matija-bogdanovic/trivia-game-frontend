@@ -5,6 +5,7 @@ import { useT } from '@/app/lib/i18n';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
+import GoogleBadge from '@/app/(arena)/_components/google_mark';
 import { achievements } from '@/app/(arena)/_mock/progress';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 
@@ -63,9 +64,15 @@ export default function Page() {
           <div className="mb-1 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.eyebrow')}
           </div>
-          <h1 className="mb-2 text-3xl font-bold tracking-wide text-white sm:text-4xl">
-            {loading ? '…' : name || t('arena.nav.notSignedIn')}
-          </h1>
+          <div className="mb-2 flex items-center gap-3">
+            <h1 className="min-w-0 text-3xl font-bold tracking-wide text-white sm:text-4xl">
+              {loading ? '…' : name || t('arena.nav.notSignedIn')}
+            </h1>
+            {/* only federated accounts are marked; password accounts get nothing */}
+            {identity?.provider === 'google' && (
+              <GoogleBadge label={t('arena.auth.googleAccount')} />
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             <div>
               <div className="text-[10px] tracking-widest text-arena-300 uppercase">

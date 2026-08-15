@@ -13,6 +13,11 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // oauth / federated sign-in
+    'arena.auth.signingIn': 'Signing you in…',
+    'arena.auth.oauthFailed': 'Google sign-in could not be completed.',
+    'arena.auth.backToLogin': 'Back to sign in',
+    'arena.auth.googleAccount': 'Signed in with Google',
     // nav
     'nav.profile': 'Profile',
     'nav.play': 'Play Game',
@@ -595,6 +600,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // oauth / federated sign-in
+    'arena.auth.signingIn': 'Prijavljivanje u toku…',
+    'arena.auth.oauthFailed': 'Prijava preko Google naloga nije uspela.',
+    'arena.auth.backToLogin': 'Nazad na prijavu',
+    'arena.auth.googleAccount': 'Prijavljeni ste preko Google naloga',
     'nav.profile': 'Profil',
     'nav.play': 'Igraj',
     'nav.join': 'Pridruži se',
