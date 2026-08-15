@@ -61,7 +61,7 @@ export default function Sidebar() {
       <aside className="hidden h-full w-56 shrink-0 flex-col border-r border-white/[0.07] bg-arena-950 lg:flex">
         <div className="border-b border-white/[0.07] px-5 py-6">
           <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-            Multiplayer
+            {t('arena.common.multiplayer')}
           </div>
           {/* TODO(logo): real artwork goes in <LogoPlaceholder> */}
           <div className="h-8">

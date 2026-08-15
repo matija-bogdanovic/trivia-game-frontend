@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { useT } from '@/app/lib/i18n';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
@@ -38,6 +39,7 @@ interface Lobby {
  * — host, category, difficulty, starting money — are not shown.
  */
 export default function Page() {
+  const { t } = useT();
   const router = useRouter();
   const [digits, setDigits] = useState<string[]>(Array(LENGTH).fill(''));
   const [password, setPassword] = useState('');
@@ -134,7 +136,7 @@ export default function Page() {
     try {
       const username = await getUsername();
       if (!username) {
-        setError('Sign in first — the server needs to know who is joining.');
+        setError(t('arena.join.signInFirst'));
         setJoining(false);
         return;
       }
@@ -149,26 +151,29 @@ export default function Page() {
       }
       if (res.status === 401) {
         setNeedPassword(true);
-        setError('This room is private. Enter its password.');
+        setError(t('arena.join.privateRoom'));
       } else if (res.status === 403) {
-        setError('Wrong password.');
+        setError(t('arena.join.wrongPassword'));
       } else if (res.status === 404) {
-        setError('No room with that code.');
+        setError(t('arena.join.noRoom'));
       } else if (res.status === 409) {
-        setError('That room is full.');
+        setError(t('arena.join.roomFull'));
       } else {
-        setError(data.message ?? 'Could not join the room.');
+        setError(data.message ?? t('arena.join.failed'));
       }
       setJoining(false);
     } catch {
-      setError('Could not reach the game server.');
+      setError(t('arena.join.unreachable'));
       setJoining(false);
     }
   }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="Multiplayer" title="JOIN A ROOM" />
+      <PageHeader
+        eyebrow={t('arena.common.multiplayer')}
+        title={t('arena.join.title')}
+      />
 
       <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
         {/* ===================================================== code entry */}
@@ -178,7 +183,7 @@ export default function Page() {
               className="mb-6 text-[11px] tracking-[0.25em] text-arena-200 uppercase"
               id="code-label"
             >
-              Enter Room Code
+              {t('arena.join.enterCode')}
             </h2>
 
             <div
@@ -200,7 +205,7 @@ export default function Page() {
                   value={digit}
                   onChange={(e) => onInput(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
-                  aria-label={`Digit ${i + 1} of 6`}
+                  aria-label={t('arena.join.digit', { n: i + 1 })}
                   disabled={joining}
                   className={`h-12 w-10 border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-50 sm:h-14 sm:w-12 ${
                     digit
@@ -216,10 +221,10 @@ export default function Page() {
               aria-live="polite"
             >
               {!isComplete
-                ? `${filledCount} of 6 digits entered`
+                ? t('arena.join.digitsEntered', { n: filledCount })
                 : joining
-                  ? 'Joining room...'
-                  : 'Code ready'}
+                  ? t('arena.join.joining')
+                  : t('arena.join.codeReady')}
             </p>
 
             {needPassword && (
@@ -227,8 +232,8 @@ export default function Page() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Room password"
-                aria-label="Room password"
+                placeholder={t('arena.join.password')}
+                aria-label={t('arena.join.password')}
                 className="mb-4 w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
               />
             )}
@@ -251,7 +256,7 @@ export default function Page() {
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              {joining ? '...' : 'Join room →'}
+              {joining ? '...' : t('arena.join.submit')}
             </button>
 
             {filledCount > 0 && (
@@ -264,19 +269,19 @@ export default function Page() {
                 }}
                 className="mt-3 w-full cursor-pointer text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
-                Clear code
+                {t('arena.join.clear')}
               </button>
             )}
 
             <div className="mt-6 border-t border-white/[0.07] pt-6 text-center">
               <div className="mb-3 text-[10px] tracking-wider text-arena-300 uppercase">
-                Or create your own
+                {t('arena.join.orCreate')}
               </div>
               <Link
                 href="/rooms/create"
                 className="text-[11px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
-                + Create a room
+                {t('arena.join.createLink')}
               </Link>
             </div>
           </div>
@@ -285,7 +290,7 @@ export default function Page() {
         {/* ===================================================== open rooms */}
         <section className="lg:col-span-3">
           <h2 className="mb-4 text-[11px] tracking-[0.25em] text-arena-200 uppercase">
-            Open Rooms
+            {t('arena.join.openRooms')}
           </h2>
           <div className="space-y-3">
             {lobbies.map((room) => (
@@ -299,14 +304,18 @@ export default function Page() {
                       {room.roomName}
                     </h3>
                     <span className="border border-arena-400 px-2 py-0.5 text-[9px] tracking-widest text-arena-300">
-                      {room.isPrivate ? 'PRIVATE' : 'PUBLIC'}
+                      {room.isPrivate
+                        ? t('arena.common.private')
+                        : t('arena.common.public')}
                     </span>
                   </div>
                   <div className="text-[11px] tracking-wider text-arena-200">
-                    Code{' '}
+                    {t('arena.join.code')}{' '}
                     <span className="text-gold tabular-nums">{room.code}</span>
                     <span className="mx-2">·</span>
-                    {room.phase === 'countdown' ? 'Starting' : 'Waiting'}
+                    {room.phase === 'countdown'
+                      ? t('arena.join.starting')
+                      : t('arena.join.waiting')}
                   </div>
                 </div>
 
@@ -315,16 +324,20 @@ export default function Page() {
                     <div className="font-bold text-white tabular-nums">
                       {room.playerCount}/6
                     </div>
-                    <div className="text-[10px] text-arena-300">players</div>
+                    <div className="text-[10px] text-arena-300">
+                      {t('arena.join.playersShort')}
+                    </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => join(String(room.code))}
                     disabled={joining}
                     className="cursor-pointer bg-gold px-5 py-3 text-[10px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
-                    aria-label={`Join ${room.roomName}`}
+                    aria-label={t('arena.join.joinRoomNamed', {
+                      name: room.roomName,
+                    })}
                   >
-                    Join →
+                    {t('arena.join.joinShort')}
                   </button>
                 </div>
               </article>
@@ -339,13 +352,13 @@ export default function Page() {
                   ◎
                 </div>
                 <div className="text-[11px] tracking-wider text-arena-300 uppercase">
-                  No open rooms right now
+                  {t('arena.join.none')}
                 </div>
                 <Link
                   href="/rooms/create"
                   className="mt-4 inline-block text-[11px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                 >
-                  + Create the first one
+                  {t('arena.join.createFirst')}
                 </Link>
               </div>
             )}
@@ -355,7 +368,7 @@ export default function Page() {
             href="/rooms"
             className="mt-4 inline-block text-[11px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            View all public rooms →
+            {t('arena.join.viewAll')}
           </Link>
         </section>
       </div>

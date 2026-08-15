@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { money } from '@/app/(arena)/_lib/money';
+import { useT } from '@/app/lib/i18n';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/helpers/api';
@@ -31,6 +32,7 @@ interface Created {
 }
 
 export default function Page() {
+  const { t } = useT();
   const router = useRouter();
   const [roomName, setRoomName] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
@@ -55,11 +57,11 @@ export default function Page() {
 
   async function createRoom() {
     if (roomName.trim().length < NAME_MIN) {
-      setError(`Room name needs at least ${NAME_MIN} characters.`);
+      setError(t('arena.create.nameTooShort', { n: NAME_MIN }));
       return;
     }
     if (visibility === 'private' && password.length < 4) {
-      setError('A private room needs a password of at least 4 characters.');
+      setError(t('arena.create.passwordShort'));
       return;
     }
     if (creating) return;
@@ -79,21 +81,19 @@ export default function Page() {
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 401) {
-        setError('Your session expired. Sign in again to create a room.');
+        setError(t('arena.create.sessionExpired'));
         setCreating(false);
         return;
       }
       if (res.status === 403) {
         setCredits(data.credits ?? 0);
         const minutes = Math.ceil((data.nextCreditInMs ?? 0) / 60000);
-        setError(
-          `Out of lobby credits. The next one lands in about ${minutes} min.`
-        );
+        setError(t('arena.create.outOfCredits', { min: minutes }));
         setCreating(false);
         return;
       }
       if (!res.ok || !data.lobbyId) {
-        setError(data.error ?? 'Could not create the room. Try again.');
+        setError(data.error ?? t('arena.create.failed'));
         setCreating(false);
         return;
       }
@@ -102,7 +102,7 @@ export default function Page() {
       setCreated({ lobbyId: String(data.lobbyId), roomCode: data.roomCode });
       setCreating(false);
     } catch {
-      setError('Could not reach the game server.');
+      setError(t('arena.create.unreachable'));
       setCreating(false);
     }
   }
@@ -122,11 +122,11 @@ export default function Page() {
     return (
       <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
         <div className="mb-6 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          Room Created
+          {t('arena.create.created')}
         </div>
         <div className="mb-6 border border-gold/20 bg-arena-800 p-6 text-center sm:p-8">
           <div className="text-arena-200 text-[11px] tracking-[0.3em] uppercase mb-4">
-            Room Code
+            {t('arena.common.roomCode')}
           </div>
           <div className="mb-6 text-4xl font-bold tracking-[0.2em] text-gold tabular-nums sm:text-6xl sm:tracking-[0.3em]">
             {created.roomCode}
@@ -136,19 +136,26 @@ export default function Page() {
               onClick={copyCode}
               className="border border-gold/40 text-gold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold/10 transition-colors"
             >
-              {copied ? '✓ Copied' : 'Copy code'}
+              {copied ? t('arena.create.copied') : t('arena.create.copyCode')}
             </button>
           </div>
           <p className="sr-only" aria-live="polite">
-            {copied ? 'Room code copied to clipboard' : ''}
+            {copied ? t('arena.create.copiedSr') : ''}
           </p>
         </div>
         <div className="mb-6 grid grid-cols-1 gap-4 border border-white/[0.07] bg-arena-750 p-5 text-center sm:grid-cols-3">
-          <Recap label="Starting Money" value={money(500)} />
-          <Recap label="Seats" value="2–6 Players" />
+          <Recap label={t('arena.common.startingMoney')} value={money(500)} />
           <Recap
-            label="Visibility"
-            value={visibility === 'private' ? 'Private' : 'Public'}
+            label={t('arena.create.seats')}
+            value={t('arena.create.seatsValue')}
+          />
+          <Recap
+            label={t('arena.create.visibility')}
+            value={
+              visibility === 'private'
+                ? t('arena.common.private')
+                : t('arena.common.public')
+            }
           />
         </div>
         <div className="flex flex-wrap gap-4">
@@ -156,13 +163,13 @@ export default function Page() {
             href={`/game/${created.lobbyId}`}
             className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
           >
-            Enter lobby →
+            {t('arena.create.enterLobby')}
           </Link>
           <button
             onClick={() => router.push('/rooms')}
             className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
           >
-            Back to rooms
+            {t('arena.create.backToRooms')}
           </button>
         </div>
       </div>
@@ -172,11 +179,14 @@ export default function Page() {
   return (
     <div className="max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <PageHeader eyebrow="Multiplayer" title="CREATE ROOM" />
+        <PageHeader
+          eyebrow={t('arena.common.multiplayer')}
+          title={t('arena.create.title')}
+        />
         {credits !== null && (
           <div className="mb-6 text-right">
             <div className="text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              Lobby Credits
+              {t('arena.create.credits')}
             </div>
             <div className="text-2xl font-bold text-gold tabular-nums">
               {credits}
@@ -186,24 +196,24 @@ export default function Page() {
       </div>
 
       {/* Room Name */}
-      <Section label="Room Name" htmlFor="room-name">
+      <Section label={t('arena.create.roomName')} htmlFor="room-name">
         <input
           id="room-name"
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value.toUpperCase())}
           className="bg-arena-750 border border-white/10 text-white text-xl font-bold tracking-widest px-5 py-4 w-full outline-none focus:border-gold/40 placeholder:text-arena-400 uppercase"
-          placeholder="ARENA NAME"
+          placeholder={t('arena.create.namePlaceholder')}
           maxLength={NAME_MAX}
           disabled={creating}
         />
         <div className="text-arena-300 text-[10px] mt-2 tracking-wider">
-          {NAME_MIN}–{NAME_MAX} characters
+          {t('arena.create.nameHint', { min: NAME_MIN, max: NAME_MAX })}
         </div>
       </Section>
 
       {/* Visibility */}
-      <Section label="Room Visibility" id="visibility-label">
+      <Section label={t('arena.create.visibility')} id="visibility-label">
         <div
           className="grid gap-4 sm:grid-cols-2"
           role="group"
@@ -224,12 +234,14 @@ export default function Page() {
               <div
                 className={`font-bold tracking-widest text-sm mb-1 ${visibility === v ? 'text-gold' : 'text-white'}`}
               >
-                {v === 'public' ? '◇ PUBLIC' : '◈ PRIVATE'}
+                {v === 'public'
+                  ? t('arena.create.publicLabel')
+                  : t('arena.create.privateLabel')}
               </div>
               <div className="text-arena-200 text-[11px] leading-relaxed">
                 {v === 'public'
-                  ? 'Listed for anyone to find and join.'
-                  : 'Only players with the code and password can join.'}
+                  ? t('arena.create.publicDesc')
+                  : t('arena.create.privateDesc')}
               </div>
             </button>
           ))}
@@ -239,7 +251,7 @@ export default function Page() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Room password (4+ characters)"
+            placeholder={t('arena.create.passwordPlaceholder')}
             className="mt-4 bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 w-full outline-none focus:border-gold/40 placeholder:text-arena-400"
             disabled={creating}
           />
@@ -248,13 +260,19 @@ export default function Page() {
 
       {/* What the server fixes */}
       <Section
-        label="Room Rules"
-        sublabel="Set by the game server — not configurable per room yet"
+        label={t('arena.create.rules')}
+        sublabel={t('arena.create.rulesDesc')}
       >
         <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
-          <Recap label="Starting Money" value={money(500)} />
-          <Recap label="Seats" value="2–6 Players" />
-          <Recap label="Difficulty" value="Scales with your chain" />
+          <Recap label={t('arena.common.startingMoney')} value={money(500)} />
+          <Recap
+            label={t('arena.create.seats')}
+            value={t('arena.create.seatsValue')}
+          />
+          <Recap
+            label={t('arena.common.difficulty')}
+            value={t('arena.create.difficultyValue')}
+          />
         </div>
       </Section>
 
@@ -274,13 +292,13 @@ export default function Page() {
               : 'bg-gold text-arena-950 hover:bg-gold-light'
           }`}
         >
-          {creating ? 'Creating…' : 'Create room →'}
+          {creating ? t('arena.create.creating') : t('arena.create.submit')}
         </button>
         <Link
           href="/home"
           className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
         >
-          Cancel
+          {t('arena.common.cancel')}
         </Link>
       </div>
     </div>

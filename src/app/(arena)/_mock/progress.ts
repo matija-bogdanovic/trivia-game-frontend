@@ -29,7 +29,12 @@ export interface StatTile {
 }
 
 export const homeStats: StatTile[] = [
-  { labelKey: 'arena.stat.winningStreak', value: '7', accent: true, suffix: '🔥' },
+  {
+    labelKey: 'arena.stat.winningStreak',
+    value: '7',
+    accent: true,
+    suffix: '🔥',
+  },
   { labelKey: 'arena.stat.totalWins', value: '143' },
   { labelKey: 'arena.stat.gamesPlayed', value: '201' },
   { labelKey: 'arena.stat.balance', value: '$8,340', accent: true },

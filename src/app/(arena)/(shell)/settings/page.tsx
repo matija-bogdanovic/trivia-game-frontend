@@ -153,10 +153,10 @@ export default function Page() {
               validate={(values) => {
                 const errors: { username?: string; email?: string } = {};
                 if (!values.username || values.username.trim().length < 3) {
-                  errors.username = 'Usernames need at least three characters.';
+                  errors.username = t('arena.settings.usernameShort');
                 }
                 if (!values.email || !/^\S+@\S+\.\S+$/.test(values.email)) {
-                  errors.email = "That doesn't look like an email.";
+                  errors.email = t('arena.settings.emailInvalid');
                 }
 
                 return errors;
@@ -169,7 +169,7 @@ export default function Page() {
                     htmlFor="username"
                     className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
                   >
-                    Username
+                    {t('auth.username')}
                   </label>
                   <Field
                     id="username"
@@ -189,7 +189,7 @@ export default function Page() {
                     htmlFor="email"
                     className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
                   >
-                    Email
+                    {t('auth.email')}
                   </label>
                   <Field
                     id="email"

@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { RootState } from '@/app/redux/store';
 import AvatarTile from './avatar_tile';
+import { useT } from '@/app/lib/i18n';
 
 /**
  * The arena Lobby design, driven by the real lobby_state the game server
@@ -19,6 +20,7 @@ import AvatarTile from './avatar_tile';
  *    header shows what a room really has: seats, and public vs private.
  */
 export default function ArenaLobby() {
+  const { t } = useT();
   const {
     username,
     startGame,
@@ -77,33 +79,39 @@ export default function ArenaLobby() {
       <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <div className="text-arena-200 text-[10px] tracking-[0.25em] uppercase mb-1">
-            {phase === 'countdown' ? 'Starting' : 'Waiting for players'}
+            {phase === 'countdown'
+              ? t('arena.lobby.starting')
+              : t('arena.lobby.waiting')}
           </div>
           <h1 className="text-2xl font-bold tracking-wide sm:text-3xl">
             {roomName || 'ROOM'}
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] tracking-wider text-arena-200">
             <span>
-              {seated.length} / {maxPlayers} seats · {minPlayers} to start
+              {t('arena.lobby.seats', {
+                n: seated.length,
+                max: maxPlayers,
+                min: minPlayers,
+              })}
             </span>
             <span className="border border-arena-400 px-2 py-0.5 text-[9px] tracking-widest uppercase">
-              {isPrivate ? 'PRIVATE' : 'PUBLIC'}
+              {isPrivate ? t('arena.common.private') : t('arena.common.public')}
             </span>
           </div>
         </div>
         <div className="sm:text-right">
           <div className="text-arena-200 text-[10px] tracking-[0.2em] uppercase mb-1">
-            Room Code
+            {t('arena.common.roomCode')}
           </div>
           <button
             onClick={copyCode}
             className="cursor-pointer text-2xl font-bold tracking-[0.3em] text-gold tabular-nums transition-colors hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:text-3xl"
-            title="Copy room code"
+            title={t('arena.lobby.copyCode')}
           >
             {code === null ? '······' : String(code)}
           </button>
           <div className="text-arena-300 text-[10px] tracking-wider uppercase mt-1">
-            {copied ? '✓ Copied' : 'Click to copy'}
+            {copied ? t('arena.lobby.copied') : t('arena.lobby.clickToCopy')}
           </div>
         </div>
       </div>
@@ -114,7 +122,10 @@ export default function ArenaLobby() {
           className="flex-1 text-[11px] tracking-wider text-arena-200 uppercase"
           aria-live="polite"
         >
-          {connectedCount} / {seated.length} players connected
+          {t('arena.lobby.connected', {
+            n: connectedCount,
+            total: seated.length,
+          })}
         </div>
         <div className="flex gap-1" aria-hidden="true">
           {seated.map((p) => (
@@ -128,10 +139,10 @@ export default function ArenaLobby() {
           className={`text-[11px] tracking-wider font-bold ${connectedCount >= minPlayers ? 'text-gold' : 'text-arena-300'}`}
         >
           {phase === 'countdown' && countdown !== null
-            ? `STARTING IN ${countdown}`
+            ? t('arena.lobby.startingIn', { n: countdown })
             : connectedCount >= minPlayers
-              ? 'READY TO START'
-              : `NEED ${minPlayers - connectedCount} MORE`}
+              ? t('arena.lobby.readyToStart')
+              : t('arena.lobby.needMore', { n: minPlayers - connectedCount })}
         </div>
       </div>
 
@@ -139,7 +150,7 @@ export default function ArenaLobby() {
         {/* Player grid */}
         <div className="flex-1 overflow-y-auto">
           <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            Players
+            {t('arena.lobby.players')}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {seated.map((player) => {
@@ -153,12 +164,12 @@ export default function ArenaLobby() {
                 >
                   {player.isHost && (
                     <div className="absolute top-3 right-3 text-[9px] tracking-widest text-gold border border-gold/40 px-2 py-0.5 uppercase">
-                      HOST
+                      {t('arena.lobby.host')}
                     </div>
                   )}
                   {isMe && !player.isHost && (
                     <div className="absolute top-3 right-3 text-[9px] tracking-widest text-arena-200 border border-arena-400 px-2 py-0.5 uppercase">
-                      YOU
+                      {t('arena.common.you')}
                     </div>
                   )}
 
@@ -185,7 +196,7 @@ export default function ArenaLobby() {
                       <span className="text-white font-bold">
                         ${player.money}
                       </span>{' '}
-                      bank
+                      {t('arena.lobby.bank')}
                     </div>
                     <div
                       className={`text-[10px] tracking-widest font-bold uppercase px-3 py-1 border ${
@@ -194,7 +205,9 @@ export default function ArenaLobby() {
                           : 'border-arena-400 text-arena-300'
                       }`}
                     >
-                      {player.connected ? '✓ IN ROOM' : 'AWAY'}
+                      {player.connected
+                        ? t('arena.lobby.inRoom')
+                        : t('arena.lobby.away')}
                     </div>
                   </div>
 
@@ -203,7 +216,7 @@ export default function ArenaLobby() {
                       onClick={() => kickPlayer(player.username)}
                       className="mt-3 w-full text-[10px] tracking-wider uppercase text-arena-300 border border-arena-500 py-1.5 hover:text-white hover:border-arena-300 transition-colors"
                     >
-                      REMOVE
+                      {t('arena.lobby.remove')}
                     </button>
                   )}
                 </div>
@@ -217,7 +230,7 @@ export default function ArenaLobby() {
                 className="bg-arena-750 border border-white/[0.04] p-5 flex items-center justify-center"
               >
                 <div className="text-arena-500 text-[11px] tracking-widest uppercase">
-                  Waiting for player...
+                  {t('arena.lobby.emptySlot')}
                 </div>
               </div>
             ))}
@@ -225,8 +238,10 @@ export default function ArenaLobby() {
 
           {spectators.length > 0 && (
             <div className="mt-4 text-arena-300 text-[11px] tracking-wider uppercase">
-              {spectators.length} spectating ·{' '}
-              {spectators.map((s) => s.displayName).join(', ')}
+              {t('arena.lobby.spectating', {
+                n: spectators.length,
+                names: spectators.map((s) => s.displayName).join(', '),
+              })}
             </div>
           )}
 
@@ -242,25 +257,25 @@ export default function ArenaLobby() {
                     : 'bg-arena-700 text-arena-400 cursor-not-allowed'
                 }`}
               >
-                START GAME →
+                {t('arena.lobby.start')}
               </button>
             ) : (
               <div className="text-arena-300 text-[11px] tracking-[0.15em] uppercase">
-                Waiting for the host to start
+                {t('arena.lobby.waitingHost')}
               </div>
             )}
             <button
               onClick={leaveRoom}
               className="border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors ml-auto focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              LEAVE ROOM
+              {t('arena.lobby.leave')}
             </button>
             {iAmHost && (
               <button
                 onClick={terminateLobby}
                 className="border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors"
               >
-                CLOSE ROOM
+                {t('arena.lobby.close')}
               </button>
             )}
           </div>
@@ -270,7 +285,7 @@ export default function ArenaLobby() {
         <div className="flex min-h-0 flex-col border border-white/[0.07] bg-arena-800 xl:w-72">
           <div className="px-4 py-3 border-b border-white/[0.07]">
             <div className="text-[10px] tracking-[0.25em] uppercase text-arena-200">
-              Lobby Chat
+              {t('arena.lobby.chat')}
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -310,12 +325,13 @@ export default function ArenaLobby() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
-              placeholder="Message..."
+              placeholder={t('arena.lobby.messagePlaceholder')}
               className="flex-1 bg-arena-750 border border-white/10 text-white text-xs px-3 py-2 outline-none focus:border-gold/30 placeholder:text-arena-400 min-w-0"
             />
             <button
               onClick={send}
               className="bg-arena-600 text-white px-3 py-2 text-xs hover:bg-arena-500 transition-colors"
+              aria-label={t('arena.lobby.send')}
             >
               →
             </button>
