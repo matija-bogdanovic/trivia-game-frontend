@@ -13,10 +13,14 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // starting coins, chosen at room creation
+    'arena.create.startingMoney': 'Starting coins',
+    'arena.create.startingMoneyEach': 'per player, 500 to 2500',
     // host removing a player
     'arena.lobby.removeNamed': 'Remove {name} from the room',
     'arena.lobby.kickConfirm': 'Remove {name} from the room?',
     'arena.lobby.kickedTitle': 'Removed from the room',
+    'arena.lobby.kickedOther': 'You were removed from the room.',
     // lobby seats + room capacity
     'arena.lobby.activePlayers': '{n} of {total} players active',
     'arena.lobby.ofCapacity': '· {max} seats',
@@ -636,10 +640,14 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // starting coins, chosen at room creation
+    'arena.create.startingMoney': 'Početni novac',
+    'arena.create.startingMoneyEach': 'po igraču, od 500 do 2500',
     // host removing a player
     'arena.lobby.removeNamed': 'Izbaci igrača {name} iz sobe',
     'arena.lobby.kickConfirm': 'Izbaciti {name}?',
     'arena.lobby.kickedTitle': 'Izbačen iz sobe',
+    'arena.lobby.kickedOther': 'Izbačen si iz sobe.',
     // lobby seats + room capacity
     'arena.lobby.activePlayers': 'Aktivnih igrača: {n} od {total}',
     'arena.lobby.ofCapacity': '· {max} mesta',

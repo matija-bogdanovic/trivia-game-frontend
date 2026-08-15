@@ -16,10 +16,10 @@ amplifyConfigure();
 /**
  * The arena Create Room design, driving the real POST /createRoom.
  *
- * Starting money and difficulty are still read-only below: they really are
- * constants in the game server, so they are shown as the rules a room runs
- * under rather than as controls that quietly do nothing. Capacity is no longer
- * among them — createRoom persists maxPlayers, so it is a real choice.
+ * Difficulty is still read-only below: it really is a constant in the game
+ * server, so it is shown as a rule the room runs under rather than as a
+ * control that quietly does nothing. Capacity and starting coins are no longer
+ * among them — createRoom persists both, so they are real choices.
  */
 const NAME_MIN = 4;
 const NAME_MAX = 13;
@@ -31,6 +31,22 @@ const NAME_MAX = 13;
  */
 const CAPACITIES = [2, 3, 4, 5, 6, 7, 8] as const;
 const DEFAULT_CAPACITY = 6;
+
+/**
+ * What every player is seeded with. The server clamps to this same range, so
+ * the slider cannot offer a number the room would not actually get; the step
+ * keeps the value to round figures rather than an arbitrary $1,347.
+ */
+const MONEY_MIN = 500;
+const MONEY_MAX = 2500;
+const MONEY_STEP = 100;
+const DEFAULT_MONEY = 500;
+
+const clampMoney = (n: number) =>
+  Math.min(
+    MONEY_MAX,
+    Math.max(MONEY_MIN, Math.round(n / MONEY_STEP) * MONEY_STEP)
+  );
 
 interface Created {
   lobbyId: string;
@@ -46,6 +62,7 @@ export default function Page() {
   /** the question pool the room draws from; at least one is required */
   const [categories, setCategories] = useState<string[]>(['Mixed']);
   const [maxPlayers, setMaxPlayers] = useState<number>(DEFAULT_CAPACITY);
+  const [startingMoney, setStartingMoney] = useState<number>(DEFAULT_MONEY);
   const [credits, setCredits] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -91,6 +108,9 @@ export default function Page() {
           password: visibility === 'private' ? password : undefined,
           categories,
           maxPlayers,
+          // clamped again on the way out: the slider is bounded, but a stale
+          // value from a restored form should not reach the server unchecked
+          startingMoney: clampMoney(startingMoney),
         },
       });
       const data = await res.json().catch(() => ({}));
@@ -159,7 +179,10 @@ export default function Page() {
           </p>
         </div>
         <div className="mb-6 grid grid-cols-1 gap-4 border border-white/[0.07] bg-arena-750 p-5 text-center sm:grid-cols-3">
-          <Recap label={t('arena.common.startingMoney')} value={money(500)} />
+          <Recap
+            label={t('arena.common.startingMoney')}
+            value={money(startingMoney)}
+          />
           <Recap
             label={t('arena.create.seats')}
             value={t('arena.create.seatsValue', { n: maxPlayers })}
@@ -315,6 +338,33 @@ export default function Page() {
         )}
       </Section>
 
+      <Section label={t('arena.create.startingMoney')} htmlFor="starting-money">
+        <div className="mb-4 text-center">
+          <div className="text-3xl font-bold text-gold tabular-nums sm:text-4xl">
+            {money(startingMoney)}
+          </div>
+          <div className="mt-1 text-[10px] tracking-wider text-arena-300 uppercase">
+            {t('arena.create.startingMoneyEach')}
+          </div>
+        </div>
+        <input
+          id="starting-money"
+          type="range"
+          min={MONEY_MIN}
+          max={MONEY_MAX}
+          step={MONEY_STEP}
+          value={startingMoney}
+          disabled={creating}
+          onChange={(e) => setStartingMoney(clampMoney(Number(e.target.value)))}
+          aria-valuetext={money(startingMoney)}
+          className="w-full cursor-pointer accent-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        />
+        <div className="mt-1 flex justify-between text-[10px] text-arena-300 tabular-nums">
+          <span>{money(MONEY_MIN)}</span>
+          <span>{money(MONEY_MAX)}</span>
+        </div>
+      </Section>
+
       <Section label={t('arena.create.maxPlayers')} id="capacity-label">
         <div
           className="flex flex-wrap gap-2"
@@ -349,7 +399,10 @@ export default function Page() {
         sublabel={t('arena.create.rulesDesc')}
       >
         <div className="grid grid-cols-1 gap-4 text-center sm:grid-cols-3">
-          <Recap label={t('arena.common.startingMoney')} value={money(500)} />
+          <Recap
+            label={t('arena.common.startingMoney')}
+            value={money(startingMoney)}
+          />
           <Recap
             label={t('arena.create.seats')}
             value={t('arena.create.seatsValue', { n: maxPlayers })}

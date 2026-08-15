@@ -142,6 +142,12 @@ export interface GameState {
   duelTie: boolean;
   duelLoserDelta: number;
   kicked: boolean;
+  /**
+   * Why, when the server says. 'host' is the only reason it sends today; the
+   * field exists so a later one (idle, banned) can be told apart rather than
+   * all of them reading as "the host removed you".
+   */
+  kickedReason: string | null;
   terminated: boolean;
   isPrivate: boolean;
   /**
@@ -229,6 +235,7 @@ const initialState: GameState = {
   duelTie: false,
   duelLoserDelta: 0,
   kicked: false,
+  kickedReason: null,
   terminated: false,
   isPrivate: false,
   joinDenied: null,
@@ -483,6 +490,8 @@ const gameSlice = createSlice({
           break;
         case 'kicked':
           state.kicked = true;
+          state.kickedReason =
+            typeof message.reason === 'string' ? message.reason : null;
           break;
         case 'lobby_terminated':
           state.terminated = true;

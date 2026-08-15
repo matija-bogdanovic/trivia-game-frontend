@@ -42,6 +42,7 @@ function Page() {
     players,
     joinDenied,
     roomClosed,
+    kickedReason,
     notImplemented,
   } = useSelector((state: RootState) => state.game);
 
@@ -223,7 +224,11 @@ function Page() {
                 : t('arena.lobby.roomClosedTitle')}
             </div>
             <p className="text-sm text-arena-100">
-              {kicked ? t('game.kickedInfo') : t('game.terminatedInfo')}
+              {!kicked
+                ? t('game.terminatedInfo')
+                : kickedReason && kickedReason !== 'host'
+                  ? t('arena.lobby.kickedOther')
+                  : t('game.kickedInfo')}
             </p>
             <button
               onClick={() => (kicked ? router.push('/rooms') : leaveRoom())}
