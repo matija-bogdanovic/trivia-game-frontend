@@ -24,6 +24,13 @@ interface Lobby {
   isPrivate: boolean;
   /** the length of the room's seat roster — a real count, not an estimate */
   playerCount: number;
+  /**
+   * Room capacity, once the endpoint sends it. Optional because the deployed
+   * /lobbies does not yet, and a room's capacity is not something to assume:
+   * until it arrives the count is shown on its own rather than over a guessed
+   * denominator.
+   */
+  maxPlayers?: number;
   phase: string;
   /**
    * Vestigial. It meant "the backend found a live in-memory game process",
@@ -227,7 +234,9 @@ export default function Page() {
                   {t('arena.common.players')}
                 </div>
                 <div className="text-sm font-bold text-white tabular-nums">
-                  {room.playerCount}
+                  {typeof room.maxPlayers === 'number'
+                    ? `${room.playerCount} / ${room.maxPlayers}`
+                    : room.playerCount}
                 </div>
               </div>
               <div>

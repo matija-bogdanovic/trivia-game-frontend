@@ -168,9 +168,16 @@ export default function GameProvider({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  /*
+   * Only the host starts the match. The server enforces this too, so this is
+   * not the guard that matters — it is here so a stray call from some future
+   * screen cannot send a message the server will only reject, and so the rule
+   * lives next to the isHost that every start control reads.
+   */
   const startGame = useCallback(() => {
+    if (!isHost) return;
     sendJsonMessage({ type: 'start_game' });
-  }, [sendJsonMessage]);
+  }, [isHost, sendJsonMessage]);
 
   const submitAnswer = useCallback(
     (answer: string) => {

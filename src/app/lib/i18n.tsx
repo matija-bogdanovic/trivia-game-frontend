@@ -13,6 +13,11 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // lobby seats + room capacity
+    'arena.lobby.activePlayers': '{n} of {total} players active',
+    'arena.lobby.ofCapacity': '· {max} seats',
+    'arena.create.maxPlayers': 'Max players',
+    'arena.create.maxPlayersHint': 'How many players the room holds, 2 to 8.',
     // lobby — host leaving, room closure, capacity the server has not stated
     'arena.lobby.hostLeaveTitle': 'You are the host',
     'arena.lobby.hostLeaveWarning':
@@ -519,7 +524,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.create.rulesDesc':
       'Set by the game server — not configurable per room yet',
     'arena.create.seats': 'Seats',
-    'arena.create.seatsValue': '2–6 Players',
+    'arena.create.seatsValue': '{n} players',
     'arena.create.difficultyValue': 'Scales with your chain',
     'arena.create.submit': 'Create room →',
     'arena.create.creating': 'Creating…',
@@ -573,7 +578,6 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.lobby.copyCode': 'Copy room code',
     'arena.lobby.clickToCopy': 'Click to copy',
     'arena.lobby.copied': '✓ Copied',
-    'arena.lobby.connected': '{n} / {total} players connected',
     'arena.lobby.startingIn': 'STARTING IN {n}',
     'arena.lobby.readyToStart': 'READY TO START',
     'arena.lobby.needMore': 'NEED {n} MORE',
@@ -614,6 +618,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // lobby seats + room capacity
+    'arena.lobby.activePlayers': 'Aktivnih igrača: {n} od {total}',
+    'arena.lobby.ofCapacity': '· {max} mesta',
+    'arena.create.maxPlayers': 'Najviše igrača',
+    'arena.create.maxPlayersHint': 'Koliko igrača soba prima, od 2 do 8.',
     // lobby — host leaving, room closure, capacity the server has not stated
     'arena.lobby.hostLeaveTitle': 'Ti si domaćin',
     'arena.lobby.hostLeaveWarning':
@@ -1101,7 +1110,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.create.rules': 'Pravila sobe',
     'arena.create.rulesDesc': 'Postavlja server — još se ne podešava po sobi',
     'arena.create.seats': 'Mesta',
-    'arena.create.seatsValue': '2–6 igrača',
+    'arena.create.seatsValue': '{n} igrača',
     'arena.create.difficultyValue': 'Raste s nizom tačnih odgovora',
     'arena.create.submit': 'Napravi sobu →',
     'arena.create.creating': 'Pravljenje…',
@@ -1154,7 +1163,6 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.lobby.copyCode': 'Kopiraj kod sobe',
     'arena.lobby.clickToCopy': 'Klikni da kopiraš',
     'arena.lobby.copied': '✓ Kopirano',
-    'arena.lobby.connected': 'Povezano igrača: {n} / {total}',
     'arena.lobby.startingIn': 'POČINJE ZA {n}',
     'arena.lobby.readyToStart': 'SPREMNO ZA POČETAK',
     'arena.lobby.needMore': 'TREBA JOŠ {n}',

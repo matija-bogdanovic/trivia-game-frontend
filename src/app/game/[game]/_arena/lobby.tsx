@@ -129,14 +129,26 @@ export default function ArenaLobby() {
 
       {/* Connected bar */}
       <div className="mb-6 flex flex-wrap items-center gap-4 border border-white/[0.07] bg-arena-800 px-5 py-3">
+        {/*
+          Two different numbers, both real and both worth stating: how many
+          players hold a socket right now (active), and how many seats the
+          roster occupies. A player who dropped is still seated — counting
+          them as present would overstate the room, and dropping them from
+          the roster would understate it.
+        */}
         <div
           className="flex-1 text-[11px] tracking-wider text-arena-200 uppercase"
           aria-live="polite"
         >
-          {t('arena.lobby.connected', {
+          {t('arena.lobby.activePlayers', {
             n: connectedCount,
             total: seated.length,
           })}
+          {maxPlayers !== null && (
+            <span className="ml-2 text-arena-300">
+              {t('arena.lobby.ofCapacity', { max: maxPlayers })}
+            </span>
+          )}
         </div>
         <div className="flex gap-1" aria-hidden="true">
           {seated.map((p) => (
@@ -236,13 +248,18 @@ export default function ArenaLobby() {
               );
             })}
 
-            {/* Empty slots */}
+            {/*
+              One placeholder per unoccupied seat: capacity minus the roster.
+              emptySlots is 0 when capacity is unknown, so nothing is drawn
+              against a guess.
+            */}
             {Array.from({ length: emptySlots }).map((_, i) => (
               <div
-                key={i}
-                className="bg-arena-750 border border-white/[0.04] p-5 flex items-center justify-center"
+                key={`empty-${i}`}
+                className="flex items-center justify-center border border-white/[0.04] bg-arena-750 p-5"
+                aria-label={t('arena.lobby.emptySlot')}
               >
-                <div className="text-arena-500 text-[11px] tracking-widest uppercase">
+                <div className="text-[11px] tracking-widest text-arena-500 uppercase">
                   {t('arena.lobby.emptySlot')}
                 </div>
               </div>
@@ -260,20 +277,27 @@ export default function ArenaLobby() {
 
           {/* Host controls */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
+            {/*
+              Host-only, and not merely disabled for everyone else: a player
+              who is not the host has no start control at all. isHost comes off
+              the game context — the same value the leave button reads — so the
+              two cannot disagree about who is running the room. The server
+              enforces it as well; this is the half the player can see.
+            */}
             {iAmHost ? (
               <button
                 onClick={startGame}
                 disabled={!canStart || phase === 'countdown'}
-                className={`font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 transition-colors ${
+                className={`px-8 py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors ${
                   canStart && phase !== 'countdown'
-                    ? 'bg-gold text-arena-950 hover:bg-gold-light'
-                    : 'bg-arena-700 text-arena-400 cursor-not-allowed'
+                    ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
+                    : 'cursor-not-allowed bg-arena-700 text-arena-400'
                 }`}
               >
                 {t('arena.lobby.start')}
               </button>
             ) : (
-              <div className="text-arena-300 text-[11px] tracking-[0.15em] uppercase">
+              <div className="text-[11px] tracking-[0.15em] text-arena-300 uppercase">
                 {t('arena.lobby.waitingHost')}
               </div>
             )}

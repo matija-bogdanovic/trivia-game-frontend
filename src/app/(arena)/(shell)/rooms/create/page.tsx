@@ -16,16 +16,21 @@ amplifyConfigure();
 /**
  * The arena Create Room design, driving the real POST /createRoom.
  *
- * The design's other controls — starting money, max players, question
- * categories, difficulty and game mode — are not here because the game server
- * has no such settings: money (500), seats (2–6) and difficulty (scales with
- * the answer chain) are constants in room.ts, and categories and game modes do
- * not exist at all. They are surfaced read-only below as the rules a room
- * actually runs under, rather than shipped as controls that quietly do
- * nothing. See the Tier 2 report.
+ * Starting money and difficulty are still read-only below: they really are
+ * constants in the game server, so they are shown as the rules a room runs
+ * under rather than as controls that quietly do nothing. Capacity is no longer
+ * among them — createRoom persists maxPlayers, so it is a real choice.
  */
 const NAME_MIN = 4;
 const NAME_MAX = 13;
+
+/**
+ * The capacities createRoom accepts. It clamps anything outside 2–8 rather
+ * than rejecting it, but offering only what it will honour means the number
+ * shown on the button is the number the room gets.
+ */
+const CAPACITIES = [2, 3, 4, 5, 6, 7, 8] as const;
+const DEFAULT_CAPACITY = 6;
 
 interface Created {
   lobbyId: string;
@@ -40,6 +45,7 @@ export default function Page() {
   const [password, setPassword] = useState('');
   /** the question pool the room draws from; at least one is required */
   const [categories, setCategories] = useState<string[]>(['Mixed']);
+  const [maxPlayers, setMaxPlayers] = useState<number>(DEFAULT_CAPACITY);
   const [credits, setCredits] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -83,10 +89,8 @@ export default function Page() {
           roomName: roomName.trim(),
           isPrivate: visibility === 'private',
           password: visibility === 'private' ? password : undefined,
-          // the server does not read this yet — see the create_room handler —
-          // so the room is created either way and starts persisting the pool
-          // the moment the field is added
           categories,
+          maxPlayers,
         },
       });
       const data = await res.json().catch(() => ({}));
@@ -158,7 +162,7 @@ export default function Page() {
           <Recap label={t('arena.common.startingMoney')} value={money(500)} />
           <Recap
             label={t('arena.create.seats')}
-            value={t('arena.create.seatsValue')}
+            value={t('arena.create.seatsValue', { n: maxPlayers })}
           />
           <Recap
             label={t('arena.create.visibility')}
@@ -311,6 +315,34 @@ export default function Page() {
         )}
       </Section>
 
+      <Section label={t('arena.create.maxPlayers')} id="capacity-label">
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-labelledby="capacity-label"
+        >
+          {CAPACITIES.map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setMaxPlayers(n)}
+              aria-pressed={maxPlayers === n}
+              disabled={creating}
+              className={`w-12 cursor-pointer border py-2 text-sm font-bold tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                maxPlayers === n
+                  ? 'border-gold bg-gold text-arena-950'
+                  : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
+              }`}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <div className="mt-2 text-[10px] tracking-wider text-arena-300">
+          {t('arena.create.maxPlayersHint')}
+        </div>
+      </Section>
+
       {/* What the server fixes */}
       <Section
         label={t('arena.create.rules')}
@@ -320,7 +352,7 @@ export default function Page() {
           <Recap label={t('arena.common.startingMoney')} value={money(500)} />
           <Recap
             label={t('arena.create.seats')}
-            value={t('arena.create.seatsValue')}
+            value={t('arena.create.seatsValue', { n: maxPlayers })}
           />
           <Recap
             label={t('arena.common.difficulty')}

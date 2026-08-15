@@ -12,7 +12,9 @@ import { useSelector } from 'react-redux';
 
 function SideBar() {
   const { t } = useT();
-  const { username, kickPlayer, terminateLobby } = useGame();
+  // isHost off the context, not recomputed here: the lobby, the leave button
+  // and this panel must agree on who is running the room
+  const { username, isHost: iAmHost, kickPlayer, terminateLobby } = useGame();
   const [confirmTerminate, setConfirmTerminate] = useState(false);
   const [friends, setFriends] = useState<Set<string>>(new Set());
   const [requested, setRequested] = useState<Set<string>>(new Set());
@@ -67,7 +69,7 @@ function SideBar() {
       });
   const showLifeState = phase !== 'lobby' && phase !== 'connecting';
   const connectedCount = players.filter((p) => p.connected).length;
-  const iAmHost = players.find((p) => p.username === username)?.isHost ?? false;
+
   const canModerate = iAmHost && (phase === 'lobby' || phase === 'gameover');
 
   return (
