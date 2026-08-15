@@ -102,4 +102,10 @@ export const filterCategories = [
   'Mixed',
 ];
 
+/**
+ * Categories a room can be created with. Same vocabulary as the filters, minus
+ * the "All" pseudo-entry, which is a filter concept rather than a category.
+ */
+export const roomCategories = filterCategories.filter((c) => c !== 'All');
+
 export const filterDifficulties = ['All', 'Easy', 'Medium', 'Hard', 'Mixed'];

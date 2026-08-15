@@ -4,6 +4,7 @@ import Link from 'next/link';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { money } from '@/app/(arena)/_lib/money';
 import { useT } from '@/app/lib/i18n';
+import { roomCategories } from '@/app/(arena)/_mock/rooms';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/helpers/api';
@@ -37,6 +38,8 @@ export default function Page() {
   const [roomName, setRoomName] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [password, setPassword] = useState('');
+  /** the question pool the room draws from; at least one is required */
+  const [categories, setCategories] = useState<string[]>(['Mixed']);
   const [credits, setCredits] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -64,6 +67,10 @@ export default function Page() {
       setError(t('arena.create.passwordShort'));
       return;
     }
+    if (categories.length === 0) {
+      setError(t('arena.create.needCategory'));
+      return;
+    }
     if (creating) return;
 
     setCreating(true);
@@ -76,6 +83,10 @@ export default function Page() {
           roomName: roomName.trim(),
           isPrivate: visibility === 'private',
           password: visibility === 'private' ? password : undefined,
+          // the server does not read this yet — see the create_room handler —
+          // so the room is created either way and starts persisting the pool
+          // the moment the field is added
+          categories,
         },
       });
       const data = await res.json().catch(() => ({}));
@@ -255,6 +266,48 @@ export default function Page() {
             className="mt-4 bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 w-full outline-none focus:border-gold/40 placeholder:text-arena-400"
             disabled={creating}
           />
+        )}
+      </Section>
+
+      <Section label={t('arena.create.categories')} id="categories-label">
+        <div
+          className="flex flex-wrap gap-2"
+          role="group"
+          aria-labelledby="categories-label"
+        >
+          {roomCategories.map((category) => {
+            const selected = categories.includes(category);
+            return (
+              <button
+                key={category}
+                type="button"
+                onClick={() =>
+                  setCategories((current) =>
+                    current.includes(category)
+                      ? current.filter((c) => c !== category)
+                      : [...current, category]
+                  )
+                }
+                aria-pressed={selected}
+                disabled={creating}
+                className={`cursor-pointer border px-4 py-2 text-[11px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                  selected
+                    ? 'border-gold bg-gold font-bold text-arena-950'
+                    : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
+                }`}
+              >
+                {category}
+              </button>
+            );
+          })}
+        </div>
+        {categories.length === 0 && (
+          <p
+            className="mt-3 text-[11px] tracking-wider text-gold"
+            aria-live="polite"
+          >
+            {t('arena.create.needCategory')}
+          </p>
         )}
       </Section>
 

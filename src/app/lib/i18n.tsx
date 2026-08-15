@@ -580,6 +580,16 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.empty': 'No friends yet — add someone above.',
     'arena.profile.noMatches': 'No matches played yet.',
     'arena.profile.noCategories': 'Category stats are not tracked yet.',
+    'arena.rooms.loading': 'Loading rooms…',
+    'arena.rooms.noneOpen': 'No open rooms right now',
+    'arena.rooms.createFirst': '+ Create the first one',
+    'arena.rooms.code': 'Code',
+    'arena.rooms.countUnknown': 'Live player counts are unavailable',
+    'arena.rooms.sortNewest': 'Sort: Newest',
+    'arena.rooms.failed': 'Could not load the room list.',
+    'arena.create.categories': 'Question Categories',
+    'arena.create.needCategory':
+      'Pick at least one category — a room needs a question pool.',
   },
   sr: {
     'nav.profile': 'Profil',
@@ -1129,6 +1139,16 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.empty': 'Još nemaš prijatelje — dodaj nekoga iznad.',
     'arena.profile.noMatches': 'Još nema odigranih partija.',
     'arena.profile.noCategories': 'Statistika po kategorijama se još ne prati.',
+    'arena.rooms.loading': 'Učitavanje soba…',
+    'arena.rooms.noneOpen': 'Trenutno nema otvorenih soba',
+    'arena.rooms.createFirst': '+ Napravi prvu',
+    'arena.rooms.code': 'Kod',
+    'arena.rooms.countUnknown': 'Broj igrača uživo nije dostupan',
+    'arena.rooms.sortNewest': 'Sortiraj: najnovije',
+    'arena.rooms.failed': 'Učitavanje liste soba nije uspelo.',
+    'arena.create.categories': 'Kategorije pitanja',
+    'arena.create.needCategory':
+      'Izaberi bar jednu kategoriju — soba mora imati pitanja.',
   },
 };
 
