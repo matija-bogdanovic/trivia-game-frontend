@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
@@ -62,6 +63,9 @@ export default function Page() {
   const [sort, setSort] = useState<RoomSort>('newest');
   const [joining, setJoining] = useState<number | null>(null);
   const [error, setError] = useState('');
+  /** the locked room the prompt is open for, and the last attempt's message */
+  const [locked, setLocked] = useState<Lobby | null>(null);
+  const [lockError, setLockError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,8 +107,15 @@ export default function Page() {
     );
   }, [rooms, search, sort]);
 
-  /** same path as the join screen — the code is what the server joins on */
-  async function join(room: Lobby) {
+  /**
+   * Same path as the join screen — the code is what the server joins on.
+   *
+   * A locked room is not an error message. 401 means the room wants a
+   * password, so it opens the prompt instead of printing a line the player
+   * cannot act on; 403 means the password was wrong, and that belongs in the
+   * prompt too, where the retry is.
+   */
+  async function join(room: Lobby, withPassword?: string) {
     if (joining !== null) return;
     setJoining(room.code);
     setError('');
@@ -116,15 +127,26 @@ export default function Page() {
         return;
       }
       const res = await apiFetch('/joinRoom', {
-        body: { id: username, roomCode: String(room.code) },
+        body: {
+          id: username,
+          roomCode: String(room.code),
+          password: withPassword || undefined,
+        },
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.lobbyId) {
+        setLocked(null);
         router.push(`/game/${data.lobbyId}`);
         return;
       }
-      if (res.status === 401) setError(t('arena.join.privateRoom'));
-      else if (res.status === 404) setError(t('arena.join.noRoom'));
+      if (res.status === 401) {
+        // the room is private and we have not offered a password yet
+        setLocked(room);
+        setLockError(null);
+      } else if (res.status === 403) {
+        setLocked(room);
+        setLockError(t('arena.join.wrongPassword'));
+      } else if (res.status === 404) setError(t('arena.join.noRoom'));
       else if (res.status === 409) setError(t('arena.join.roomFull'));
       else setError(data.message ?? t('arena.join.failed'));
       setJoining(null);
@@ -262,6 +284,19 @@ export default function Page() {
           </article>
         ))}
       </div>
+
+      <PasswordPrompt
+        open={locked !== null}
+        roomName={locked?.roomName}
+        error={lockError}
+        submitting={joining !== null}
+        onSubmit={(password) => locked && void join(locked, password)}
+        onCancel={() => {
+          setLocked(null);
+          setLockError(null);
+          setJoining(null);
+        }}
+      />
 
       {!loading && visible.length === 0 && (
         <div className="py-20 text-center text-arena-300">

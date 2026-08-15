@@ -17,6 +17,7 @@ import ArenaQuestion from './_arena/question';
 import ArenaRoundIntro from './_arena/round_intro';
 import ArenaSpin from './_arena/spin';
 import ArenaReveal from './_arena/reveal';
+import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
@@ -29,7 +30,6 @@ function Page() {
     useGame();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const [roomPassword, setRoomPassword] = React.useState('');
   const {
     phase,
     countdown,
@@ -123,88 +123,66 @@ function Page() {
         </GameShell>
       )}
 
-      {joinDenied && !kicked && !terminated && (
-        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
-          <form
-            className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-sm w-full"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (roomPassword) joinWithPassword(roomPassword);
-            }}
-          >
-            {joinDenied === 'unauthenticated' ? (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  Sign in to play
-                </div>
-                <p className="text-arena-200 text-sm">
-                  Your session expired or was never started. Sign in and open
-                  the room again.
-                </p>
-                <Link
-                  href="/login"
-                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors text-center"
-                >
-                  GO TO SIGN IN
-                </Link>
-              </>
-            ) : joinDenied === 'room_full' ? (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  {t('join.roomFullTitle')}
-                </div>
-                <p className="text-arena-200 text-sm">{t('join.roomFull')}</p>
-                <button
-                  type="button"
-                  onClick={leaveRoom}
-                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
-                >
-                  {t('game.leave')}
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  🔒 {t('game.passwordTitle')}
-                </div>
-                {joinDenied === 'wrong_password' && (
-                  <p className="text-arena-100 text-sm">
-                    {t('join.wrongPassword')}
+      {/*
+        Two different refusals, kept apart. `unauthenticated` is a session
+        problem and offers sign-in; `room_full` is a dead end. Only the
+        password cases are a lock, and those now use the same prompt the room
+        list and the code entry use, so a private room asks the same way
+        wherever you meet it.
+      */}
+      {joinDenied === 'password_required' || joinDenied === 'wrong_password' ? (
+        <PasswordPrompt
+          open
+          error={
+            joinDenied === 'wrong_password'
+              ? t('arena.join.wrongPassword')
+              : null
+          }
+          onSubmit={(entered) => joinWithPassword(entered)}
+          onCancel={() => void leaveRoom()}
+        />
+      ) : null}
+
+      {joinDenied &&
+        joinDenied !== 'password_required' &&
+        joinDenied !== 'wrong_password' &&
+        !kicked &&
+        !terminated && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+            <div className="flex w-full max-w-sm flex-col gap-4 border border-white/[0.07] bg-arena-800 p-8">
+              {joinDenied === 'unauthenticated' ? (
+                <>
+                  <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+                    {t('arena.join.signInTitle')}
+                  </div>
+                  <p className="text-sm text-arena-200">
+                    {t('arena.join.signInBody')}
                   </p>
-                )}
-                <input
-                  type="password"
-                  value={roomPassword}
-                  onChange={(e) => setRoomPassword(e.target.value)}
-                  placeholder={t('create.passwordPlaceholder')}
-                  className="bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40 placeholder:text-arena-400"
-                  autoFocus
-                />
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={!roomPassword}
-                    className={`flex-1 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 transition-colors ${
-                      roomPassword
-                        ? 'bg-gold text-arena-950 hover:bg-gold-light'
-                        : 'bg-arena-700 text-arena-400 cursor-not-allowed'
-                    }`}
+                  <Link
+                    href="/login"
+                    className="bg-gold px-6 py-3 text-center text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light"
                   >
-                    {t('game.enterRoom')}
-                  </button>
+                    {t('arena.join.goToSignIn')}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+                    {t('join.roomFullTitle')}
+                  </div>
+                  <p className="text-sm text-arena-200">{t('join.roomFull')}</p>
                   <button
                     type="button"
-                    className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
-                    onClick={leaveRoom}
+                    onClick={() => void leaveRoom()}
+                    className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light"
                   >
                     {t('game.leave')}
                   </button>
-                </div>
-              </>
-            )}
-          </form>
-        </div>
-      )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
       {closedOnMe && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">

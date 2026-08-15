@@ -13,6 +13,16 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // private-room password prompt
+    'arena.join.lockedTitle': 'Room is locked',
+    'arena.join.lockedNamed': '{name} is private. Enter the password to join.',
+    'arena.join.lockedPlain':
+      'This room is private. Enter the password to join.',
+    'arena.join.unlock': 'Unlock',
+    'arena.join.signInTitle': 'Sign in to play',
+    'arena.join.signInBody':
+      'Your session expired or was never started. Sign in and open the room again.',
+    'arena.join.goToSignIn': 'Go to sign in',
     'arena.game.getReady': 'Get ready',
     'arena.game.playersAlive': '{n} still standing',
     'arena.game.correct': 'CORRECT',
@@ -622,7 +632,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.join.none': 'No open rooms right now',
     'arena.join.createFirst': '+ Create the first one',
     'arena.join.viewAll': 'View all public rooms →',
-    'arena.join.password': 'Room password',
+    'arena.join.password': 'Enter password',
     'arena.join.signInFirst':
       'Sign in first — the server needs to know who is joining.',
     'arena.join.privateRoom': 'This room is private. Enter its password.',
@@ -677,6 +687,15 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // private-room password prompt
+    'arena.join.lockedTitle': 'Soba je zaključana',
+    'arena.join.lockedNamed': '{name} je zaključana. Unesi šifru da uđeš.',
+    'arena.join.lockedPlain': 'Ova soba je zaključana. Unesi šifru da uđeš.',
+    'arena.join.unlock': 'Otključaj',
+    'arena.join.signInTitle': 'Prijavi se da igraš',
+    'arena.join.signInBody':
+      'Sesija je istekla ili nije ni započeta. Prijavi se i otvori sobu ponovo.',
+    'arena.join.goToSignIn': 'Idi na prijavu',
     'arena.game.getReady': 'Spremi se',
     'arena.game.playersAlive': 'Još {n} u igri',
     'arena.game.correct': 'TAČNO',
@@ -1266,10 +1285,10 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.join.none': 'Trenutno nema otvorenih soba',
     'arena.join.createFirst': '+ Napravi prvu',
     'arena.join.viewAll': 'Prikaži sve javne sobe →',
-    'arena.join.password': 'Lozinka sobe',
+    'arena.join.password': 'Unesi šifru',
     'arena.join.signInFirst': 'Prvo se prijavi — server mora znati ko ulazi.',
     'arena.join.privateRoom': 'Soba je privatna. Unesi lozinku.',
-    'arena.join.wrongPassword': 'Pogrešna lozinka.',
+    'arena.join.wrongPassword': 'Pogrešna šifra.',
     'arena.join.noRoom': 'Nema sobe sa tim kodom.',
     'arena.join.roomFull': 'Ta soba je puna.',
     'arena.join.failed': 'Ulazak u sobu nije uspeo.',

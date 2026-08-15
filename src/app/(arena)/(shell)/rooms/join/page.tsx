@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import { useT } from '@/app/lib/i18n';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
@@ -42,8 +43,9 @@ export default function Page() {
   const { t } = useT();
   const router = useRouter();
   const [digits, setDigits] = useState<string[]>(Array(LENGTH).fill(''));
-  const [password, setPassword] = useState('');
+  /** the prompt is open when the room asked for a password */
   const [needPassword, setNeedPassword] = useState(false);
+  const [lockError, setLockError] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [joining, setJoining] = useState(false);
   const [lobbies, setLobbies] = useState<Lobby[]>([]);
@@ -150,10 +152,13 @@ export default function Page() {
         return;
       }
       if (res.status === 401) {
+        // a locked room is a prompt, not a line of text on the page
         setNeedPassword(true);
-        setError(t('arena.join.privateRoom'));
+        setLockError(null);
       } else if (res.status === 403) {
-        setError(t('arena.join.wrongPassword'));
+        // wrong password belongs where the retry is
+        setNeedPassword(true);
+        setLockError(t('arena.join.wrongPassword'));
       } else if (res.status === 404) {
         setError(t('arena.join.noRoom'));
       } else if (res.status === 409) {
@@ -227,17 +232,6 @@ export default function Page() {
                   : t('arena.join.codeReady')}
             </p>
 
-            {needPassword && (
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('arena.join.password')}
-                aria-label={t('arena.join.password')}
-                className="mb-4 w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
-              />
-            )}
-
             {error && (
               <p className="mb-4 text-center text-[11px] tracking-wider text-gold">
                 {error}
@@ -246,9 +240,7 @@ export default function Page() {
 
             <button
               type="button"
-              onClick={() =>
-                join(digits.join(''), needPassword ? password : undefined)
-              }
+              onClick={() => join(digits.join(''))}
               disabled={!canJoin}
               className={`w-full py-4 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 canJoin
@@ -372,6 +364,16 @@ export default function Page() {
           </Link>
         </section>
       </div>
+      <PasswordPrompt
+        open={needPassword}
+        error={lockError}
+        submitting={joining}
+        onSubmit={(entered) => void join(digits.join(''), entered)}
+        onCancel={() => {
+          setNeedPassword(false);
+          setLockError(null);
+        }}
+      />
     </div>
   );
 }
