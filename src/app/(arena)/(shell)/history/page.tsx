@@ -2,18 +2,20 @@
 
 import { useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { useT } from '@/app/lib/i18n';
 import { historyMatches } from '@/app/(arena)/_mock/matches';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
-const FILTERS: { value: HistoryFilter; label: string }[] = [
-  { value: 'all', label: 'All Matches' },
-  { value: 'wins', label: 'Wins' },
-  { value: 'losses', label: 'Losses' },
+const FILTERS: { value: HistoryFilter; labelKey: string }[] = [
+  { value: 'all', labelKey: 'arena.history.all' },
+  { value: 'wins', labelKey: 'arena.history.wins' },
+  { value: 'losses', labelKey: 'arena.history.losses' },
 ];
 
 /** Match list with its win/loss filter and the expanded row. */
 export default function Page() {
+  const { t } = useT();
   const [filter, setFilter] = useState<HistoryFilter>('all');
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -31,14 +33,17 @@ export default function Page() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="History" title="MATCH HISTORY" />
+      <PageHeader
+        eyebrow={t('arena.history.eyebrow')}
+        title={t('arena.history.title')}
+      />
 
       {/* =========================================================== filter */}
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <div
           className="flex flex-wrap gap-3"
           role="group"
-          aria-label="Filter matches"
+          aria-label={t('arena.history.filter')}
         >
           {FILTERS.map((option) => (
             <button
@@ -52,7 +57,7 @@ export default function Page() {
                   : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
               }`}
             >
-              {option.label}
+              {t(option.labelKey)}
             </button>
           ))}
         </div>
@@ -60,7 +65,7 @@ export default function Page() {
           className="ml-auto text-[11px] tracking-wider text-arena-300 tabular-nums"
           aria-live="polite"
         >
-          {matches.length} matches
+          {t('arena.history.count', { n: matches.length })}
         </div>
       </div>
 
@@ -106,7 +111,7 @@ export default function Page() {
                     {match.money}
                   </span>
                   <span className="mt-0.5 block text-[10px] text-arena-300">
-                    #{match.placement} Place
+                    {t('arena.history.place', { n: match.placement })}
                   </span>
                 </span>
 
@@ -117,7 +122,9 @@ export default function Page() {
                       : 'border-arena-400 text-arena-300'
                   }`}
                 >
-                  {match.result}
+                  {match.result === 'WIN'
+                    ? t('arena.history.win')
+                    : t('arena.history.loss')}
                 </span>
 
                 <span
@@ -135,7 +142,7 @@ export default function Page() {
                 >
                   <div>
                     <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      Correct Answers
+                      {t('arena.history.correct')}
                     </div>
                     <div className="font-bold text-white tabular-nums">
                       {match.correct}
@@ -143,7 +150,7 @@ export default function Page() {
                   </div>
                   <div>
                     <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      Wrong Answers
+                      {t('arena.history.wrong')}
                     </div>
                     <div className="font-bold text-white tabular-nums">
                       {match.wrong}
@@ -151,7 +158,7 @@ export default function Page() {
                   </div>
                   <div>
                     <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      Duels
+                      {t('arena.history.duels')}
                     </div>
                     <div className="font-bold text-white tabular-nums">
                       {match.duels}
@@ -159,7 +166,7 @@ export default function Page() {
                   </div>
                   <div>
                     <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-                      Category
+                      {t('arena.common.category')}
                     </div>
                     <div className="font-bold text-white">{match.category}</div>
                   </div>

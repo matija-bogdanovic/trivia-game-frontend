@@ -134,13 +134,16 @@ export default function Page() {
           onCancel={() => setCropSrc(null)}
         />
       )}
-      <PageHeader eyebrow="Configuration" title="SETTINGS" />
+      <PageHeader
+        eyebrow={t('arena.settings.eyebrow')}
+        title={t('arena.settings.title')}
+      />
 
       {/* ========================================================== account */}
       <section className="border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Account
+            {t('arena.settings.account')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
@@ -208,7 +211,7 @@ export default function Page() {
           </div>
           <div>
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              Profile Picture
+              {t('arena.settings.profilePicture')}
             </div>
             <div className="flex flex-wrap items-center gap-4">
               {preview || savedAvatarUrl ? (
@@ -233,7 +236,7 @@ export default function Page() {
                 aria-label={t('profile.avatar')}
               />
               <Button
-                text={'Change photo'}
+                text={t('arena.settings.changePhoto')}
                 version="secondary"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.preventDefault();
@@ -275,13 +278,13 @@ export default function Page() {
 
           <div>
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              Password
+              {t('arena.settings.password')}
             </div>
             <button
               type="button"
               className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              Change password
+              {t('arena.settings.changePassword')}
             </button>
           </div>
 
@@ -296,10 +299,10 @@ export default function Page() {
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              Save changes
+              {t('arena.settings.save')}
             </button>
             <p className="text-[11px] text-gold" aria-live="polite">
-              {saved && '✓ Saved'}
+              {saved && t('arena.settings.saved')}
             </p>
           </div>
         </div>
@@ -309,13 +312,13 @@ export default function Page() {
       <section className="border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Game Preferences
+            {t('arena.settings.preferences')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
           <ToggleSwitch
-            label="Game Notifications"
-            description="Get notified when friends start games or invite you"
+            label={t('arena.settings.notifications')}
+            description={t('arena.settings.notificationsDesc')}
             labelId="toggle-notifications"
             checked={notifications}
             onToggle={() => setNotifications((v) => !v)}
@@ -326,7 +329,7 @@ export default function Page() {
               className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase"
               id="default-difficulty-label"
             >
-              Default Difficulty
+              {t('arena.settings.defaultDifficulty')}
             </div>
             <div
               className="flex flex-wrap gap-2"
@@ -345,7 +348,7 @@ export default function Page() {
                       : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
                   }`}
                 >
-                  {difficulty}
+                  {t(`arena.difficulty.${difficulty}`)}
                 </button>
               ))}
             </div>
@@ -357,27 +360,27 @@ export default function Page() {
       <section className="border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Privacy
+            {t('arena.settings.privacy')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
           <ToggleSwitch
-            label="Public Profile"
-            description="Allow other players to view your profile and stats"
+            label={t('arena.settings.publicProfile')}
+            description={t('arena.settings.publicProfileDesc')}
             labelId="toggle-profile"
             checked={profileVisible}
             onToggle={() => setProfileVisible((v) => !v)}
           />
           <ToggleSwitch
-            label="Friend Requests"
-            description="Allow others to send you friend requests"
+            label={t('arena.settings.friendRequests')}
+            description={t('arena.settings.friendRequestsDesc')}
             labelId="toggle-requests"
             checked={friendRequests}
             onToggle={() => setFriendRequests((v) => !v)}
           />
           <ToggleSwitch
-            label="Room Invitations"
-            description="Allow friends to invite you to their rooms"
+            label={t('arena.settings.roomInvites')}
+            description={t('arena.settings.roomInvitesDesc')}
             labelId="toggle-invites"
             checked={roomInvites}
             onToggle={() => setRoomInvites((v) => !v)}
@@ -389,7 +392,7 @@ export default function Page() {
       <section className="border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Account Management
+            {t('arena.settings.management')}
           </h2>
         </div>
         <div className="space-y-3 p-6">
@@ -398,7 +401,7 @@ export default function Page() {
             onClick={handleSignOut}
             className="w-full cursor-pointer border border-white/20 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            Log out
+            {t('arena.settings.logOut')}
             {signedInAs && (
               <span className="ml-2 text-arena-300 normal-case">
                 ({signedInAs})
@@ -409,7 +412,7 @@ export default function Page() {
             type="button"
             className="w-full cursor-pointer border border-arena-500/40 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            Delete account
+            {t('arena.settings.deleteAccount')}
           </button>
         </div>
       </section>

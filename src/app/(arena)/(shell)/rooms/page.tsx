@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { useT } from '@/app/lib/i18n';
 import { money } from '@/app/(arena)/_lib/money';
 import {
   filterCategories,
@@ -13,10 +14,10 @@ import {
 
 type RoomSort = 'players' | 'money' | 'difficulty';
 
-const SORT_OPTIONS: { value: RoomSort; label: string }[] = [
-  { value: 'players', label: 'Sort: Players' },
-  { value: 'money', label: 'Sort: Money' },
-  { value: 'difficulty', label: 'Sort: Difficulty' },
+const SORT_OPTIONS: { value: RoomSort; labelKey: string }[] = [
+  { value: 'players', labelKey: 'arena.rooms.sortPlayers' },
+  { value: 'money', labelKey: 'arena.rooms.sortMoney' },
+  { value: 'difficulty', labelKey: 'arena.rooms.sortDifficulty' },
 ];
 
 /** Ordering used by the difficulty sort; "Mixed" reads as hardest-unknown. */
@@ -52,6 +53,7 @@ function sorted(list: Room[], sort: RoomSort): Room[] {
  * here, and a "clear filters" affordance appears once anything is narrowing.
  */
 export default function Page() {
+  const { t } = useT();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [difficulty, setDifficulty] = useState('All');
@@ -83,7 +85,10 @@ export default function Page() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="Multiplayer" title="FIND A ROOM" />
+      <PageHeader
+        eyebrow={t('arena.common.multiplayer')}
+        title={t('arena.rooms.title')}
+      />
 
       {/* =================================================== quick actions */}
       <div className="mb-8 flex flex-wrap gap-3 sm:gap-4">
@@ -91,34 +96,34 @@ export default function Page() {
           href="/rooms/create"
           className="bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          + Create room
+          {t('arena.rooms.createRoom')}
         </Link>
         <Link
           href="/rooms/join"
           className="border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
-          → Join with code
+          {t('arena.rooms.joinWithCode')}
         </Link>
       </div>
 
       {/* ========================================================== filters */}
       <div className="mb-6 flex flex-col gap-4 border border-white/[0.07] bg-arena-800 p-4 xl:flex-row xl:flex-wrap xl:items-center">
         <label className="sr-only" htmlFor="room-search">
-          Search rooms or hosts
+          {t('arena.rooms.searchLabel')}
         </label>
         <input
           id="room-search"
           type="search"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search rooms or hosts..."
+          placeholder={t('arena.rooms.searchPlaceholder')}
           className="w-full border border-white/10 bg-arena-750 px-4 py-2 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40 xl:w-56"
         />
 
         <div
           className="flex flex-wrap gap-1"
           role="group"
-          aria-label="Filter by category"
+          aria-label={t('arena.rooms.filterCategory')}
         >
           {filterCategories.map((c) => (
             <button
@@ -132,7 +137,7 @@ export default function Page() {
                   : 'border border-white/10 text-arena-200 hover:border-arena-300'
               }`}
             >
-              {c}
+              {c === 'All' ? t('arena.difficulty.All') : c}
             </button>
           ))}
         </div>
@@ -140,7 +145,7 @@ export default function Page() {
         <div
           className="flex flex-wrap gap-1"
           role="group"
-          aria-label="Filter by difficulty"
+          aria-label={t('arena.rooms.filterDifficulty')}
         >
           {filterDifficulties.map((d) => (
             <button
@@ -154,13 +159,13 @@ export default function Page() {
                   : 'border border-white/10 text-arena-200 hover:border-arena-300'
               }`}
             >
-              {d}
+              {t(`arena.difficulty.${d}`)}
             </button>
           ))}
         </div>
 
         <label className="sr-only" htmlFor="room-sort">
-          Sort rooms
+          {t('arena.rooms.sortLabel')}
         </label>
         <select
           id="room-sort"
@@ -170,7 +175,7 @@ export default function Page() {
         >
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {t(option.labelKey)}
             </option>
           ))}
         </select>
@@ -181,14 +186,14 @@ export default function Page() {
         className="mb-4 flex items-center gap-4 text-[10px] tracking-wider text-arena-200 uppercase"
         aria-live="polite"
       >
-        <span>{visible.length} rooms available</span>
+        <span>{t('arena.rooms.available', { n: visible.length })}</span>
         {hasFilters && (
           <button
             type="button"
             onClick={clearFilters}
             className="cursor-pointer text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            Clear filters
+            {t('arena.rooms.clearFilters')}
           </button>
         )}
       </div>
@@ -208,7 +213,8 @@ export default function Page() {
                     {room.name}
                   </h2>
                   <div className="text-[11px] tracking-wider text-arena-200">
-                    Hosted by <span className="text-white">{room.host}</span>
+                    {t('arena.rooms.hostedBy')}{' '}
+                    <span className="text-white">{room.host}</span>
                     {room.hostStreak > 0 && (
                       <span className="ml-2 text-gold">
                         🔥 {room.hostStreak}
@@ -217,14 +223,14 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="shrink-0 border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-300 uppercase">
-                  Public
+                  {t('arena.common.public')}
                 </div>
               </div>
 
               <div className="mb-4 grid grid-cols-2 gap-3">
                 <div>
                   <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
-                    Players
+                    {t('arena.common.players')}
                   </div>
                   <div className="text-sm font-bold text-white tabular-nums">
                     {room.players} / {room.maxPlayers}
@@ -232,7 +238,7 @@ export default function Page() {
                 </div>
                 <div>
                   <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
-                    Starting Money
+                    {t('arena.common.startingMoney')}
                   </div>
                   <div className="text-sm font-bold text-gold tabular-nums">
                     {money(room.money)}
@@ -240,7 +246,7 @@ export default function Page() {
                 </div>
                 <div>
                   <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
-                    Category
+                    {t('arena.common.category')}
                   </div>
                   <div className="text-sm font-bold text-white">
                     {room.category}
@@ -248,7 +254,7 @@ export default function Page() {
                 </div>
                 <div>
                   <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
-                    Difficulty
+                    {t('arena.common.difficulty')}
                   </div>
                   <div className="text-sm font-bold text-white">
                     {room.difficulty}
@@ -272,14 +278,14 @@ export default function Page() {
                   disabled
                   className="w-full cursor-not-allowed bg-arena-700 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-300 uppercase"
                 >
-                  Room full
+                  {t('arena.rooms.full')}
                 </button>
               ) : (
                 <Link
                   href="/rooms/join"
                   className="block w-full bg-gold py-3 text-center text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                 >
-                  Join room →
+                  {t('arena.rooms.join')}
                 </Link>
               )}
             </article>
@@ -293,7 +299,7 @@ export default function Page() {
             ◎
           </div>
           <div className="text-sm tracking-wider uppercase">
-            No rooms match your filters
+            {t('arena.rooms.none')}
           </div>
         </div>
       )}

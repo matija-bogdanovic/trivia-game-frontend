@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { useT } from '@/app/lib/i18n';
 import {
   friendRequests as initialRequests,
   friends as initialFriends,
@@ -18,6 +19,7 @@ import {
  * here, as in the Angular app.
  */
 export default function Page() {
+  const { t } = useT();
   const [friends, setFriends] = useState<Friend[]>(initialFriends);
   const [requests, setRequests] = useState<FriendRequest[]>(initialRequests);
   const [search, setSearch] = useState('');
@@ -61,21 +63,24 @@ export default function Page() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <PageHeader eyebrow="Social" title="FRIENDS" />
+      <PageHeader
+        eyebrow={t('arena.friends.eyebrow')}
+        title={t('arena.friends.title')}
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ===================================================== friend list */}
         <div className="space-y-6 lg:col-span-2">
           <div>
             <label className="sr-only" htmlFor="friend-search">
-              Search friends
+              {t('arena.friends.searchLabel')}
             </label>
             <input
               id="friend-search"
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search friends..."
+              placeholder={t('arena.friends.searchPlaceholder')}
               className="w-full border border-white/10 bg-arena-800 px-4 py-3 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
             />
           </div>
@@ -86,7 +91,7 @@ export default function Page() {
                 ◎
               </div>
               <div className="text-sm tracking-wider uppercase">
-                No friends match that search
+                {t('arena.friends.noMatches')}
               </div>
             </div>
           )}
@@ -94,7 +99,7 @@ export default function Page() {
           {online.length > 0 && (
             <section>
               <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-300 uppercase">
-                Online — {online.length}
+                {t('arena.friends.online', { n: online.length })}
               </h2>
               <div className="space-y-2">
                 {online.map((friend) => (
@@ -107,7 +112,7 @@ export default function Page() {
           {offline.length > 0 && (
             <section>
               <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-300 uppercase">
-                Offline — {offline.length}
+                {t('arena.friends.offline', { n: offline.length })}
               </h2>
               <div className="space-y-2">
                 {offline.map((friend) => (
@@ -126,10 +131,10 @@ export default function Page() {
             onSubmit={sendRequest}
           >
             <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-              Add Friend
+              {t('arena.friends.add')}
             </h2>
             <label className="sr-only" htmlFor="add-friend">
-              Username
+              {t('arena.friends.usernameLabel')}
             </label>
             <input
               id="add-friend"
@@ -139,7 +144,7 @@ export default function Page() {
                 setAddName(e.target.value);
                 setSentTo(null);
               }}
-              placeholder="Username..."
+              placeholder={t('arena.friends.usernamePlaceholder')}
               className="mb-3 w-full border border-white/10 bg-arena-750 px-3 py-2.5 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
             />
             <button
@@ -151,12 +156,12 @@ export default function Page() {
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              Send request
+              {t('arena.friends.send')}
             </button>
             <p className="mt-3 text-[11px] text-arena-200" aria-live="polite">
               {sentTo && (
                 <>
-                  Request sent to{' '}
+                  {t('arena.friends.sentTo')}{' '}
                   <span className="font-bold text-gold">{sentTo}</span>.
                 </>
               )}
@@ -167,7 +172,7 @@ export default function Page() {
           {requests.length > 0 && (
             <section className="border border-white/[0.07] bg-arena-800 p-5">
               <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-                Requests — {requests.length}
+                {t('arena.friends.requests', { n: requests.length })}
               </h2>
               <div className="space-y-3">
                 {requests.map((request) => (
@@ -185,7 +190,9 @@ export default function Page() {
                       type="button"
                       onClick={() => accept(request)}
                       className="cursor-pointer border border-gold/40 px-2 py-1 text-[10px] text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-                      aria-label={`Accept request from ${request.name}`}
+                      aria-label={t('arena.friends.accept', {
+                        name: request.name,
+                      })}
                     >
                       ✓
                     </button>
@@ -193,7 +200,9 @@ export default function Page() {
                       type="button"
                       onClick={() => dismiss(request)}
                       className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-                      aria-label={`Decline request from ${request.name}`}
+                      aria-label={t('arena.friends.decline', {
+                        name: request.name,
+                      })}
                     >
                       ✗
                     </button>
@@ -209,6 +218,7 @@ export default function Page() {
 }
 
 function FriendRow({ friend }: { friend: Friend }) {
+  const { t } = useT();
   return (
     <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
       <div className="relative">
@@ -234,23 +244,23 @@ function FriendRow({ friend }: { friend: Friend }) {
         </div>
       </div>
       <div className="hidden text-[11px] text-arena-300 sm:block">
-        {friend.wins} wins
+        {t('arena.friends.wins', { n: friend.wins })}
       </div>
       {friend.online ? (
         <button
           type="button"
           className="cursor-pointer bg-gold px-4 py-2 text-[10px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          aria-label={`Invite ${friend.name}`}
+          aria-label={t('arena.friends.inviteName', { name: friend.name })}
         >
-          Invite
+          {t('arena.friends.invite')}
         </button>
       ) : (
         <button
           type="button"
           className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.15em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          aria-label={`${friend.name} profile`}
+          aria-label={t('arena.friends.profileOf', { name: friend.name })}
         >
-          Profile
+          {t('arena.friends.profile')}
         </button>
       )}
     </div>
