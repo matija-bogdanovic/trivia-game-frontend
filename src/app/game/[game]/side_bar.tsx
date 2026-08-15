@@ -75,7 +75,12 @@ function SideBar() {
       <aside className="border border-gray p-4 gap-3 flex flex-col flex-1 overflow-auto">
         <div className="flex items-center justify-between">
           <h4 className="font-semibold">
-            {t('game.players', { n: activePlayers.length, max: maxPlayers })}
+            {maxPlayers === null
+              ? t('game.playersNoMax', { n: activePlayers.length })
+              : t('game.players', {
+                  n: activePlayers.length,
+                  max: maxPlayers,
+                })}
           </h4>
         </div>
         {phase === 'connecting' ? (
@@ -109,14 +114,16 @@ function SideBar() {
                 }
               />
             ))}
-            {phase === 'lobby' && connectedCount < minPlayers && (
-              <p className="text-sm text-gray-500">
-                {t('game.waitingPlayers', {
-                  a: connectedCount,
-                  b: minPlayers,
-                })}
-              </p>
-            )}
+            {phase === 'lobby' &&
+              minPlayers !== null &&
+              connectedCount < minPlayers && (
+                <p className="text-sm text-gray-500">
+                  {t('game.waitingPlayers', {
+                    a: connectedCount,
+                    b: minPlayers,
+                  })}
+                </p>
+              )}
             {spectators.length > 0 && (
               <div className="flex flex-col gap-1 border-t pt-2 mt-1">
                 <h5 className="text-sm font-medium text-gray-500">

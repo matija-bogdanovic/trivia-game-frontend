@@ -12,6 +12,7 @@ import {
 import { AppDispatch, RootState } from '@/app/redux/store';
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import SideBar from './side_bar';
 import LeaveButton from './leave_button';
@@ -23,7 +24,9 @@ amplifyConfigure();
 
 function Page() {
   const { t } = useT();
-  const { leaveRoom, playAgain, username, joinWithPassword } = useGame();
+  const { leaveRoom, playAgain, username, joinWithPassword, isHost } =
+    useGame();
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [roomPassword, setRoomPassword] = React.useState('');
   const {
@@ -38,6 +41,8 @@ function Page() {
     terminated,
     players,
     joinDenied,
+    roomClosed,
+    notImplemented,
   } = useSelector((state: RootState) => state.game);
 
   // achievement toasts dismiss themselves
@@ -47,7 +52,23 @@ function Page() {
     return () => clearTimeout(id);
   }, [achievementNotice, dispatch]);
 
-  const blocked = kicked || terminated || joinDenied !== null;
+  /*
+   * The host left and the server deleted the room under everyone. Nobody who
+   * stayed can do anything here, so the lobby is torn down rather than left on
+   * screen behind the notice — it would be showing a room that no longer
+   * exists. The host who triggered it is already navigating away from their
+   * own leaveRoom(), so they are not told the host left.
+   */
+  const closedOnMe = roomClosed !== null && !isHost;
+
+  React.useEffect(() => {
+    if (!closedOnMe) return;
+    // nobody gets stranded on a dead room if they ignore the button
+    const id = setTimeout(() => router.push('/rooms'), 6000);
+    return () => clearTimeout(id);
+  }, [closedOnMe, router]);
+
+  const blocked = kicked || terminated || joinDenied !== null || closedOnMe;
   const inLobby = phase === 'lobby' || phase === 'countdown';
 
   return (
@@ -160,6 +181,27 @@ function Page() {
         </div>
       )}
 
+      {closedOnMe && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8 text-center">
+            <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+              {t('arena.lobby.roomClosedTitle')}
+            </div>
+            <p className="text-sm text-arena-100">
+              {roomClosed === 'host_left'
+                ? t('arena.lobby.roomClosedHostLeft')
+                : t('arena.lobby.roomClosedGeneric')}
+            </p>
+            <button
+              onClick={() => router.push('/rooms')}
+              className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              {t('arena.lobby.backToRooms')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {(kicked || terminated) && (
         <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
           <div className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-md text-center">
@@ -266,6 +308,19 @@ function Page() {
               })
               .join(', '),
           })}
+        </div>
+      )}
+
+      {notImplemented && !blocked && (
+        <div className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 border border-gold/40 bg-arena-800 px-4 py-3 text-sm text-white">
+          <span>{t('game.notImplemented')}</span>
+          <button
+            className="cursor-pointer font-bold text-gold"
+            onClick={() => dispatch(clearError())}
+            aria-label={t('game.ok')}
+          >
+            ×
+          </button>
         </div>
       )}
 

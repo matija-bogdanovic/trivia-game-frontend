@@ -27,6 +27,12 @@ import {
 export interface GameActions {
   username: string | null;
   displayName: string | null;
+  /**
+   * Whether this player is the room's Admin. It decides whether leaving needs
+   * a warning, so it lives here rather than being recomputed by each screen
+   * that offers a Leave button.
+   */
+  isHost: boolean;
   startGame: () => void;
   submitAnswer: (answer: string) => void;
   submitGuess: (value: number) => void;
@@ -38,7 +44,7 @@ export interface GameActions {
   terminateLobby: () => void;
   sendChat: (text: string) => void;
   playAgain: () => void;
-  leaveRoom: () => void;
+  leaveRoom: () => void | Promise<void>;
 }
 
 const GameContext = createContext<GameActions | null>(null);
@@ -68,6 +74,11 @@ export default function GameProvider({
   /** password for private rooms, kept for reconnect re-joins */
   const passwordRef = useRef<string | null>(null);
   const roomCode = useSelector((state: RootState) => state.game.code);
+  const players = useSelector((state: RootState) => state.game.players);
+  const isHost = useMemo(
+    () => players.find((p) => p.username === username)?.isHost ?? false,
+    [players, username]
+  );
 
   useEffect(() => {
     getIdentity().then((id) => {
@@ -226,20 +237,41 @@ export default function GameProvider({
     sendJsonMessage({ type: 'play_again' });
   }, [sendJsonMessage]);
 
-  const leaveRoom = useCallback(() => {
+  /**
+   * Leave, and land somewhere useful.
+   *
+   * Both halves are needed and neither can do the other's job. The WS `leave`
+   * is what notifies the room — when the leaver is the host the server closes
+   * the room and broadcasts room_closed from there, because the REST Lambda
+   * cannot post to a socket on a different API. The REST call is what makes
+   * the departure durable in the Lobbies item.
+   *
+   * The REST call is awaited before navigating. It used to be fire-and-forget
+   * next to a synchronous router.push, which unmounts this provider and closes
+   * the socket — a host could leave, the frame could die with the socket, and
+   * the room would outlive them. Awaiting gives the frame time to flush and
+   * guarantees the durable delete landed; a failure still navigates, since
+   * trapping someone in a room they asked to leave is the worse outcome.
+   */
+  const leaveRoom = useCallback(async () => {
     sendJsonMessage({ type: 'leave' });
     // the URL carries the lobby id; the REST cleanup wants the numeric code
     if (username && roomCode !== null) {
-      apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(() => {});
+      await apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(
+        () => {}
+      );
     }
     dispatch(resetGame());
-    router.push('/');
+    // the rooms list, not the dashboard: someone who just left a room is
+    // most likely looking for another one
+    router.push('/rooms');
   }, [sendJsonMessage, username, roomCode, dispatch, router]);
 
   const value = useMemo<GameActions>(
     () => ({
       username,
       displayName,
+      isHost,
       startGame,
       submitAnswer,
       submitGuess,
@@ -256,6 +288,7 @@ export default function GameProvider({
     [
       username,
       displayName,
+      isHost,
       startGame,
       submitAnswer,
       submitGuess,

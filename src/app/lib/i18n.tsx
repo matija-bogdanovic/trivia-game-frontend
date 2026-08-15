@@ -13,6 +13,20 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // lobby — host leaving, room closure, capacity the server has not stated
+    'arena.lobby.hostLeaveTitle': 'You are the host',
+    'arena.lobby.hostLeaveWarning':
+      'If you leave the room, the room will be deleted for all players. Continue?',
+    'arena.lobby.hostLeaveConfirm': 'Leave and close',
+    'arena.lobby.hostLeaveCancel': 'Stay',
+    'arena.lobby.roomClosedTitle': 'Room closed',
+    'arena.lobby.roomClosedHostLeft':
+      'The host left the room — the room is closed.',
+    'arena.lobby.roomClosedGeneric': 'This room has been closed.',
+    'arena.lobby.backToRooms': 'Back to rooms',
+    'arena.lobby.seatsNoMax': '{n} in the room',
+    'game.playersNoMax': 'Players ({n})',
+    'game.notImplemented': 'That is not available yet on this server.',
     // oauth / federated sign-in
     'arena.auth.signingIn': 'Signing you in…',
     'arena.auth.oauthFailed': 'Google sign-in could not be completed.',
@@ -600,6 +614,20 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // lobby — host leaving, room closure, capacity the server has not stated
+    'arena.lobby.hostLeaveTitle': 'Ti si domaćin',
+    'arena.lobby.hostLeaveWarning':
+      'Ako napustiš sobu, soba će biti obrisana za sve igrače. Nastaviti?',
+    'arena.lobby.hostLeaveConfirm': 'Napusti i zatvori',
+    'arena.lobby.hostLeaveCancel': 'Ostani',
+    'arena.lobby.roomClosedTitle': 'Soba je zatvorena',
+    'arena.lobby.roomClosedHostLeft':
+      'Domaćin je napustio sobu — soba je zatvorena.',
+    'arena.lobby.roomClosedGeneric': 'Ova soba je zatvorena.',
+    'arena.lobby.backToRooms': 'Nazad na sobe',
+    'arena.lobby.seatsNoMax': '{n} u sobi',
+    'game.playersNoMax': 'Igrači ({n})',
+    'game.notImplemented': 'To još nije dostupno na ovom serveru.',
     // oauth / federated sign-in
     'arena.auth.signingIn': 'Prijavljivanje u toku…',
     'arena.auth.oauthFailed': 'Prijava preko Google naloga nije uspela.',

@@ -72,8 +72,14 @@ export interface GameState {
   phase: GamePhase;
   roomName: string;
   code: number | null;
-  minPlayers: number;
-  maxPlayers: number;
+  /**
+   * Seat limits, as sent by the server. Null until the first lobby_state —
+   * they used to default to 2 and 6, which are the server's real constants but
+   * were still a guess on the client: the lobby drew six seats and claimed a
+   * minimum before it had been told either.
+   */
+  minPlayers: number | null;
+  maxPlayers: number | null;
   players: GamePlayer[];
   round: number;
   countdown: number | null;
@@ -150,6 +156,17 @@ export interface GameState {
     | 'room_full'
     | 'unauthenticated'
     | null;
+  /**
+   * Set when the server tears the room down under everyone — currently only
+   * `host_left`. Distinct from `terminated`, which is the host explicitly
+   * closing a lobby they stayed in.
+   */
+  roomClosed: string | null;
+  /**
+   * The action the server refused because the turn engine is not built yet.
+   * The UI localises it; the slice only records which one.
+   */
+  notImplemented: string | null;
   error: string | null;
 }
 
@@ -157,8 +174,8 @@ const initialState: GameState = {
   phase: 'connecting',
   roomName: '',
   code: null,
-  minPlayers: 2,
-  maxPlayers: 6,
+  minPlayers: null,
+  maxPlayers: null,
   players: [],
   round: 0,
   countdown: null,
@@ -193,6 +210,8 @@ const initialState: GameState = {
   standings: [],
   chatMessages: [],
   achievementNotice: null,
+  roomClosed: null,
+  notImplemented: null,
   duelKind: null,
   duelPlayers: [],
   myGuessSubmitted: false,
@@ -234,8 +253,10 @@ const gameSlice = createSlice({
           state.code = message.code;
           state.isPrivate = message.isPrivate ?? false;
           state.joinDenied = null;
-          state.minPlayers = message.minPlayers;
-          state.maxPlayers = message.maxPlayers ?? 6;
+          state.minPlayers =
+            typeof message.minPlayers === 'number' ? message.minPlayers : null;
+          state.maxPlayers =
+            typeof message.maxPlayers === 'number' ? message.maxPlayers : null;
           state.players = message.players;
           state.round = message.round;
           if (message.phase === 'lobby') {
@@ -466,6 +487,20 @@ const gameSlice = createSlice({
         case 'lobby_terminated':
           state.terminated = true;
           break;
+        case 'room_closed':
+          state.roomClosed = message.reason ?? 'closed';
+          break;
+        /*
+         * Phase 0 answers start_game, kick_player and terminate_lobby with
+         * this. It used to fall through the switch unhandled, so the host
+         * pressed START and the lobby sat there saying "ready to start" —
+         * the screen's worst lie. Surfacing it as an error at least tells
+         * the truth about what happened.
+         */
+        case 'not_implemented':
+          state.notImplemented =
+            typeof message.action === 'string' ? message.action : 'action';
+          break;
         case 'error':
           state.error = message.message;
           break;
@@ -489,6 +524,7 @@ const gameSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+      state.notImplemented = null;
     },
     clearAchievementNotice: (state) => {
       state.achievementNotice = null;

@@ -23,6 +23,7 @@ export default function ArenaLobby() {
   const { t } = useT();
   const {
     username,
+    isHost: iAmHost,
     startGame,
     kickPlayer,
     terminateLobby,
@@ -43,6 +44,7 @@ export default function ArenaLobby() {
 
   const [message, setMessage] = useState('');
   const [copied, setCopied] = useState(false);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,9 +60,16 @@ export default function ArenaLobby() {
   const seated = players.filter((p) => !p.isSpectator);
   const spectators = players.filter((p) => p.isSpectator);
   const connectedCount = seated.filter((p) => p.connected).length;
-  const iAmHost = players.find((p) => p.username === username)?.isHost ?? false;
-  const canStart = iAmHost && connectedCount >= minPlayers;
-  const emptySlots = Math.max(0, maxPlayers - seated.length);
+  /*
+   * Capacity is the server's to state. Until lobby_state arrives both limits
+   * are null, and everything derived from them is withheld rather than
+   * guessed — no empty seats drawn against an assumed six, no "need N more"
+   * against an assumed two. The seats that ARE drawn are the real roster.
+   */
+  const enoughToStart = minPlayers === null || connectedCount >= minPlayers;
+  const canStart = iAmHost && enoughToStart;
+  const emptySlots =
+    maxPlayers === null ? 0 : Math.max(0, maxPlayers - seated.length);
 
   const copyCode = () => {
     if (code === null) return;
@@ -88,11 +97,13 @@ export default function ArenaLobby() {
           </h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] tracking-wider text-arena-200">
             <span>
-              {t('arena.lobby.seats', {
-                n: seated.length,
-                max: maxPlayers,
-                min: minPlayers,
-              })}
+              {maxPlayers === null || minPlayers === null
+                ? t('arena.lobby.seatsNoMax', { n: seated.length })
+                : t('arena.lobby.seats', {
+                    n: seated.length,
+                    max: maxPlayers,
+                    min: minPlayers,
+                  })}
             </span>
             <span className="border border-arena-400 px-2 py-0.5 text-[9px] tracking-widest uppercase">
               {isPrivate ? t('arena.common.private') : t('arena.common.public')}
@@ -136,13 +147,15 @@ export default function ArenaLobby() {
           ))}
         </div>
         <div
-          className={`text-[11px] tracking-wider font-bold ${connectedCount >= minPlayers ? 'text-gold' : 'text-arena-300'}`}
+          className={`text-[11px] font-bold tracking-wider ${enoughToStart ? 'text-gold' : 'text-arena-300'}`}
         >
           {phase === 'countdown' && countdown !== null
             ? t('arena.lobby.startingIn', { n: countdown })
-            : connectedCount >= minPlayers
-              ? t('arena.lobby.readyToStart')
-              : t('arena.lobby.needMore', { n: minPlayers - connectedCount })}
+            : minPlayers === null
+              ? ''
+              : connectedCount >= minPlayers
+                ? t('arena.lobby.readyToStart')
+                : t('arena.lobby.needMore', { n: minPlayers - connectedCount })}
         </div>
       </div>
 
@@ -264,9 +277,14 @@ export default function ArenaLobby() {
                 {t('arena.lobby.waitingHost')}
               </div>
             )}
+            {/*
+              The host leaving deletes the room for everyone, so they are asked
+              first. For anyone else leaving is just leaving, and a confirm
+              would be friction with nothing behind it.
+            */}
             <button
-              onClick={leaveRoom}
-              className="border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors ml-auto focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              onClick={() => (iAmHost ? setConfirmingLeave(true) : leaveRoom())}
+              className="ml-auto border border-white/10 px-5 py-4 text-[11px] tracking-[0.15em] text-arena-200 uppercase transition-colors hover:bg-arena-700 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               {t('arena.lobby.leave')}
             </button>
@@ -338,6 +356,43 @@ export default function ArenaLobby() {
           </div>
         </div>
       </div>
+
+      {confirmingLeave && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="leave-warning"
+        >
+          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8">
+            <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+              {t('arena.lobby.hostLeaveTitle')}
+            </div>
+            <p id="leave-warning" className="text-sm text-arena-100">
+              {t('arena.lobby.hostLeaveWarning')}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingLeave(false);
+                  void leaveRoom();
+                }}
+                className="flex-1 cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.lobby.hostLeaveConfirm')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingLeave(false)}
+                className="cursor-pointer border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.lobby.hostLeaveCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

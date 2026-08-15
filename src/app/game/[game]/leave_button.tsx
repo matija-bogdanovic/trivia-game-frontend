@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 
 function LeaveButton() {
   const { t } = useT();
-  const { leaveRoom } = useGame();
+  const { leaveRoom, isHost } = useGame();
   const [confirming, setConfirming] = useState(false);
 
   return (
@@ -33,7 +33,12 @@ function LeaveButton() {
             onClick={() => setConfirming(false)}
           ></div>
           <div className="relative flex flex-col gap-4 bg-white rounded-md p-6 z-10">
-            <p>{t('game.leaveConfirm')}</p>
+            {/* the host's departure deletes the room, so they get told that */}
+            <p>
+              {isHost
+                ? t('arena.lobby.hostLeaveWarning')
+                : t('game.leaveConfirm')}
+            </p>
             <div className="flex gap-3 justify-end">
               <button
                 className="px-4 py-2 rounded border border-gray-300 cursor-pointer"
@@ -41,7 +46,7 @@ function LeaveButton() {
               >
                 {t('game.stay')}
               </button>
-              <Button text={t('game.leave')} onClick={leaveRoom} />
+              <Button text={t('game.leave')} onClick={() => void leaveRoom()} />
             </div>
           </div>
         </div>

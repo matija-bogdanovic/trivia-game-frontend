@@ -22,12 +22,15 @@ interface Lobby {
   code: number;
   roomName: string;
   isPrivate: boolean;
+  /** the length of the room's seat roster — a real count, not an estimate */
   playerCount: number;
   phase: string;
   /**
-   * Whether the backend found a live game process for this room. When false
-   * the playerCount it sends is a fallback zero rather than a measurement, so
-   * the count is rendered as unknown instead of as "empty".
+   * Vestigial. It meant "the backend found a live in-memory game process",
+   * which was only ever true on the old Express server; the Lambda hardcodes
+   * it false. The count used to be hidden behind it and so was hidden always,
+   * showing every room as "—" even when the roster was known. Kept in the
+   * type because the endpoint still sends it.
    */
   isLive: boolean;
   createdAt: string | null;
@@ -223,13 +226,8 @@ export default function Page() {
                 <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
                   {t('arena.common.players')}
                 </div>
-                <div
-                  className="text-sm font-bold text-white tabular-nums"
-                  title={
-                    room.isLive ? undefined : t('arena.rooms.countUnknown')
-                  }
-                >
-                  {room.isLive ? room.playerCount : '—'}
+                <div className="text-sm font-bold text-white tabular-nums">
+                  {room.playerCount}
                 </div>
               </div>
               <div>
