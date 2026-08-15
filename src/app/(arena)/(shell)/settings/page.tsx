@@ -1,6 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
+import type { AppDispatch } from '@/app/redux/store';
 import { useEffect, useRef, useState } from 'react';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
@@ -11,8 +14,7 @@ import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import Button from '@/app/components/general/button';
 import { apiFetch } from '@/app/helpers/api';
-import { decodeAvatar, fileToDataUrl } from '@/app/helpers/avatar';
-import { getPort } from '@/app/helpers/port';
+import { fileToDataUrl } from '@/app/helpers/avatar';
 import { useT } from '@/app/lib/i18n';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
 
@@ -26,6 +28,7 @@ import AvatarCropper from '@/app/components/ui/avatar_cropper';
  */
 export default function Page() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { t } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
   const showSignInPrompt = !loading && !signedIn;
@@ -105,6 +108,10 @@ export default function Page() {
       }
       const { avatar } = await res.json();
       setCurrentAvatar(avatar);
+      // this is what makes the new picture appear everywhere at once — the
+      // sidebar and any other render site read the version from the store
+      if (signedInAs)
+        dispatch(setAvatarVersion({ username: signedInAs, avatar }));
       setPreview(null);
     } catch (err) {
       console.error('Avatar upload failed:', err);
@@ -117,11 +124,6 @@ export default function Page() {
   };
 
   /** what the tile shows: the pending crop, else the saved avatar, else initials */
-  const savedAvatar = decodeAvatar(currentAvatar);
-  const savedAvatarUrl =
-    savedAvatar?.kind === 'upload' && signedInAs
-      ? `${getPort()}/avatar/img/${encodeURIComponent(signedInAs)}?v=${savedAvatar.version}`
-      : null;
 
   const handleSignOut = async () => {
     try {
@@ -229,24 +231,17 @@ export default function Page() {
               {t('arena.settings.profilePicture')}
             </div>
             <div className="flex flex-wrap items-center gap-4">
-              {preview || savedAvatarUrl ? (
-                // the backend serves these; next/image would need the host
-                // allow-listed, and a data: URL cannot be optimised at all
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview ?? savedAvatarUrl ?? ''}
-                  alt={t('profile.avatar')}
-                  className="h-12 w-12 shrink-0 object-cover"
-                />
-              ) : (
-                <Avatar
-                  initial={(username || identity?.username || '?')
-                    .charAt(0)
-                    .toUpperCase()}
-                  size="lg"
-                  accent
-                />
-              )}
+              <Avatar
+                initial={(username || identity?.username || '?')
+                  .charAt(0)
+                  .toUpperCase()}
+                username={signedInAs}
+                avatar={currentAvatar}
+                previewUrl={preview}
+                alt={t('profile.avatar')}
+                size="lg"
+                accent
+              />
 
               <input
                 ref={fileInput}

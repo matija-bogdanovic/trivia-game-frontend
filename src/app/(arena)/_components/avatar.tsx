@@ -1,3 +1,7 @@
+'use client';
+
+import { useAvatarSource } from '@/app/components/hooks/use_avatar';
+
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZES: Record<AvatarSize, string> = {
@@ -9,26 +13,68 @@ const SIZES: Record<AvatarSize, string> = {
 };
 
 /**
- * The square initial tile every screen uses for a player.
+ * A player's avatar: their uploaded picture, a legacy emoji, or their initial.
  *
- * The Figma export repeated this markup across nine views with slightly
- * different sizes and colour rules each time; one component keeps them honest.
+ * Always a circle, in every variant — the image, the emoji and the initials
+ * fallback all share the same round frame so a user with a photo and one
+ * without look like the same kind of thing.
+ *
+ * The picture URL comes from useAvatarSource, which reads the version out of
+ * the store, so an upload elsewhere in the app updates this instantly.
  */
 export default function Avatar({
   initial,
+  username,
+  avatar,
   size = 'md',
   accent = false,
+  /** a pending crop, shown before it has been uploaded */
+  previewUrl,
+  alt,
 }: {
   initial: string;
+  /** required to build a picture URL; without it this renders initials */
+  username?: string | null;
+  /** the avatar string this caller holds, if any */
+  avatar?: string | null;
   size?: AvatarSize;
   /** Gold fill — reserved for the winner, the host, or the active player. */
   accent?: boolean;
+  previewUrl?: string | null;
+  alt?: string;
 }) {
+  const { imageUrl, emoji } = useAvatarSource(username, avatar);
+  const src = previewUrl ?? imageUrl;
+  const frame = `flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold ${SIZES[size]}`;
+
+  if (src) {
+    return (
+      // the backend serves these and a data: URL cannot be optimised, so
+      // next/image would need the host allow-listed for no benefit
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt ?? initial}
+        className={`${frame} object-cover select-none`}
+      />
+    );
+  }
+
+  if (emoji) {
+    return (
+      <span
+        className={frame}
+        style={{ backgroundColor: `hsl(${emoji.hue} 45% 30%)` }}
+        aria-hidden="true"
+      >
+        {emoji.emoji}
+      </span>
+    );
+  }
+
   return (
     <span
-      className={`flex shrink-0 items-center justify-center font-bold ${SIZES[size]} ${
-        accent ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'
-      }`}
+      className={`${frame} ${accent ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'}`}
       aria-hidden="true"
     >
       {initial}

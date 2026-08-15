@@ -1,7 +1,6 @@
 'use client';
 
-import { decodeAvatar } from '@/app/helpers/avatar';
-import { getPort } from '@/app/helpers/port';
+import { useAvatarSource } from '@/app/components/hooks/use_avatar';
 
 /**
  * The design draws every player as a flat square with their initial. Players
@@ -23,28 +22,28 @@ export default function AvatarTile({
   /** host / winner styling */
   accent?: boolean;
 }) {
-  const info = decodeAvatar(avatar);
-  const base = `flex items-center justify-center font-bold flex-shrink-0 overflow-hidden ${className}`;
+  const { imageUrl, emoji } = useAvatarSource(username, avatar);
+  const base = `flex items-center justify-center font-bold flex-shrink-0 overflow-hidden rounded-full ${className}`;
 
-  if (info?.kind === 'upload') {
+  if (imageUrl) {
     return (
       // the backend serves these; next/image would need the host allow-listed
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`${getPort()}/avatar/img/${encodeURIComponent(username)}?v=${info.version}`}
+        src={imageUrl}
         alt={displayName}
         className={`${base} object-cover`}
       />
     );
   }
 
-  if (info?.kind === 'emoji') {
+  if (emoji) {
     return (
       <div
         className={base}
-        style={{ backgroundColor: `hsl(${info.hue} 45% 30%)` }}
+        style={{ backgroundColor: `hsl(${emoji.hue} 45% 30%)` }}
       >
-        {info.emoji}
+        {emoji.emoji}
       </div>
     );
   }

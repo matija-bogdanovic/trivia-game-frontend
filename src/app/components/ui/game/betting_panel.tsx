@@ -33,9 +33,7 @@ function BettingPanel() {
             {t('game.yourBet', {
               n: myBet.amount,
               name: nameOf(answering),
-              bet: t(
-                myBet.bet === 'correct' ? 'game.correctly' : 'game.wrong'
-              ),
+              bet: t(myBet.bet === 'correct' ? 'game.correctly' : 'game.wrong'),
             })}
           </span>
         )}

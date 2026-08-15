@@ -151,14 +151,15 @@ function QuestionUI() {
         </div>
 
         {phase === 'question' && (
-          <TimerBar remainingMs={answerRemaining} durationMs={answerDurationMs} />
+          <TimerBar
+            remainingMs={answerRemaining}
+            durationMs={answerDurationMs}
+          />
         )}
 
         <div
           className={`rounded px-3 py-2 text-sm ${
-            isAnswerer
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700'
+            isAnswerer ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'
           }`}
         >
           {phase === 'betting'
@@ -250,7 +251,10 @@ function QuestionUI() {
               </p>
             )}
             {pickRemaining !== null && (
-              <TimerBar remainingMs={pickRemaining} durationMs={pickDurationMs} />
+              <TimerBar
+                remainingMs={pickRemaining}
+                durationMs={pickDurationMs}
+              />
             )}
           </div>
         )}

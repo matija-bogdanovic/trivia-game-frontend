@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
+import type { AppDispatch } from '@/app/redux/store';
 import { apiFetch } from '@/app/helpers/api';
 import { getIdentity, type Identity } from '@/app/helpers/token_operations';
 
@@ -38,6 +41,7 @@ export interface WalletState {
  * backend. Failure is not thrown — a screen renders its empty state instead.
  */
 export function useWallet(): WalletState {
+  const dispatch = useDispatch<AppDispatch>();
   const [state, setState] = useState<WalletState>({
     identity: null,
     wallet: null,
@@ -63,8 +67,15 @@ export function useWallet(): WalletState {
       try {
         const res = await apiFetch('/wallet');
         const wallet = res.ok ? ((await res.json()) as Wallet) : null;
-        if (!cancelled)
-          setState({ identity, wallet, loading: false, signedIn: true });
+        if (cancelled) return;
+        // whoever loads the wallet first seeds the avatar version for everyone
+        dispatch(
+          setAvatarVersion({
+            username: identity.username,
+            avatar: wallet?.avatar ?? null,
+          })
+        );
+        setState({ identity, wallet, loading: false, signedIn: true });
       } catch {
         if (!cancelled)
           setState({ identity, wallet: null, loading: false, signedIn: true });
@@ -74,7 +85,7 @@ export function useWallet(): WalletState {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dispatch]);
 
   return state;
 }

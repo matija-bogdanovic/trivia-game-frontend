@@ -1,6 +1,7 @@
+'use client';
+
 import React from 'react';
-import { decodeAvatar } from '@/app/helpers/avatar';
-import { getPort } from '@/app/helpers/port';
+import { useAvatarSource } from '@/app/components/hooks/use_avatar';
 
 function hashHue(name: string): number {
   let hash = 0;
@@ -23,13 +24,13 @@ interface AvatarProps {
 /** Profile picture: the player's uploaded photo, a legacy emoji avatar,
  *  or deterministic initials derived from the display name. */
 function Avatar({ name, username, avatar = null, size = 48 }: AvatarProps) {
-  const info = decodeAvatar(avatar);
+  const { imageUrl, emoji } = useAvatarSource(username ?? name, avatar);
 
-  if (info?.kind === 'upload') {
+  if (imageUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={`${getPort()}/avatar/img/${encodeURIComponent(username ?? name)}?v=${info.version}`}
+        src={imageUrl}
         alt={name}
         width={size}
         height={size}
@@ -39,18 +40,18 @@ function Avatar({ name, username, avatar = null, size = 48 }: AvatarProps) {
     );
   }
 
-  const hue = info?.kind === 'emoji' ? info.hue : hashHue(name);
+  const hue = emoji ? emoji.hue : hashHue(name);
   return (
     <div
       className="rounded-full flex items-center justify-center text-white font-semibold select-none shrink-0"
       style={{
         width: size,
         height: size,
-        fontSize: info?.kind === 'emoji' ? size * 0.55 : size * 0.38,
+        fontSize: emoji ? size * 0.55 : size * 0.38,
         backgroundColor: `hsl(${hue} 65% 45%)`,
       }}
     >
-      {info?.kind === 'emoji' ? info.emoji : name.slice(0, 2).toUpperCase()}
+      {emoji ? emoji.emoji : name.slice(0, 2).toUpperCase()}
     </div>
   );
 }

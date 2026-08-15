@@ -92,9 +92,8 @@ function CodeDuelUI() {
 
         <p className="text-sm text-gray-600">
           {t('game.codeDuelHint', { n: codeLength })}{' '}
-          <span className="text-green-600">●</span> ={' '}
-          {t('game.codeExact')}, <span className="text-yellow-500">○</span> ={' '}
-          {t('game.codePartial')}
+          <span className="text-green-600">●</span> = {t('game.codeExact')},{' '}
+          <span className="text-yellow-500">○</span> = {t('game.codePartial')}
         </p>
 
         {phase === 'duel' && amDueling && (

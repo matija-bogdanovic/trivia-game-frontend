@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import { signOut } from 'aws-amplify/auth';
-import { getIdentity } from '@/app/helpers/token_operations';
+import Avatar from './avatar';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
 import { ME } from '@/app/(arena)/_mock/progress';
 import LogoPlaceholder from './logo_placeholder';
@@ -22,12 +22,14 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { lang, setLang, t } = useT();
-  const [displayName, setDisplayName] = useState<string | null>(null);
+  /*
+   * The shell mounts once and survives navigation, so this is a single wallet
+   * fetch for the whole session — and it seeds the avatar version every other
+   * render site reads.
+   */
+  const { identity, wallet } = useWallet();
 
-  useEffect(() => {
-    getIdentity().then((id) => setDisplayName(id?.displayName ?? null));
-  }, []);
-
+  const displayName = identity?.displayName ?? null;
   const name = displayName ?? t('arena.nav.notSignedIn');
   const initial = displayName ? displayName.charAt(0).toUpperCase() : '·';
 
@@ -114,12 +116,13 @@ export default function Sidebar() {
             href="/profile"
             className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 transition-colors hover:bg-arena-900 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
-            <span
-              className="flex h-8 w-8 shrink-0 items-center justify-center bg-gold text-sm font-bold text-arena-950"
-              aria-hidden="true"
-            >
-              {initial}
-            </span>
+            <Avatar
+              initial={initial}
+              username={identity?.username}
+              avatar={wallet?.avatar}
+              size="xs"
+              accent
+            />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-xs font-bold text-white">
                 {name}
@@ -161,10 +164,16 @@ export default function Sidebar() {
             </Link>
             <Link
               href="/profile"
-              className="flex h-8 w-8 shrink-0 items-center justify-center bg-gold text-sm font-bold text-arena-950 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="shrink-0 rounded-full focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               aria-label={t('arena.nav.profileOf', { name })}
             >
-              {initial}
+              <Avatar
+                initial={initial}
+                username={identity?.username}
+                avatar={wallet?.avatar}
+                size="xs"
+                accent
+              />
             </Link>
             {langButton('')}
             <button

@@ -114,9 +114,7 @@ function DuelUI() {
 
         {phase === 'reveal' && correctValue !== null && (
           <div className="flex flex-col gap-1 text-gray-800 border-t pt-3">
-            <p>
-              {t('game.correctValue', { n: correctValue })}
-            </p>
+            <p>{t('game.correctValue', { n: correctValue })}</p>
             {duelGuesses.map((g) => (
               <p key={g.username} className="text-sm">
                 {g.guess === null
