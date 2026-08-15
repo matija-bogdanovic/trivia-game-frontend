@@ -5,6 +5,8 @@ export type GamePhase =
   | 'connecting'
   | 'lobby'
   | 'countdown'
+  /** the "Runda N" beat that opens each wheel cycle */
+  | 'round_intro'
   | 'spin'
   | 'question'
   | 'betting'
@@ -178,6 +180,10 @@ export interface GameState {
    * difference lets an absolute server timestamp — currentSpin.startedAt has
    * no remaining-time twin — be placed on the client's own clock.
    */
+  /** still standing at the top of the round, as the server counts it */
+  playersAlive: number;
+  introEndsAt: number | null;
+  introDurationMs: number;
   serverSkewMs: number;
   /** absolute server-time deadline for the current phase */
   phaseEndsAt: number | null;
@@ -307,6 +313,9 @@ const initialState: GameState = {
   turnMode: 'open',
   challengeBet: null,
   hasAnswered: false,
+  playersAlive: 0,
+  introEndsAt: null,
+  introDurationMs: 0,
   serverSkewMs: 0,
   phaseEndsAt: null,
   picker: null,
@@ -447,6 +456,41 @@ const gameSlice = createSlice({
           } else {
             state.hasAnswered = false;
           }
+          break;
+        }
+        /*
+         * The beat between rounds. It states its deadline both ways —
+         * roundEndsAt absolute, introTimeMs remaining — so the pair teaches
+         * the clock its skew without needing the preceding game_state, and
+         * the countdown is built from the remaining form, which no client
+         * clock can be wrong about.
+         */
+        case 'round_intro': {
+          const remaining =
+            typeof message.introTimeMs === 'number' ? message.introTimeMs : 0;
+          if (typeof message.roundEndsAt === 'number') {
+            state.serverSkewMs = message.roundEndsAt - (receivedAt + remaining);
+            state.phaseEndsAt = message.roundEndsAt;
+          }
+          state.phase = 'round_intro';
+          state.round = message.round ?? state.round;
+          state.playersAlive = Number(message.playersAlive ?? 0);
+          state.introDurationMs = remaining;
+          state.introEndsAt =
+            typeof message.introTimeMs === 'number'
+              ? receivedAt + remaining
+              : null;
+          // a new round starts clean
+          state.questionText = '';
+          state.options = [];
+          state.selectedAnswer = null;
+          state.correctAnswer = null;
+          state.answering = null;
+          state.answerEndsAt = null;
+          state.betEndsAt = null;
+          state.betOutcomes = [];
+          state.eliminatedNow = [];
+          state.myBet = null;
           break;
         }
         case 'spin':

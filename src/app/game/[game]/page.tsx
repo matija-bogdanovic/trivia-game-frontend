@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import GameShell from './_arena/game_shell';
 import ArenaQuestion from './_arena/question';
+import ArenaRoundIntro from './_arena/round_intro';
 import ArenaSpin from './_arena/spin';
 import ArenaReveal from './_arena/reveal';
 import ArenaLobby from './_arena/lobby';
@@ -108,6 +109,8 @@ function Page() {
         <GameShell onLeave={() => void leaveRoom()}>
           {phase === 'question' ? (
             <ArenaQuestion />
+          ) : phase === 'round_intro' ? (
+            <ArenaRoundIntro />
           ) : phase === 'spin' ? (
             <ArenaSpin />
           ) : phase === 'reveal' ? (

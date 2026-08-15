@@ -13,6 +13,8 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.game.getReady': 'Get ready',
+    'arena.game.playersAlive': '{n} still standing',
     'arena.game.correct': 'CORRECT',
     'arena.game.incorrect': 'INCORRECT',
     'arena.game.timeOut': 'TIME OUT',
@@ -675,6 +677,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.game.getReady': 'Spremi se',
+    'arena.game.playersAlive': 'Još {n} u igri',
     'arena.game.correct': 'TAČNO',
     'arena.game.incorrect': 'NETAČNO',
     'arena.game.timeOut': 'ISTEKLO VREME',
