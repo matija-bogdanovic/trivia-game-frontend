@@ -63,13 +63,31 @@ export function getGameHost(): string {
   return resolveGameUrl();
 }
 
+/** the game host as a ws:// or wss:// origin, whichever scheme it was given in */
+function toSocketScheme(host: string): string {
+  if (/^wss?:\/\//i.test(host)) return host;
+  return host.replace(/^http/i, 'ws');
+}
+
 /**
- * Socket URL for a game path, built from the game host and never from the
- * REST base. Accepts the host as either scheme: `https://h` and `wss://h`
- * both give `wss://h<path>`.
+ * The socket endpoint — the bare host, with no path.
+ *
+ * An API Gateway WebSocket API does not route on the URL path: everything
+ * after the stage is dropped before the handler sees it, so a lobby id in the
+ * path would simply vanish. The lobby id travels in the `join` message body
+ * instead. Built from the game host and never from the REST base.
+ */
+export function getSocketUrl(): string {
+  return toSocketScheme(resolveGameUrl());
+}
+
+/**
+ * Socket URL for a game path.
+ *
+ * @deprecated API Gateway drops the path. Use getSocketUrl() and put the lobby
+ * id in the join message. Kept for the always-on `ws` server, which does route
+ * on the path.
  */
 export function getWebSocketUrl(path: string): string {
-  const host = resolveGameUrl();
-  if (/^wss?:\/\//i.test(host)) return host + path;
-  return host.replace(/^http/i, 'ws') + path;
+  return toSocketScheme(resolveGameUrl()) + path;
 }

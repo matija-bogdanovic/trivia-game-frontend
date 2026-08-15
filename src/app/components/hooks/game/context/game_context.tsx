@@ -11,8 +11,8 @@ import React, {
 } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useDispatch, useSelector } from 'react-redux';
-import { usePathname, useRouter } from 'next/navigation';
-import { getWebSocketUrl } from '@/app/helpers/port';
+import { useParams, useRouter } from 'next/navigation';
+import { getSocketUrl } from '@/app/helpers/port';
 import { getIdentity } from '@/app/helpers/token_operations';
 import { apiFetch, getAccessToken } from '@/app/helpers/api';
 import { AppDispatch, RootState } from '@/app/redux/store';
@@ -48,14 +48,21 @@ export default function GameProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  /**
+   * The lobby this provider is for. It used to ride in the socket path; API
+   * Gateway drops the path, so it is read from the route here and sent in the
+   * join message instead. The route is /game/[game].
+   */
+  const params = useParams<{ game?: string | string[] }>();
+  const lobbyId = Array.isArray(params?.game) ? params.game[0] : params?.game;
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const phase = useSelector((state: RootState) => state.game.phase);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
-  const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
+  // the bare host — no lobby id in the path, see getSocketUrl()
+  const socketUrl = useMemo(() => getSocketUrl(), []);
   const [username, setUsername] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   /** password for private rooms, kept for reconnect re-joins */
@@ -77,26 +84,38 @@ export default function GameProvider({
   );
 
   /**
-   * The server reads the player's identity off this token, so the join has to
-   * carry a fresh one — Amplify refreshes it behind getAccessToken(), which
-   * matters on a long game or after a reconnect. displayName stays cosmetic.
+   * The join message carries everything the server needs to place this socket:
+   * which lobby, and who is asking.
+   *
+   * The token has to be fresh — the server verifies it against the pool, and
+   * Amplify refreshes it behind getAccessToken(), which matters on a long game
+   * or after a reconnect. displayName stays cosmetic; identity comes from the
+   * token. The lobby id is here rather than in the URL because an API Gateway
+   * WebSocket API has no path routing.
    */
   const sendJoin = useCallback(
     async (password?: string) => {
+      if (!lobbyId) return;
       const token = await getAccessToken();
       if (!token) return;
       sendJsonMessage({
         type: 'join',
+        lobbyId,
         token,
         displayName,
         password: password ?? passwordRef.current ?? undefined,
       });
     },
-    [displayName, sendJsonMessage]
+    [lobbyId, displayName, sendJsonMessage]
   );
 
-  // join (or rejoin after a reconnect) once the socket is open and the
-  // identity has resolved; the server hydrates avatar + streak from the wallet
+  /*
+   * Join once the socket is open and the identity has resolved — and re-join
+   * on every reconnect. That is not belt-and-braces: a serverless socket keeps
+   * no per-connection memory, so a reconnected socket is an anonymous one
+   * until it says who it is again. readyState flipping back to OPEN is what
+   * re-fires this.
+   */
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
       void sendJoin();
