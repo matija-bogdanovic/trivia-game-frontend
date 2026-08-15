@@ -13,6 +13,10 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.game.playerSelection': 'Player selection',
+    'arena.game.selecting': 'SELECTING…',
+    'arena.game.selected': '{name} is up',
+    'arena.game.noPlayers': 'No players',
     // in-game arena
     'arena.game.pot': 'Pot',
     'arena.game.round': 'Round {n}',
@@ -657,6 +661,10 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.game.playerSelection': 'Biranje igrača',
+    'arena.game.selecting': 'BIRANJE…',
+    'arena.game.selected': 'Na redu je {name}',
+    'arena.game.noPlayers': 'Nema igrača',
     // in-game arena
     'arena.game.pot': 'Kasa',
     'arena.game.round': 'Runda {n}',

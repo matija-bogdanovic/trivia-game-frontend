@@ -1,7 +1,6 @@
 'use client';
 
 import Avatar from '@/app/components/ui/game/avatar';
-import SpinWheel from '@/app/components/ui/game/spin_wheel';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import {
   clearAchievementNotice,
@@ -15,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
 import GameShell from './_arena/game_shell';
 import ArenaQuestion from './_arena/question';
+import ArenaSpin from './_arena/spin';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
@@ -107,6 +107,8 @@ function Page() {
         <GameShell onLeave={() => void leaveRoom()}>
           {phase === 'question' ? (
             <ArenaQuestion />
+          ) : phase === 'spin' ? (
+            <ArenaSpin />
           ) : (
             <div className="text-center text-[11px] tracking-[0.3em] text-arena-300 uppercase">
               {t('arena.game.phasePending', { phase })}
@@ -243,8 +245,6 @@ function Page() {
           </div>
         </div>
       )}
-
-      {phase === 'spin' && !blocked && <SpinWheel />}
 
       {phase === 'countdown' && countdown !== null && !blocked && (
         <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex flex-col justify-center items-center gap-4">
