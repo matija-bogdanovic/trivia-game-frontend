@@ -17,6 +17,7 @@ import ArenaQuestion from './_arena/question';
 import ArenaRoundIntro from './_arena/round_intro';
 import ArenaSpin from './_arena/spin';
 import ArenaReveal from './_arena/reveal';
+import ArenaBetting from './_arena/betting';
 import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
@@ -41,6 +42,8 @@ function Page() {
     kicked,
     terminated,
     players,
+    answering,
+    turnMode,
     joinDenied,
     roomClosed,
     kickedReason,
@@ -85,6 +88,21 @@ function Page() {
   const blocked = kicked || terminated || joinDenied !== null || closedOnMe;
   const inLobby = phase === 'lobby' || phase === 'countdown';
 
+  /*
+   * The book is open across the question AND the pause, and closed to the
+   * answerer, to a challenge (whose only bet was committed at pick time) and
+   * to anyone out of the match. These mirror onPlaceBet's own refusals, which
+   * are silent — a panel offered where the server would ignore it is worse
+   * than no panel.
+   */
+  const iAmAnswering = Boolean(username) && answering === username;
+  const meNow = players.find((p) => p.username === username);
+  const bookOpen =
+    (phase === 'question' || phase === 'betting') &&
+    turnMode !== 'challenge' &&
+    !iAmAnswering &&
+    Boolean(meNow?.alive);
+
   return (
     <>
       {phase === 'connecting' && !blocked && (
@@ -106,8 +124,11 @@ function Page() {
        * to the pre-reskin screens, which are being deleted.
        */}
       {!inLobby && phase !== 'connecting' && !blocked && (
-        <GameShell onLeave={() => void leaveRoom()}>
-          {phase === 'question' ? (
+        <GameShell
+          onLeave={() => void leaveRoom()}
+          aside={bookOpen ? <ArenaBetting /> : undefined}
+        >
+          {phase === 'question' || phase === 'betting' ? (
             <ArenaQuestion />
           ) : phase === 'round_intro' ? (
             <ArenaRoundIntro />

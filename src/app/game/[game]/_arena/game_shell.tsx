@@ -26,9 +26,13 @@ const LADDER = ['I', 'II', 'III', 'IV'];
 
 export default function GameShell({
   children,
+  aside,
   onLeave,
 }: {
   children: React.ReactNode;
+  /** the bet panel, when the book is open — it spans two phases, so it
+   *  sits beside the stage rather than replacing it */
+  aside?: React.ReactNode;
   onLeave: () => void;
 }) {
   const { t } = useT();
@@ -138,6 +142,8 @@ export default function GameShell({
         <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto p-6 sm:p-8">
           {children}
         </main>
+
+        {aside}
       </div>
 
       {/* ====================================================== bottom HUD */}

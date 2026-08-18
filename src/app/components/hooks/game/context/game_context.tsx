@@ -38,7 +38,11 @@ export interface GameActions {
   submitGuess: (value: number) => void;
   submitCode: (guess: string[]) => void;
   joinWithPassword: (password: string) => void;
-  placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
+  placeBet: (
+    side: 'correct' | 'wrong' | 'neutral',
+    amount: number,
+    allIn?: boolean
+  ) => void;
   pickPlayer: (target: string) => void;
   kickPlayer: (target: string) => void;
   terminateLobby: () => void;
@@ -222,14 +226,27 @@ export default function GameProvider({
     [sendJsonMessage]
   );
 
+  /**
+   * Declare on this turn: a side with a stake, or neutral.
+   *
+   * Neutral used to be swallowed here — it set the local flag and returned
+   * without telling anybody. The server counts abstaining as a declaration and
+   * closes the betting pause early once everyone has made one, so a player who
+   * sat out was silently holding the pause open for the whole clock.
+   *
+   * `side` is what the handler reads first (`msg.side ?? msg.bet`); allIn is
+   * sent as a flag rather than an amount so the server stakes the money it
+   * knows the player has, not the figure this client last saw.
+   */
   const placeBet = useCallback(
-    (bet: 'correct' | 'wrong' | 'neutral', amount: number) => {
-      if (bet === 'neutral') {
+    (side: 'correct' | 'wrong' | 'neutral', amount: number, allIn = false) => {
+      if (side === 'neutral') {
         dispatch(setMyBet({ kind: 'neutral' }));
+        sendJsonMessage({ type: 'place_bet', side, amount: 0 });
         return;
       }
-      dispatch(setMyBet({ kind: 'placed', bet, amount }));
-      sendJsonMessage({ type: 'place_bet', bet, amount });
+      dispatch(setMyBet({ kind: 'placed', bet: side, amount }));
+      sendJsonMessage({ type: 'place_bet', side, amount, allIn });
     },
     [dispatch, sendJsonMessage]
   );

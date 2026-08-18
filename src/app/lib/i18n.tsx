@@ -13,6 +13,21 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // the book
+    'arena.bet.title': 'Place your bet',
+    'arena.bet.question': 'Will {name} answer correctly?',
+    'arena.bet.stake': 'Stake',
+    'arena.bet.allIn': 'All in',
+    'arena.bet.right': 'Correct',
+    'arena.bet.wrong': 'Wrong',
+    'arena.bet.pays': 'pays {amount}',
+    'arena.bet.sitOut': 'Sit this one out',
+    'arena.bet.satOut': 'Sitting out',
+    'arena.bet.placed': '{amount} on {side}',
+    'arena.bet.yours': 'Your bet',
+    'arena.bet.declared': '{n} declared',
+    'arena.bet.yourMoney': 'Your money',
+    'arena.bet.tooPoor': 'You need at least {min} to bet.',
     // adding a friend — by exact username; there is no user search
     'arena.friends.requestSent': 'Request sent to {name}.',
     'arena.friends.nowFriends':
@@ -697,6 +712,21 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // ulozi
+    'arena.bet.title': 'Uloži',
+    'arena.bet.question': 'Da li će {name} odgovoriti tačno?',
+    'arena.bet.stake': 'Ulog',
+    'arena.bet.allIn': 'Sve',
+    'arena.bet.right': 'Tačno',
+    'arena.bet.wrong': 'Netačno',
+    'arena.bet.pays': 'donosi {amount}',
+    'arena.bet.sitOut': 'Preskoči ovu rundu',
+    'arena.bet.satOut': 'Preskočeno',
+    'arena.bet.placed': '{amount} na {side}',
+    'arena.bet.yours': 'Tvoj ulog',
+    'arena.bet.declared': 'Uložilo: {n}',
+    'arena.bet.yourMoney': 'Tvoj novac',
+    'arena.bet.tooPoor': 'Potrebno je bar {min} za ulog.',
     // dodavanje prijatelja — po tačnom korisničkom imenu, pretrage nema
     'arena.friends.requestSent': 'Zahtev poslat igraču {name}.',
     'arena.friends.nowFriends':
