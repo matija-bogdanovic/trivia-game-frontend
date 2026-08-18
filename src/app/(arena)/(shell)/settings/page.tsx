@@ -442,32 +442,40 @@ export default function Page() {
         </div>
       </section>
 
-      {/* =================================================== account mgmt */}
-      <section className="border border-white/[0.07] bg-arena-800">
-        <div className="border-b border-white/[0.07] px-6 py-4">
-          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            {t('arena.settings.management')}
+      {/* ===================================================== danger zone */}
+      <section className="border border-red-500/40 bg-red-500/[0.04]">
+        <div className="border-b border-red-500/30 px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-red-400 uppercase">
+            {t('arena.settings.dangerZone')}
           </h2>
+          <p className="mt-1 text-[10px] text-arena-300">
+            {t('arena.settings.dangerZoneNote')}
+          </p>
         </div>
         <div className="space-y-3 p-6">
+          {/*
+            No handle beside the button. It printed the Cognito username next
+            to Log Out — a google_1024… id on a federated account — which told
+            the player nothing they wanted and showed them an internal
+            identifier they never chose.
+          */}
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full cursor-pointer border border-white/20 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="w-full cursor-pointer border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
             {t('arena.settings.logOut')}
-            {signedInAs && (
-              <span className="ml-2 text-arena-300 normal-case">
-                ({signedInAs})
-              </span>
-            )}
           </button>
           <button
             type="button"
-            className="w-full cursor-pointer border border-arena-500/40 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="w-full cursor-pointer border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
             {t('arena.settings.deleteAccount')}
           </button>
+          {/* it has never had a handler; styling it does not make it work */}
+          <p className="text-[10px] tracking-wider text-arena-300">
+            {t('arena.settings.deleteNotWired')}
+          </p>
         </div>
       </section>
     </div>

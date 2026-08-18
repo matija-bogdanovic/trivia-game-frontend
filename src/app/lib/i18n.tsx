@@ -13,6 +13,11 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.settings.dangerZone': 'Danger zone',
+    'arena.settings.dangerZoneNote':
+      'These affect your account, not just this device.',
+    'arena.settings.deleteNotWired':
+      'Deleting an account is not available yet.',
     'arena.results.breakdown':
       '{correct} right · {wrong} wrong · {bets} bets won',
     'arena.results.potAwarded': 'Pot to the winner: {amount}',
@@ -736,6 +741,10 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.settings.dangerZone': 'Opasna zona',
+    'arena.settings.dangerZoneNote':
+      'Ovo utiče na tvoj nalog, ne samo na ovaj uređaj.',
+    'arena.settings.deleteNotWired': 'Brisanje naloga još nije dostupno.',
     'arena.results.breakdown':
       '{correct} tačno · {wrong} netačno · {bets} dobijenih uloga',
     'arena.results.potAwarded': 'Kasa pobedniku: {amount}',
@@ -1312,7 +1321,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.roomInvitesDesc':
       'Dozvoli prijateljima da te pozovu u svoje sobe',
     'arena.settings.management': 'Upravljanje nalogom',
-    'arena.settings.logOut': 'Odjavi se',
+    'arena.settings.logOut': 'Odjava',
     'arena.settings.deleteAccount': 'Obriši nalog',
     'arena.difficulty.All': 'Sve',
     'arena.difficulty.Easy': 'Lako',
