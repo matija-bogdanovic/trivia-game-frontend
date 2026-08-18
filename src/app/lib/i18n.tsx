@@ -13,6 +13,9 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.results.breakdown':
+      '{correct} right · {wrong} wrong · {bets} bets won',
+    'arena.results.potAwarded': 'Pot to the winner: {amount}',
     'arena.duel.vs': 'VS',
     'arena.duel.locked': 'Answered',
     'arena.duel.thinking': 'Thinking…',
@@ -617,7 +620,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.results.finalBalance': 'Final Balance',
     'arena.results.newStreak': 'New Streak',
     'arena.results.finalRankings': 'Final Rankings',
-    'arena.results.breakdown':
+    'arena.results.breakdownOld':
       '{correct} correct · {wrong} wrong · {duels} duels won',
     'arena.results.yourPerformance': 'Your Performance',
     'arena.results.playAgain': 'Play again',
@@ -733,6 +736,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.results.breakdown':
+      '{correct} tačno · {wrong} netačno · {bets} dobijenih uloga',
+    'arena.results.potAwarded': 'Kasa pobedniku: {amount}',
     'arena.duel.vs': 'VS',
     'arena.duel.locked': 'Odgovorio',
     'arena.duel.thinking': 'Razmišlja…',
@@ -1318,7 +1324,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.results.finalBalance': 'Konačno stanje',
     'arena.results.newStreak': 'Novi niz',
     'arena.results.finalRankings': 'Konačan poredak',
-    'arena.results.breakdown':
+    'arena.results.breakdownOld':
       '{correct} tačno · {wrong} netačno · {duels} dobijenih duela',
     'arena.results.yourPerformance': 'Tvoj učinak',
     'arena.results.playAgain': 'Igraj ponovo',

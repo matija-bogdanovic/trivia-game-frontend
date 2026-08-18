@@ -20,6 +20,9 @@ import ArenaReveal from './_arena/reveal';
 import ArenaBetting from './_arena/betting';
 import ArenaPicking from './_arena/picking';
 import ArenaDuel from './_arena/duel';
+import ArenaResults from './_arena/results';
+import { rankPlayers, moneyChange } from './_arena/standings';
+import { money } from '@/app/(arena)/_lib/money';
 import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
@@ -44,6 +47,7 @@ function Page() {
     kicked,
     terminated,
     players,
+    startingMoney,
     answering,
     turnMode,
     joinDenied,
@@ -136,6 +140,44 @@ function Page() {
             <ArenaRoundIntro />
           ) : phase === 'spin' ? (
             <ArenaSpin />
+          ) : phase === 'gameover' ? (
+            <ArenaResults
+              rankings={rankPlayers(players).map((p) => ({
+                name: p.displayName || p.username,
+                initial: (p.displayName || p.username || '?')
+                  .charAt(0)
+                  .toUpperCase(),
+                money: p.money ?? 0,
+                change: moneyChange(p.money ?? 0, startingMoney),
+                correct: Number(p.stats?.correct ?? 0),
+                wrong: Number(p.stats?.wrong ?? 0),
+                betsWon: Number(p.stats?.betsWon ?? 0),
+                streak: p.streak ?? 0,
+                isYou: p.username === username,
+              }))}
+              yourPerformance={(() => {
+                const me = players.find((p) => p.username === username);
+                if (!me) return [];
+                return [
+                  {
+                    labelKey: 'arena.stat.correct',
+                    value: String(me.stats?.correct ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.wrong',
+                    value: String(me.stats?.wrong ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.betsWon',
+                    value: String(me.stats?.betsWon ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.balance',
+                    value: money(me.money ?? 0),
+                  },
+                ];
+              })()}
+            />
           ) : phase === 'duel' ? (
             <ArenaDuel />
           ) : phase === 'picking' ? (

@@ -33,6 +33,16 @@ export interface GamePlayer {
   isHost: boolean;
   streak: number;
   isSpectator: boolean;
+  /** the wheel's weighting for this player, as the server computes it */
+  spinWeight?: number;
+  /** per-match counters the server keeps; absent before the first turn */
+  stats?: {
+    correct?: number;
+    wrong?: number;
+    betsWon?: number;
+    maxBetWin?: number;
+    roundsPlayed?: number;
+  };
 }
 
 /** what to call a player on screen, given their unique username */
@@ -164,6 +174,8 @@ export interface GameState {
   mintedThisTurn: number;
   /** the server's stake floor, as it states it */
   minBet: number;
+  /** how much of the winner's final balance came out of the pot */
+  potAwarded: number;
   startingMoney: number;
   quotas: Quotas | null;
   betResults: BetResult[];
@@ -311,6 +323,7 @@ const initialState: GameState = {
   minted: 0,
   mintedThisTurn: 0,
   minBet: 10,
+  potAwarded: 0,
   startingMoney: 500,
   quotas: null,
   betResults: [],

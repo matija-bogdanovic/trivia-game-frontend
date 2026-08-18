@@ -6,18 +6,17 @@ import Avatar from '@/app/(arena)/_components/avatar';
 import { money } from '@/app/(arena)/_lib/money';
 
 /**
- * DEFERRED — the end-of-match screen, not a route.
+ * The end-of-match screen. Not a route — it is what a finished game looks
+ * like, rendered inside the game at phase === 'gameover'.
  *
  * This is the arena Results design, kept intact. It used to be browsable at
  * /results with mock standings, which meant anyone could open a victory screen
  * for a match that never happened. It is not a place you can go; it is what a
  * finished game looks like.
  *
- * Nothing renders it yet. In Phase 3 it belongs in game/[game]/page.tsx behind
- * `phase === 'gameover'`, replacing the plain standings dialog that sits there
- * now. It takes its data as props precisely so that wiring is a matter of
- * mapping game_slice's standings to ResultRow — the mock fixtures it used to
- * import are gone, so there is no fake data left to render by accident.
+ * It takes its data as props, which is what let the mock fixtures be deleted
+ * outright: the caller maps the final game_state roster onto ResultRow through
+ * rankPlayers, so there is no fake data anywhere in the path.
  */
 
 export interface ResultRow {
@@ -28,7 +27,6 @@ export interface ResultRow {
   change: string;
   correct: number;
   wrong: number;
-  duelsWon: number;
   betsWon: number;
   streak: number;
   isYou: boolean;
@@ -139,7 +137,7 @@ export default function ArenaResults({
                   {t('arena.results.breakdown', {
                     correct: row.correct,
                     wrong: row.wrong,
-                    duels: row.duelsWon,
+                    bets: row.betsWon,
                   })}
                 </span>
               </span>
