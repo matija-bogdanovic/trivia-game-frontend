@@ -5,48 +5,47 @@ import { apiFetch } from './api';
 /**
  * Deleting your own account.
  *
- * ── PROVISIONAL CONTRACT ───────────────────────────────────────────────────
- * The endpoint is not confirmed yet, so everything about the call lives in
- * this one function and nowhere else. Swapping in the real path is editing
- * DELETE_ACCOUNT_PATH; changing the request shape is editing the body below.
- * No caller knows either.
- *
- * What is assumed, to be reconciled against the backend:
- *
+ * ── CONFIRMED CONTRACT ─────────────────────────────────────────────────────
  *   PATH    POST /account/delete
- *   AUTH    the caller's Cognito ACCESS token, which apiFetch attaches as
- *           `Authorization: Bearer …` — the same way every other authenticated
- *           route in this app is called
- *   BODY    none. The identity comes from the verified token and never from
- *           the body, which is how friendsAction and wallet already work; a
- *           username in the body would be a username a client could change
- *   OK      any 2xx. The response body is not read, because there is nothing
- *           the client needs from it — the account is gone
- *   FAIL    any non-2xx, with an optional { message } used for the notice
+ *   AUTH    Authorization: Bearer <Cognito ACCESS token>, attached by apiFetch
+ *   BODY    ignored by the server; {} is sent. Identity comes from the
+ *           verified token and never from the body
+ *   200     { deleted: true, ... } — gone, sign out
+ *   200     { cognito: "failed", message } — the DATA is gone but the Cognito
+ *           login survived. Rare, and the reason this is not simply
+ *           "any 2xx is success": signing someone out here would tell them the
+ *           account is deleted while their sign-in still works. The server's
+ *           own message is shown instead and the session is left alone
+ *   401     { message: "Unauthorized" } — missing or garbage token
  *
- * If the real endpoint wants a confirmation field, a password, or a DELETE
- * verb instead, this is the only file that changes.
+ * Everything about the call still lives here, so a change of path, verb or
+ * body is a change to this file and to nothing else.
  */
 const DELETE_ACCOUNT_PATH = '/account/delete';
 
-export interface DeleteAccountResult {
-  ok: boolean;
-  /** the server's reason, when it gave one */
-  message?: string;
-}
+export type DeleteAccountOutcome =
+  /** account and login both gone — sign out and leave */
+  | { outcome: 'deleted' }
+  /** data gone, login survives — stay put and say so */
+  | { outcome: 'partial'; message?: string }
+  /** nothing was deleted */
+  | { outcome: 'failed'; message?: string };
 
-export async function deleteAccount(): Promise<DeleteAccountResult> {
+export async function deleteAccount(): Promise<DeleteAccountOutcome> {
   try {
     const res = await apiFetch(DELETE_ACCOUNT_PATH, { body: {} });
-    if (res.ok) return { ok: true };
-
     const data = await res.json().catch(() => ({}));
-    return {
-      ok: false,
-      message: typeof data?.message === 'string' ? data.message : undefined,
-    };
+    const message =
+      typeof data?.message === 'string' ? data.message : undefined;
+
+    if (!res.ok) return { outcome: 'failed', message };
+
+    // a 2xx that admits the login is still there is not a completed deletion
+    if (data?.cognito === 'failed') return { outcome: 'partial', message };
+
+    return { outcome: 'deleted' };
   } catch {
     // unreachable server, DNS, offline — the caller localises this
-    return { ok: false };
+    return { outcome: 'failed' };
   }
 }

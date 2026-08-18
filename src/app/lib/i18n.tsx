@@ -22,6 +22,8 @@ const dict: Record<Lang, Record<string, string>> = {
       'You are removed from everyone\u2019s friend list.',
     'arena.settings.deleteType': 'Type {word} to confirm',
     'arena.settings.deleteConfirm': 'Delete for good',
+    'arena.settings.deletePartial':
+      'Your data was removed but the sign-in could not be deleted. Please try again.',
     'arena.settings.deleteFailed':
       'The account could not be deleted. Nothing was changed.',
     'arena.ach.none': 'Nothing here yet.',
@@ -765,6 +767,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.deleteLoses3': 'Bićeš uklonjen sa svih lista prijatelja.',
     'arena.settings.deleteType': 'Upiši {word} da potvrdiš',
     'arena.settings.deleteConfirm': 'Obriši zauvek',
+    'arena.settings.deletePartial':
+      'Podaci su obrisani ali prijava nije. Pokušaj ponovo.',
     'arena.settings.deleteFailed': 'Nalog nije obrisan. Ništa nije promenjeno.',
     'arena.ach.none': 'Ovde još nema ničega.',
     'arena.ach.unlocked': 'Otključano',

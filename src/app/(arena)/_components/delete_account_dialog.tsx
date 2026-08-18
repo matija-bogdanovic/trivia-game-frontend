@@ -56,9 +56,22 @@ export default function DeleteAccountDialog({
 
     const result = await deleteAccount();
 
-    if (!result.ok) {
-      // stay open: the account still exists, and the player should see why
-      setError(result.message ?? t('arena.settings.deleteFailed'));
+    if (result.outcome !== 'deleted') {
+      /*
+       * Stay open either way, but for different reasons. `failed` means
+       * nothing was deleted. `partial` means the data went and the Cognito
+       * login did not — signing them out there would claim a deletion that
+       * did not finish, and they would still be able to log back in. The
+       * server explains it better than a generic line, so its message wins.
+       */
+      setError(
+        result.message ??
+          t(
+            result.outcome === 'partial'
+              ? 'arena.settings.deletePartial'
+              : 'arena.settings.deleteFailed'
+          )
+      );
       setBusy(false);
       return;
     }
