@@ -19,6 +19,7 @@ import ArenaSpin from './_arena/spin';
 import ArenaReveal from './_arena/reveal';
 import ArenaBetting from './_arena/betting';
 import ArenaPicking from './_arena/picking';
+import ArenaDuel from './_arena/duel';
 import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
@@ -135,6 +136,8 @@ function Page() {
             <ArenaRoundIntro />
           ) : phase === 'spin' ? (
             <ArenaSpin />
+          ) : phase === 'duel' ? (
+            <ArenaDuel />
           ) : phase === 'picking' ? (
             <ArenaPicking />
           ) : phase === 'reveal' ? (

@@ -202,6 +202,9 @@ export interface GameState {
   // duel
   duelKind: 'guess' | 'code' | null;
   duelPlayers: string[];
+  /** who has buzzed in — never what they said, which the server withholds */
+  duelAnswered: string[];
+  duelAnte: number;
   myGuessSubmitted: boolean;
   // code duel
   codeSymbols: string[];
@@ -334,6 +337,8 @@ const initialState: GameState = {
   notImplemented: null,
   duelKind: null,
   duelPlayers: [],
+  duelAnswered: [],
+  duelAnte: 0,
   myGuessSubmitted: false,
   codeSymbols: [],
   codeLength: 4,
@@ -434,6 +439,15 @@ const gameSlice = createSlice({
           state.quotas = s.quotas ?? null;
           state.betResults = Array.isArray(s.betResults) ? s.betResults : [];
           state.currentSpin = s.currentSpin ?? null;
+          if (s.duel) {
+            state.duelPlayers = s.duel.players ?? [];
+            state.duelAnswered = s.duel.answered ?? [];
+            state.duelAnte = Number(s.duel.ante ?? 0);
+            if (s.duel.question) {
+              state.questionText = s.duel.question.text ?? state.questionText;
+              state.options = s.duel.question.options ?? state.options;
+            }
+          }
           state.currentPick = s.currentPick ?? null;
 
           /*
@@ -521,6 +535,8 @@ const gameSlice = createSlice({
           state.round = message.round ?? state.round;
           state.chainDepth = message.chainDepth ?? state.chainDepth;
           state.duelPlayers = message.players ?? [];
+          state.duelAnswered = message.answered ?? [];
+          state.duelAnte = Number(message.ante ?? 0);
           state.picker = message.picker ?? null;
           state.questionText = message.questionText ?? '';
           state.options = message.options ?? [];

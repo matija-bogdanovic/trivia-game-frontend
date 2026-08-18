@@ -13,6 +13,12 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.duel.vs': 'VS',
+    'arena.duel.locked': 'Answered',
+    'arena.duel.thinking': 'Thinking…',
+    'arena.duel.buzz': 'Lock it in',
+    'arena.duel.noRacers': 'No duellists.',
+    'arena.duel.watching': 'Watching the duel · pot {pot}',
     // picking the next answerer
     'arena.pick.title': 'Choose who answers next',
     'arena.pick.yourChoice': 'Your call',
@@ -727,6 +733,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.duel.vs': 'VS',
+    'arena.duel.locked': 'Odgovorio',
+    'arena.duel.thinking': 'Razmišlja…',
+    'arena.duel.buzz': 'Potvrdi',
+    'arena.duel.noRacers': 'Nema dvobojnika.',
+    'arena.duel.watching': 'Gledaš dvoboj · kasa {pot}',
     // biranje sledećeg igrača
     'arena.pick.title': 'Izaberi ko sledeći odgovara',
     'arena.pick.yourChoice': 'Tvoj izbor',
