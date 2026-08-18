@@ -162,6 +162,8 @@ export interface GameState {
   minted: number;
   /** minted by this turn alone, as opposed to the running total */
   mintedThisTurn: number;
+  /** the server's stake floor, as it states it */
+  minBet: number;
   startingMoney: number;
   quotas: Quotas | null;
   betResults: BetResult[];
@@ -305,6 +307,7 @@ const initialState: GameState = {
   pot: 0,
   minted: 0,
   mintedThisTurn: 0,
+  minBet: 10,
   startingMoney: 500,
   quotas: null,
   betResults: [],
@@ -573,7 +576,14 @@ const gameSlice = createSlice({
           state.betCount = 0;
           state.betOutcomes = [];
           state.eliminatedNow = [];
-          state.picker = null;
+          /*
+           * NOT null. A challenge IS a pick — the picker aimed this question
+           * and owns the book on it — and clearing the field here threw that
+           * away the moment the question arrived. The message states it, so
+           * take it: null only when the wheel chose, which is when there is
+           * genuinely no picker.
+           */
+          state.picker = message.picker ?? null;
           state.spinTarget = null;
           state.spinEndsAt = null;
           state.countdown = null;
@@ -626,10 +636,31 @@ const gameSlice = createSlice({
         case 'pick_start':
           learnSkew(state, message.pickTimeMs, receivedAt);
           state.phase = 'picking';
-          state.picker = message.picker;
-          state.pickChoices = message.choices;
-          state.pickDurationMs = message.pickTimeMs;
-          state.pickEndsAt = receivedAt + message.pickTimeMs;
+          state.picker = message.picker ?? null;
+          state.pickChoices = message.choices ?? [];
+          state.pickDurationMs = message.pickTimeMs ?? 0;
+          state.pickEndsAt =
+            typeof message.pickTimeMs === 'number'
+              ? receivedAt + message.pickTimeMs
+              : null;
+          /*
+           * P2.3 prices the pick: each target carries its own quotas — the
+           * challenge is priced off the TARGET's accuracy, not the picker's —
+           * and the ante a duel with them would cost. currentPick is the
+           * durable copy on game_state; this keeps the message's in step for
+           * the case where the phase message arrives without it.
+           */
+          if (Array.isArray(message.targets)) {
+            state.currentPick = {
+              picker: message.picker ?? '',
+              choices: message.choices ?? [],
+              modes: message.modes ?? ['challenge', 'duel'],
+              targets: message.targets,
+              endsAt: state.phaseEndsAt ?? 0,
+            };
+          }
+          if (typeof message.pot === 'number') state.pot = message.pot;
+          if (typeof message.minBet === 'number') state.minBet = message.minBet;
           break;
         case 'game_over':
           state.phase = 'gameover';

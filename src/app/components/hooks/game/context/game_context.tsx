@@ -43,7 +43,11 @@ export interface GameActions {
     amount: number,
     allIn?: boolean
   ) => void;
-  pickPlayer: (target: string) => void;
+  pickPlayer: (
+    target: string,
+    mode?: 'challenge' | 'duel',
+    wager?: { side: 'correct' | 'wrong'; amount: number | 'all' }
+  ) => void;
   kickPlayer: (target: string) => void;
   terminateLobby: () => void;
   sendChat: (text: string) => void;
@@ -251,9 +255,28 @@ export default function GameProvider({
     [dispatch, sendJsonMessage]
   );
 
+  /**
+   * Choose who answers next, and how.
+   *
+   * A challenge may carry a wager, priced off the TARGET's accuracy and
+   * committed blind — the question is drawn in the same server mutation, so
+   * nobody has seen it, picker included. A duel ignores side and amount: its
+   * price is the fixed symmetric ante, not something the picker sizes.
+   */
   const pickPlayer = useCallback(
-    (target: string) => {
-      sendJsonMessage({ type: 'pick_player', target });
+    (
+      target: string,
+      mode: 'challenge' | 'duel' = 'challenge',
+      wager?: { side: 'correct' | 'wrong'; amount: number | 'all' }
+    ) => {
+      sendJsonMessage({
+        type: 'pick_player',
+        target,
+        mode,
+        ...(mode === 'challenge' && wager
+          ? { side: wager.side, amount: wager.amount }
+          : {}),
+      });
     },
     [sendJsonMessage]
   );

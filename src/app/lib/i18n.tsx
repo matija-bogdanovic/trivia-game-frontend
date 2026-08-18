@@ -13,6 +13,21 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    // picking the next answerer
+    'arena.pick.title': 'Choose who answers next',
+    'arena.pick.yourChoice': 'Your call',
+    'arena.pick.waiting': 'Waiting',
+    'arena.pick.chooses': '{name} is choosing',
+    'arena.pick.noTargets': 'Nobody left to choose.',
+    'arena.pick.odds': 'Correct {correct}× · wrong {wrong}×',
+    'arena.pick.ante': 'Ante {amount}',
+    'arena.pick.backIt': 'Back your call (optional)',
+    'arena.pick.blind':
+      'The question is drawn when you commit — nobody has seen it, you included.',
+    'arena.pick.ofYours': 'of {amount}',
+    'arena.pick.howTitle': 'How',
+    'arena.pick.challenge': 'Challenge',
+    'arena.pick.duel': 'Duel',
     // the book
     'arena.bet.title': 'Place your bet',
     'arena.bet.question': 'Will {name} answer correctly?',
@@ -712,6 +727,21 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    // biranje sledećeg igrača
+    'arena.pick.title': 'Izaberi ko sledeći odgovara',
+    'arena.pick.yourChoice': 'Tvoj izbor',
+    'arena.pick.waiting': 'Čekanje',
+    'arena.pick.chooses': '{name} bira',
+    'arena.pick.noTargets': 'Nema više nikoga za izbor.',
+    'arena.pick.odds': 'Tačno {correct}× · netačno {wrong}×',
+    'arena.pick.ante': 'Ulog {amount}',
+    'arena.pick.backIt': 'Podrži svoj izbor (opciono)',
+    'arena.pick.blind':
+      'Pitanje se izvlači kad potvrdiš — niko ga nije video, ni ti.',
+    'arena.pick.ofYours': 'od {amount}',
+    'arena.pick.howTitle': 'Kako',
+    'arena.pick.challenge': 'Izazov',
+    'arena.pick.duel': 'Dvoboj',
     // ulozi
     'arena.bet.title': 'Uloži',
     'arena.bet.question': 'Da li će {name} odgovoriti tačno?',
