@@ -14,7 +14,6 @@ this directory is empty, the wiring is done.
 | `rooms.ts`    | `/rooms`                        | `GET /rooms` on the game server                  |
 | `players.ts`  | `/leaderboards`, `/friends`     | leaderboard + friends endpoints                  |
 | `matches.ts`  | `/home`                         | `wallet.matchHistory` + `POST /matches/detail`   |
-| `progress.ts` | `/profile`, `/achievements`     | wallet + achievements on the game server         |
 
 The mock player is always `AlphaWolf` — grep for that name to find every spot
 still rendering a fake identity rather than the signed-in one.

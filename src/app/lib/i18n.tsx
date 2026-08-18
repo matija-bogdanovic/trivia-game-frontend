@@ -13,6 +13,13 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.ach.none': 'Nothing here yet.',
+    'arena.ach.unlocked': 'Unlocked',
+    'arena.ach.locked': 'Locked',
+    'arena.ach.unlockedTitle': 'Unlocked ({n})',
+    'arena.ach.lockedTitle': 'Still to earn ({n})',
+    'arena.ach.completion': '{n}% complete',
+    'arena.ach.signIn': 'Sign in to see your achievements.',
     'arena.settings.dangerZone': 'Danger zone',
     'arena.settings.dangerZoneNote':
       'These affect your account, not just this device.',
@@ -741,6 +748,13 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.ach.none': 'Ovde još nema ničega.',
+    'arena.ach.unlocked': 'Otključano',
+    'arena.ach.locked': 'Zaključano',
+    'arena.ach.unlockedTitle': 'Otključano ({n})',
+    'arena.ach.lockedTitle': 'Preostalo ({n})',
+    'arena.ach.completion': '{n}% završeno',
+    'arena.ach.signIn': 'Prijavi se da vidiš svoja dostignuća.',
     'arena.settings.dangerZone': 'Opasna zona',
     'arena.settings.dangerZoneNote':
       'Ovo utiče na tvoj nalog, ne samo na ovaj uređaj.',

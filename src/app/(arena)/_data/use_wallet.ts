@@ -51,6 +51,13 @@ export interface Wallet {
   bestStreak: number;
   matchHistory?: MatchHistoryEntry[];
   achievements?: string[];
+  /**
+   * Every achievement that exists, as {id, name} — and `name` is a single
+   * string carrying both halves, "Title — how you earn it", separated by an
+   * em dash. There is no icon, no separate description and no progress
+   * counter; see splitAchievement.
+   */
+  achievementCatalog?: { id: string; name: string }[];
   nextCreditInMs?: number;
 }
 

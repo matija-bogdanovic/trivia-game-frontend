@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import { onlineFriends } from '@/app/(arena)/_mock/players';
-import { achievements, homeStats } from '@/app/(arena)/_mock/progress';
+import { homeStats } from '@/app/(arena)/_mock/progress';
+import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
+import { buildAchievements } from '@/app/(arena)/_lib/achievements';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 
 /**
  * Dashboard, translated from the Angular app's home.html. Static there and
@@ -12,8 +15,12 @@ import { achievements, homeStats } from '@/app/(arena)/_mock/progress';
  */
 export default function Page() {
   const { t } = useT();
+  const { wallet } = useWallet();
   /** The teaser row links through to the full achievements screen. */
-  const teasers = achievements.slice(0, 4);
+  const teasers = buildAchievements(
+    wallet?.achievementCatalog,
+    wallet?.achievements
+  );
 
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
@@ -198,30 +205,7 @@ export default function Page() {
             {t('arena.common.viewAll')}
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {teasers.map((achievement) => (
-            <div
-              key={achievement.title}
-              className={`border p-4 text-center ${
-                achievement.unlocked
-                  ? 'border-gold/20 bg-arena-800'
-                  : 'border-white/[0.05] bg-arena-750 opacity-50'
-              }`}
-            >
-              <div className="mb-2 text-2xl" aria-hidden="true">
-                {achievement.icon}
-              </div>
-              <div
-                className={`mb-1 text-xs font-bold ${achievement.unlocked ? 'text-gold' : 'text-arena-200'}`}
-              >
-                {achievement.title}
-              </div>
-              <div className="text-[10px] leading-tight text-arena-200">
-                {achievement.description}
-              </div>
-            </div>
-          ))}
-        </div>
+        <AchievementGrid items={teasers} limit={4} />
       </section>
     </div>
   );

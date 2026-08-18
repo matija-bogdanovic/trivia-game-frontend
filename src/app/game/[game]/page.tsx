@@ -1,12 +1,7 @@
 'use client';
 
-import Avatar from '@/app/components/ui/game/avatar';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
-import {
-  clearAchievementNotice,
-  clearError,
-  displayNameOf,
-} from '@/app/redux/slicers/game_slice';
+import { clearError } from '@/app/redux/slicers/game_slice';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import React from 'react';
 import Link from 'next/link';
@@ -32,18 +27,13 @@ amplifyConfigure();
 
 function Page() {
   const { t } = useT();
-  const { leaveRoom, playAgain, username, joinWithPassword, isHost } =
-    useGame();
+  const { leaveRoom, username, joinWithPassword, isHost } = useGame();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const {
     phase,
     countdown,
-    winner,
-    standings,
-    totalRounds,
     error,
-    achievementNotice,
     kicked,
     terminated,
     players,
@@ -55,13 +45,6 @@ function Page() {
     kickedReason,
     notImplemented,
   } = useSelector((state: RootState) => state.game);
-
-  // achievement toasts dismiss themselves
-  React.useEffect(() => {
-    if (!achievementNotice) return;
-    const id = setTimeout(() => dispatch(clearAchievementNotice()), 6000);
-    return () => clearTimeout(id);
-  }, [achievementNotice, dispatch]);
 
   /*
    * The host left and the server deleted the room under everyone. Nobody who
@@ -307,86 +290,6 @@ function Page() {
           <span className="text-gold text-8xl font-bold">
             {countdown > 0 ? countdown : 'GO!'}
           </span>
-        </div>
-      )}
-
-      {phase === 'gameover' && !blocked && (
-        <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex justify-center items-center p-4 overflow-y-auto">
-          <div className="flex flex-col gap-4 bg-arena-800 border border-gold/20 p-8 min-w-[320px] max-w-[90vw]">
-            <h2 className="text-2xl font-bold text-center text-white tracking-wide">
-              {winner
-                ? winner === username
-                  ? t('game.youWin')
-                  : t('game.winner', {
-                      name: displayNameOf(standings, winner),
-                    })
-                : t('game.gameOver')}
-            </h2>
-            <p className="text-center text-arena-300 text-[11px] tracking-wider uppercase">
-              {t('game.questionsAsked', { n: totalRounds })}
-            </p>
-            <div className="flex flex-col gap-2">
-              {standings.map((p, i) => (
-                <div
-                  key={p.username}
-                  className={`flex items-center gap-3 border p-3 ${
-                    p.username === username
-                      ? 'bg-gold/10 border-gold/30'
-                      : 'border-white/[0.07]'
-                  }`}
-                >
-                  <span className="w-6 text-center font-bold text-arena-400">
-                    {i + 1}.
-                  </span>
-                  <Avatar
-                    name={p.displayName}
-                    username={p.username}
-                    avatar={p.avatar}
-                    size={32}
-                  />
-                  <span className="flex-1 truncate text-white text-sm font-bold">
-                    {p.displayName}
-                    {p.username === username && (
-                      <span className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-1.5 ml-2">
-                        {t('game.you')}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-gold font-bold">${p.money}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={playAgain}
-                className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
-              >
-                {t('game.playAgain')}
-              </button>
-              <button
-                className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
-                onClick={leaveRoom}
-              >
-                {t('game.leave')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {achievementNotice && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-20 bg-gold text-arena-950 font-bold text-[11px] tracking-wider px-4 py-2 max-w-[90vw]">
-          {t('game.achUnlocked', {
-            name: displayNameOf(players, achievementNotice.username),
-            items: achievementNotice.ids
-              .map((id, i) => {
-                const translated = t(`ach.${id}`);
-                return translated === `ach.${id}`
-                  ? achievementNotice.names[i]
-                  : translated;
-              })
-              .join(', '),
-          })}
         </div>
       )}
 

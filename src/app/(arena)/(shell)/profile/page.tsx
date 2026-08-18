@@ -6,7 +6,8 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import GoogleBadge from '@/app/(arena)/_components/google_mark';
-import { achievements } from '@/app/(arena)/_mock/progress';
+import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
+import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { money } from '@/app/(arena)/_lib/money';
 import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
@@ -18,7 +19,10 @@ const RECENT_COUNT = 3;
 export default function Page() {
   const { t, lang } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
-  const badges = achievements.slice(0, 6);
+  const badges = buildAchievements(
+    wallet?.achievementCatalog,
+    wallet?.achievements
+  );
 
   /*
    * The same source /history reads, cut to the card's size. matchHistory is
@@ -250,27 +254,7 @@ export default function Page() {
             {t('arena.common.viewAll')}
           </Link>
         </div>
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-4">
-          {badges.map((badge) => (
-            <div
-              key={badge.title}
-              className={`flex flex-col items-center gap-2 border p-4 text-center ${
-                badge.unlocked
-                  ? 'border-gold/20 bg-gold/5'
-                  : 'border-white/[0.04] opacity-40'
-              }`}
-            >
-              <div className="text-2xl" aria-hidden="true">
-                {badge.icon}
-              </div>
-              <div
-                className={`text-[10px] tracking-wider ${badge.unlocked ? 'text-gold' : 'text-arena-300'}`}
-              >
-                {badge.title}
-              </div>
-            </div>
-          ))}
-        </div>
+        <AchievementGrid items={badges} limit={8} />
       </section>
     </div>
   );
