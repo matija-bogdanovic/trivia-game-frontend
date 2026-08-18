@@ -13,6 +13,17 @@ export type Lang = 'en' | 'sr';
 
 const dict: Record<Lang, Record<string, string>> = {
   en: {
+    'arena.settings.deleteTitle': 'Delete your account',
+    'arena.settings.deleteBody': 'This cannot be undone.',
+    'arena.settings.deleteLoses1': 'Your account and sign-in are removed.',
+    'arena.settings.deleteLoses2':
+      'Your coins, streaks and achievements go with them.',
+    'arena.settings.deleteLoses3':
+      'You are removed from everyone\u2019s friend list.',
+    'arena.settings.deleteType': 'Type {word} to confirm',
+    'arena.settings.deleteConfirm': 'Delete for good',
+    'arena.settings.deleteFailed':
+      'The account could not be deleted. Nothing was changed.',
     'arena.ach.none': 'Nothing here yet.',
     'arena.ach.unlocked': 'Unlocked',
     'arena.ach.locked': 'Locked',
@@ -23,8 +34,6 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.dangerZone': 'Danger zone',
     'arena.settings.dangerZoneNote':
       'These affect your account, not just this device.',
-    'arena.settings.deleteNotWired':
-      'Deleting an account is not available yet.',
     'arena.results.breakdown':
       '{correct} right · {wrong} wrong · {bets} bets won',
     'arena.results.potAwarded': 'Pot to the winner: {amount}',
@@ -748,6 +757,15 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.emailFixed': 'Set on your account — not editable here.',
   },
   sr: {
+    'arena.settings.deleteTitle': 'Brisanje naloga',
+    'arena.settings.deleteBody': 'Ovo se ne može poništiti.',
+    'arena.settings.deleteLoses1': 'Nalog i prijava se brišu.',
+    'arena.settings.deleteLoses2':
+      'Novčići, nizovi i dostignuća nestaju sa njima.',
+    'arena.settings.deleteLoses3': 'Bićeš uklonjen sa svih lista prijatelja.',
+    'arena.settings.deleteType': 'Upiši {word} da potvrdiš',
+    'arena.settings.deleteConfirm': 'Obriši zauvek',
+    'arena.settings.deleteFailed': 'Nalog nije obrisan. Ništa nije promenjeno.',
     'arena.ach.none': 'Ovde još nema ničega.',
     'arena.ach.unlocked': 'Otključano',
     'arena.ach.locked': 'Zaključano',
@@ -758,7 +776,6 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.dangerZone': 'Opasna zona',
     'arena.settings.dangerZoneNote':
       'Ovo utiče na tvoj nalog, ne samo na ovaj uređaj.',
-    'arena.settings.deleteNotWired': 'Brisanje naloga još nije dostupno.',
     'arena.results.breakdown':
       '{correct} tačno · {wrong} netačno · {bets} dobijenih uloga',
     'arena.results.potAwarded': 'Kasa pobedniku: {amount}',

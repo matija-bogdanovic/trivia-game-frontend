@@ -57,5 +57,4 @@ export const categoryScores = [
   { name: 'Geography', pct: 58 },
 ];
 
-
 export const difficultyOptions = ['Easy', 'Medium', 'Hard', 'Mixed'];

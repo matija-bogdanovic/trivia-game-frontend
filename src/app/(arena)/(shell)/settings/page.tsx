@@ -10,6 +10,7 @@ import { signOut, updateUserAttributes } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
+import DeleteAccountDialog from '@/app/(arena)/_components/delete_account_dialog';
 import { difficultyOptions } from '@/app/(arena)/_mock/progress';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
@@ -45,6 +46,7 @@ export default function Page() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   /** the picked file, waiting to be cropped */
@@ -468,16 +470,18 @@ export default function Page() {
           </button>
           <button
             type="button"
+            onClick={() => setConfirmingDelete(true)}
             className="w-full cursor-pointer border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
             {t('arena.settings.deleteAccount')}
           </button>
-          {/* it has never had a handler; styling it does not make it work */}
-          <p className="text-[10px] tracking-wider text-arena-300">
-            {t('arena.settings.deleteNotWired')}
-          </p>
         </div>
       </section>
+
+      <DeleteAccountDialog
+        open={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }
