@@ -35,6 +35,12 @@ export interface GamePlayer {
   isSpectator: boolean;
   /** the wheel's weighting for this player, as the server computes it */
   spinWeight?: number;
+  /**
+   * When this player went out. Absent while they are alive, and absent
+   * entirely on rosters from before the server started stamping it — see
+   * rankPlayers, which only uses it when both sides of a comparison have one.
+   */
+  eliminatedAt?: number | string | null;
   /** per-match counters the server keeps; absent before the first turn */
   stats?: {
     correct?: number;
