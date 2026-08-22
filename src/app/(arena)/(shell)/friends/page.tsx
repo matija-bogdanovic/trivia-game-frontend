@@ -18,6 +18,18 @@ import {
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
 
+/**
+ * Whole days until a denied person may be asked again, or null when the wait
+ * is already over (or the server did not say). Rounded up: half a day left is
+ * still "1", because "0" would read as "now" and the send would be refused.
+ */
+function retryDays(entry: FriendRequestEntry): number | null {
+  if (!entry.retryAt) return null;
+  const remaining = entry.retryAt - Date.now();
+  if (remaining <= 0) return null;
+  return Math.ceil(remaining / (24 * 60 * 60 * 1000));
+}
+
 /** how a refused action is worded on this screen, in the player's language */
 const ERROR_KEY: Record<FriendActionError, string> = {
   self: 'arena.friends.errSelf',
@@ -25,6 +37,9 @@ const ERROR_KEY: Record<FriendActionError, string> = {
   'already-friends': 'arena.friends.errAlready',
   'already-sent': 'arena.friends.errPending',
   'no-such-request': 'arena.friends.errFailed',
+  'denied-cooldown': 'arena.friends.errDeniedCooldown',
+  'too-many-pending': 'arena.friends.errTooManyPending',
+  'rate-limited': 'arena.friends.errRateLimited',
   unauthenticated: 'arena.friends.errFailed',
   failed: 'arena.friends.errFailed',
   unreachable: 'arena.friends.errUnreachable',
@@ -440,6 +455,20 @@ export default function Page() {
                           ? t('arena.friends.statusDenied')
                           : t('arena.friends.statusPending')}
                       </div>
+                      {/*
+                        A denial is a wait, not a wall, and the wait has a
+                        length — saying so is kinder than letting someone
+                        press Send again to find out. Rounded UP, so the day
+                        it names is one the request will actually go through.
+                      */}
+                      {entry.status === 'denied' &&
+                        retryDays(entry) !== null && (
+                          <div className="text-[10px] text-arena-400">
+                            {t('arena.friends.retryIn', {
+                              n: retryDays(entry) as number,
+                            })}
+                          </div>
+                        )}
                     </div>
                     {/* a denied request is over; only a live one can be withdrawn */}
                     {entry.status === 'pending' && (

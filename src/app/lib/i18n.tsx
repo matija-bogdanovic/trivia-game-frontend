@@ -86,6 +86,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.errAlready': 'You are already friends with {name}.',
     'arena.friends.errPending': 'A request to {name} is already waiting.',
     'arena.friends.errFailed': 'The request could not be sent.',
+    'arena.friends.errDeniedCooldown':
+      'That request was declined recently — try again later.',
+    'arena.friends.errTooManyPending':
+      'Too many requests are still waiting for an answer.',
+    'arena.friends.errRateLimited':
+      'You are sending too fast. Try again in an hour.',
     'arena.friends.errUnreachable': 'Could not reach the server.',
     // private-room password prompt
     'arena.join.lockedTitle': 'Room is locked',
@@ -486,7 +492,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.nav.streak': '{n} streak',
     'arena.nav.dismiss': 'Dismiss',
     'arena.home.readyToCompete': 'Ready to compete?',
-    'arena.home.title': 'TRIVIA DEATHMATCH',
+    // the app's name — a proper noun, so it is not translated
+    'arena.home.title': 'Ipak se okreće',
     'arena.home.tagline':
       'Bet your in-game money on every answer. Outsmart your opponents. Win the table.',
     'arena.home.createRoom': 'Create room',
@@ -566,6 +573,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.statusPending': 'Pending',
     'arena.friends.statusDenied': 'Declined',
     'arena.friends.cancelRequest': 'Withdraw the request to {name}',
+    // abbreviated on purpose: "{n} days" needs three plural forms in Serbian
+    'arena.friends.retryIn': 'Can ask again in {n}d',
     'arena.history.eyebrow': 'History',
     'arena.history.title': 'MATCH HISTORY',
     'arena.history.filter': 'Filter matches',
@@ -841,6 +850,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.errAlready': 'Već ste prijatelji sa {name}.',
     'arena.friends.errPending': 'Zahtev za {name} već čeka.',
     'arena.friends.errFailed': 'Zahtev nije poslat.',
+    'arena.friends.errDeniedCooldown':
+      'Zahtev je nedavno odbijen, pokušajte kasnije.',
+    'arena.friends.errTooManyPending': 'Previše zahteva još čeka odgovor.',
+    'arena.friends.errRateLimited':
+      'Šalješ prebrzo. Pokušaj ponovo za sat vremena.',
     'arena.friends.errUnreachable': 'Server nije dostupan.',
     // private-room password prompt
     'arena.join.lockedTitle': 'Soba je zaključana',
@@ -1222,7 +1236,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.nav.streak': 'niz {n}',
     'arena.nav.dismiss': 'Zatvori',
     'arena.home.readyToCompete': 'Spreman/na za nadmetanje?',
-    'arena.home.title': 'KVIZ OBRAČUN',
+    'arena.home.title': 'Ipak se okreće',
     'arena.home.tagline':
       'Kladi se na svaki odgovor. Nadmudri protivnike. Pokupi ceo sto.',
     'arena.home.createRoom': 'Napravi sobu',
@@ -1302,6 +1316,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.friends.statusPending': 'Na čekanju',
     'arena.friends.statusDenied': 'Odbijen',
     'arena.friends.cancelRequest': 'Povuci zahtev za {name}',
+    'arena.friends.retryIn': 'Ponovo za {n} d.',
     'arena.history.eyebrow': 'Istorija',
     'arena.history.title': 'ISTORIJA PARTIJA',
     'arena.history.filter': 'Filtriraj partije',

@@ -36,6 +36,14 @@ import { apiFetch } from './api';
  *     200 { status: "pending" | "accepted" | "denied" | "cancelled"
  *                 | "removed" }
  *     400 { message: "<English reason>" }  — mapped to FriendActionError below
+ *
+ * ── ANTI-SPAM IS THE SERVER'S ──────────────────────────────────────────────
+ * A denial starts a cooldown before that person may be asked again (a week,
+ * a month if they have refused twice), outstanding requests are capped, and
+ * so is the hourly send rate. None of it is checked here and none of it
+ * could be: the rules read counters the client never sees, and the refusals
+ * arrive as 400s like any other. This module's only job is to turn them into
+ * values a Serbian screen can render — see FriendActionError.
  *   Auth: apiFetch attaches the Cognito ACCESS token; the server takes the
  *         acting username from it and never from the body.
  *
@@ -79,6 +87,12 @@ export interface FriendRequestEntry {
   status: FriendshipStatus;
   /** epoch ms, when the server keeps one */
   createdAt: number | null;
+  /**
+   * For a denied entry: epoch ms when this person may be asked again, from
+   * the cooldown the server enforces. null when there is no wait — a pending
+   * row, or a denial old enough to have expired.
+   */
+  retryAt: number | null;
 }
 
 export interface FriendsSnapshot {
@@ -112,6 +126,13 @@ export type FriendActionError =
   | 'already-friends'
   | 'already-sent'
   | 'no-such-request'
+  /* ── the anti-spam refusals; all three are enforced server-side ────────── */
+  /** they turned you down recently and the cooldown has not run out */
+  | 'denied-cooldown'
+  /** too many requests already outstanding */
+  | 'too-many-pending'
+  /** too many sent in the last hour */
+  | 'rate-limited'
   | 'unauthenticated'
   | 'failed'
   | 'unreachable';
@@ -130,6 +151,7 @@ function toEntry(raw: unknown, fallbackStatus: FriendshipStatus) {
           displayName: raw,
           status: fallbackStatus,
           createdAt: null,
+          retryAt: null,
         }
       : null;
   }
@@ -146,6 +168,7 @@ function toEntry(raw: unknown, fallbackStatus: FriendshipStatus) {
         : username,
     status,
     createdAt: typeof r.createdAt === 'number' ? r.createdAt : null,
+    retryAt: typeof r.retryAt === 'number' ? r.retryAt : null,
   };
 }
 
@@ -164,6 +187,9 @@ function errorFor(status: number, message: string): FriendActionError {
   if (message === 'Already friends') return 'already-friends';
   if (message === 'Request already sent') return 'already-sent';
   if (message === 'No such request') return 'no-such-request';
+  if (message === 'Request recently denied') return 'denied-cooldown';
+  if (message === 'Too many pending requests') return 'too-many-pending';
+  if (message === 'Sending too fast') return 'rate-limited';
   return 'failed';
 }
 
