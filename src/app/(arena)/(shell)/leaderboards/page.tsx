@@ -198,10 +198,30 @@ export default function Page() {
         }
       );
     }
-    const mine = me ? global.get(me) : undefined;
-    if (mine) rows.set(mine.username, mine);
+    /*
+     * And you, whose own standing is not in either list unless you happen to
+     * be in the global top 20. The wallet is the same record /leaderboard
+     * scans, so a row built from it carries the same numbers that endpoint
+     * would have reported — including gamesPlayed, so your win rate is a
+     * figure and not a dash.
+     */
+    if (me) {
+      const mine =
+        global.get(me) ??
+        (wallet && {
+          username: me,
+          displayName: identity?.displayName || me,
+          wins: wallet.wins,
+          gamesPlayed: wallet.gamesPlayed,
+          coins: wallet.coins,
+          points: wallet.points,
+          currentStreak: wallet.currentStreak,
+          bestStreak: wallet.bestStreak,
+        });
+      if (mine) rows.set(me, mine);
+    }
     return [...rows.values()];
-  }, [api, friends, me]);
+  }, [api, friends, me, wallet, identity]);
 
   const rows = useMemo(() => {
     // the backend keeps one all-time table; weekly and monthly have no
