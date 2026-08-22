@@ -136,7 +136,28 @@ export default function Page() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* ================================================ category scores */}
+        {/*
+          ============================================== category performance
+
+          Not wired, and not wire-able from here: nothing in the app records
+          which category a question belonged to, let alone who got it right.
+          The Questions table carries a `category` attribute on the ~50
+          OpenTDB-imported rows, but parseQuestion() in the backend's
+          questions.ts drops it, so a served question has no category; the
+          room's chosen categories are sent by /rooms/create and ignored by
+          the server; and neither the wallet nor a Matches record keeps a
+          per-question log. Per-category counters are a backend feature, not
+          a frontend derivation, so this says so rather than showing a bar.
+
+          WHEN IT IS WIRED: a category's percentage must not be shown until
+          that category has at least MIN_CATEGORY_GAMES (10) games behind it.
+          Three questions answered is not a 67% success rate, and a bar that
+          confident is worse than no bar. Below the threshold the row shows
+          the count it has ("nedovoljno odigranih partija — 3/10"), not a
+          percentage. The threshold is per category, because the statistic is
+          per category: 40 games of Geography say nothing about the four
+          History questions sitting next to them.
+        */}
         <section className="border border-white/[0.07] bg-arena-800 p-6">
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.categoryPerformance')}
@@ -144,33 +165,6 @@ export default function Page() {
           <p className="text-[11px] text-arena-300">
             {t('arena.profile.noCategories')}
           </p>
-          <div className="space-y-4">
-            {[].map((category: { name: string; pct: number }) => (
-              <div key={category.name}>
-                <div className="mb-1.5 flex justify-between text-[11px]">
-                  <span className="text-white">{category.name}</span>
-                  <span className="font-bold text-gold tabular-nums">
-                    {category.pct}%
-                  </span>
-                </div>
-                <div
-                  className="h-1.5 bg-arena-700"
-                  role="meter"
-                  aria-valuenow={category.pct}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label={t('arena.profile.accuracy', {
-                    name: category.name,
-                  })}
-                >
-                  <div
-                    className="h-full bg-gold"
-                    style={{ width: `${category.pct}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* ================================================ recent matches */}
