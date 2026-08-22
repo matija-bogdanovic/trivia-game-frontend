@@ -6,55 +6,53 @@ import { apiFetch } from './api';
  * The friends API, in one place.
  *
  * ── WHERE FRIENDSHIPS ACTUALLY LIVE ────────────────────────────────────────
- * Not Firestore, and not a table of their own. A friendship is two string
- * arrays on the player's own DynamoDB record (the `Wallets` item, PK
- * `username`), written by two deployed Lambdas behind API Gateway —
- * `lambda/friendsList.mjs` and `lambda/friendsAction.mjs`:
+ * Not Firestore, and not a table of their own. A friendship is four arrays on
+ * the player's own DynamoDB record (the `Players` item, PK `username`),
+ * written by two Lambdas behind API Gateway — `lambda/friendsList.mjs` and
+ * `lambda/friendsAction.mjs` in the backend repo:
  *
- *   wallet.friends: string[]         usernames, on BOTH players once accepted
- *   wallet.friendRequests: string[]  INCOMING requests, on the RECIPIENT only
+ *   friends: string[]           accepted, mirrored on BOTH players
+ *   friendRequests: string[]    PENDING, incoming — who asked me
+ *   outgoingRequests: string[]  PENDING, outgoing — who I asked
+ *   deniedRequests: [{ username, at }]   DENIED, on the sender
  *
- * ── THE STATUS MODEL, AND WHAT IT CANNOT SAY ───────────────────────────────
- * There is no status field. State is implied by which array a username sits
- * in, and that encoding is missing two of the three states outright:
- *
- *   accepted  each username is in the other's `friends` — fully represented
- *   pending   the sender's username is in the recipient's `friendRequests`.
- *             Represented ONLY on the recipient's side: the sender's own
- *             record is not touched, so a sender has nothing to read back and
- *             cannot see, or cancel, a request they sent.
- *   denied    NOT REPRESENTED AT ALL. `decline` deletes the entry, so a denied
- *             request is indistinguishable from one that was never sent and
- *             the sender may immediately send it again.
- *
- * So this module is written against the contract the backend NEEDS, and
- * degrades to the one it HAS. `outgoing` is read when the server sends it and
- * reported as unsupported when it does not, which is what lets the pending
- * panel exist without pretending: it renders only where there is data behind
- * it. See FriendsSnapshot.outgoingSupported.
+ * All three states are represented on both sides, so pending is visible to
+ * whoever sent it as well as whoever received it, and a denial survives as a
+ * fact rather than being deleted — which is what makes "they said no"
+ * different from "you never asked". Every transition is one
+ * TransactWriteItems of two conditional updates, so two people acting at once
+ * cannot half-apply a change or clobber each other.
  *
  * ── THE CONTRACT ───────────────────────────────────────────────────────────
  *   POST /friends/list      no body
  *     200 { friends:  [{ username, displayName, online, points,
  *                        currentStreak, wins }],
- *           requests: [username] | [{ username, displayName, status,
- *                                     createdAt }],     ← incoming
+ *           requests: [{ username, displayName, status, createdAt }],
  *           outgoing: [{ username, displayName, status, createdAt,
- *                        updatedAt }] }                 ← NEEDED, not yet sent
+ *                        updatedAt }] }
  *
  *   POST /friends/action    { target, action }
- *     action:  "request" | "accept" | "decline" | "remove" | "cancel"
- *              ("cancel" is NEEDED, not yet implemented)
- *     200 { status: "sent"|"pending" | "accepted" | "declined"|"denied"
- *                 | "removed" | "cancelled" }
+ *     action:  "request" | "accept" | "decline" | "cancel" | "remove"
+ *     200 { status: "pending" | "accepted" | "denied" | "cancelled"
+ *                 | "removed" }
  *     400 { message: "<English reason>" }  — mapped to FriendActionError below
  *   Auth: apiFetch attaches the Cognito ACCESS token; the server takes the
  *         acting username from it and never from the body.
+ *
+ * ── READING BOTH GENERATIONS ───────────────────────────────────────────────
+ * The frontend and the Lambda deploy separately, and neither order is safe to
+ * assume. So `requests` is read as bare username strings OR as objects, the
+ * older status words are accepted alongside the current ones ("sent" is
+ * "pending", "declined" is "denied"), and a response with no `outgoing` array
+ * at all reports outgoingSupported: false rather than an empty list — "you
+ * have sent nothing" and "this server predates outgoing" are different facts
+ * and the sent panel should only claim the first. That flag can go once the
+ * updated function is deployed everywhere.
  */
 
 export type FriendshipStatus = 'pending' | 'accepted' | 'denied';
 
-/** every action the endpoint takes; `cancel` awaits the backend piece */
+/** every action the endpoint takes */
 export type FriendAction =
   'request' | 'accept' | 'decline' | 'remove' | 'cancel';
 
@@ -76,7 +74,7 @@ export interface FriendSummary {
 /** a friendship that is not (yet) accepted, in either direction */
 export interface FriendRequestEntry {
   username: string;
-  /** falls back to the username, which is all the current endpoint sends */
+  /** falls back to the username, for a server that sends only that */
   displayName: string;
   status: FriendshipStatus;
   /** epoch ms, when the server keeps one */
@@ -87,14 +85,15 @@ export interface FriendsSnapshot {
   friends: FriendSummary[];
   /** requests sent TO me, awaiting my accept or deny */
   incoming: FriendRequestEntry[];
-  /** requests I sent — empty until the backend reports them */
+  /** requests I sent: pending ones, and the ones that were denied */
   outgoing: FriendRequestEntry[];
   /**
    * Did the server actually answer with an `outgoing` array?
    *
-   * The distinction matters: "no outgoing requests" and "this server cannot
-   * tell you about outgoing requests" are different facts, and a UI that
-   * conflates them shows an empty panel that looks like an answer.
+   * The distinction matters only until the updated Lambda is deployed
+   * everywhere: "no outgoing requests" and "this server is the old one" are
+   * different facts, and a UI that conflates them shows an empty panel that
+   * looks like an answer.
    */
   outgoingSupported: boolean;
 }

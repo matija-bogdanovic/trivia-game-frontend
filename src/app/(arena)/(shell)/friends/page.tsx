@@ -50,11 +50,11 @@ export default function Page() {
   /**
    * Whether the server answers with outgoing requests at all.
    *
-   * Today it does not: a request is written to the RECIPIENT's record only,
-   * so the sender's own record has nothing in it to return. That is why the
-   * sent-requests panel is gated on this rather than on the array being
-   * non-empty — an empty panel would read as "you have sent none", which is
-   * a claim this endpoint cannot currently make.
+   * It does once the updated Lambda is deployed; an older one returns no
+   * `outgoing` key and this stays false. The sent panel is gated on it rather
+   * than on the array being non-empty, because against an old function an
+   * empty panel would read as "you have sent none" — a claim that deployment
+   * cannot make.
    */
   const [outgoingSupported, setOutgoingSupported] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -326,11 +326,10 @@ export default function Page() {
               {sending ? '…' : t('arena.friends.send')}
             </button>
             {/*
-              A receipt for the action just taken. It is the only thing this
-              screen can say about a sent request while the backend records it
-              on the RECIPIENT's wallet alone — nothing comes back that would
-              still say "pending" on a later visit. The panel below takes over
-              the moment /friends/list answers with `outgoing`.
+              A receipt for the action just taken — it names the outcome,
+              including the both-asked-at-once case where sending is what
+              accepts. The durable state is the panel below, which is where
+              the request still is on the next visit.
             */}
             {addNotice && (
               <p
@@ -400,15 +399,16 @@ export default function Page() {
           {/*
             ============================================== sent requests
 
-            The sender's half of the flow, and the half the data cannot
-            currently express: a request lands in the recipient's
-            `friendRequests` array and touches nothing of the sender's, so
-            there is no record of it to show you here. This panel renders only
-            when /friends/list answers with an `outgoing` array — which is the
-            backend piece that gives a friendship a status of its own. Until
-            then it is absent rather than empty, because "you have sent no
-            requests" is a different statement from "this server cannot tell
-            you", and only one of them is true.
+            The sender's half of the flow: what I have asked for and not been
+            answered on, and what was turned down. Both come from
+            /friends/list's `outgoing`, which the server builds from my own
+            record — `outgoingRequests` for the pending ones and
+            `deniedRequests` for the rest.
+
+            Denied entries stay until the request is sent again, which clears
+            them. They are deliberately not actionable: a denial is somebody
+            else's answer, and the way to change it is to ask again, not to
+            tidy it away.
           */}
           {outgoingSupported && outgoing.length > 0 && (
             <section className="border border-white/[0.07] bg-arena-800 p-5">
