@@ -33,6 +33,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.ach.lockedTitle': 'Still to earn ({n})',
     'arena.ach.completion': '{n}% complete',
     'arena.ach.signIn': 'Sign in to see your achievements.',
+    'arena.ach.unlockedToast': 'Achievement unlocked',
+    'arena.ach.dismiss': 'Dismiss notification',
     'arena.settings.dangerZone': 'Danger zone',
     'arena.settings.dangerZoneNote':
       'These affect your account, not just this device.',
@@ -782,6 +784,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.ach.lockedTitle': 'Preostalo ({n})',
     'arena.ach.completion': '{n}% završeno',
     'arena.ach.signIn': 'Prijavi se da vidiš svoja dostignuća.',
+    'arena.ach.unlockedToast': 'Dostignuće otključano',
+    'arena.ach.dismiss': 'Zatvori obaveštenje',
     'arena.settings.dangerZone': 'Opasna zona',
     'arena.settings.dangerZoneNote':
       'Ovo utiče na tvoj nalog, ne samo na ovaj uređaj.',

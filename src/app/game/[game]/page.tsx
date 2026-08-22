@@ -20,6 +20,7 @@ import { rankPlayers, moneyChange } from './_arena/standings';
 import { money } from '@/app/(arena)/_lib/money';
 import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
+import AchievementToasts from './_arena/achievement_toasts';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
 
@@ -94,6 +95,14 @@ function Page() {
 
   return (
     <>
+      {/*
+        Outside every phase branch on purpose: an unlock arrives with the
+        wallet write at the end of a match, so the toast has to outlive the
+        phase that earned it. It is fixed-position and click-through, so it
+        costs the layout nothing wherever it is mounted.
+      */}
+      <AchievementToasts />
+
       {phase === 'connecting' && !blocked && (
         <div className="h-full flex flex-col items-center justify-center gap-4">
           <div className="text-gold text-[11px] tracking-[0.4em] uppercase">

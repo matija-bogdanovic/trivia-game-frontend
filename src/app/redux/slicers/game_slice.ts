@@ -62,10 +62,23 @@ export function displayNameOf(
   return players?.find((p) => p.username === username)?.displayName ?? username;
 }
 
+/**
+ * One unlocked achievement, as the toast queue holds it.
+ *
+ * The server announces them in batches — `achievements_unlocked` carries an
+ * array — but a toast shows one badge, so the batch is flattened here rather
+ * than in the component. `key` identifies a single toast for dismissal; it is
+ * built from the payload and the message's own receivedAt, so the reducer
+ * stays a pure function of what it was given.
+ */
 export interface AchievementNotice {
+  /** unique per toast, so dismissing one cannot dismiss another */
+  key: string;
+  /** who earned it — the room hears about everyone, the toast is only yours */
   username: string;
-  ids: string[];
-  names: string[];
+  id: string;
+  /** the server's single string, "Title — how you earn it" */
+  name: string;
 }
 
 export interface ChatMessage {
@@ -216,7 +229,12 @@ export interface GameState {
   totalRounds: number;
   standings: GamePlayer[];
   chatMessages: ChatMessage[];
-  achievementNotice: AchievementNotice | null;
+  /**
+   * Unlocked-achievement toasts still to be shown, oldest first. A queue
+   * rather than a single slot: a match can end several at once, and the one
+   * that arrived second is not less earned than the first.
+   */
+  achievementNotices: AchievementNotice[];
   // duel
   duelKind: 'guess' | 'code' | null;
   duelPlayers: string[];
@@ -351,7 +369,7 @@ const initialState: GameState = {
   totalRounds: 0,
   standings: [],
   chatMessages: [],
-  achievementNotice: null,
+  achievementNotices: [],
   roomClosed: null,
   notImplemented: null,
   duelKind: null,
@@ -395,9 +413,15 @@ const gameSlice = createSlice({
        * Only what the server actually sends. Nine cases were removed here for
        * messages nothing has dispatched since the turn engine moved to Lambda
        * — the code-breaker duel, a client-side countdown, `picked`,
-       * `lobby_terminated`, `achievements_unlocked` — and one, `duel_question`,
-       * was the reason the duel screen could never render: the server sends
-       * `duel_start`.
+       * `lobby_terminated` — and one, `duel_question`, was the reason the duel
+       * screen could never render: the server sends `duel_start`.
+       *
+       * `achievements_unlocked` is back, and is the exception worth naming.
+       * The always-on `ws` server still broadcasts it from persistResults();
+       * the serverless engine that replaced it (lambda-ws) records no game
+       * result at all, so it sends nothing. The case is here because the
+       * message is real protocol, not because every deployment emits it — see
+       * the toast component for what that means on screen.
        */
       switch (message.type) {
         case 'lobby_state':
@@ -703,6 +727,37 @@ const gameSlice = createSlice({
           state.totalRounds = message.rounds;
           state.standings = message.standings ?? [];
           break;
+        /*
+         * A badge was earned. Broadcast to the whole room with the username of
+         * whoever earned it, so the toast filters to the signed-in player —
+         * this reducer keeps every notice because it does not know who that is.
+         *
+         * Appended, never replaced: a match that ends three achievements at
+         * once sends them in one message, and each is worth its own toast.
+         * The guard is against the same badge arriving twice — a reconnect can
+         * replay a broadcast — which would otherwise queue a duplicate.
+         */
+        case 'achievements_unlocked': {
+          const earned = Array.isArray(message.achievements)
+            ? message.achievements
+            : [];
+          for (const a of earned) {
+            const id = String(a?.id ?? '');
+            const username = String(message.username ?? '');
+            if (!id || !username) continue;
+            const seen = state.achievementNotices.some(
+              (n) => n.id === id && n.username === username
+            );
+            if (seen) continue;
+            state.achievementNotices.push({
+              key: `${receivedAt}-${username}-${id}`,
+              username,
+              id,
+              name: String(a?.name ?? id),
+            });
+          }
+          break;
+        }
         case 'chat_history':
           state.chatMessages = message.messages ?? [];
           break;
@@ -767,8 +822,11 @@ const gameSlice = createSlice({
       state.error = null;
       state.notImplemented = null;
     },
-    clearAchievementNotice: (state) => {
-      state.achievementNotice = null;
+    /** one toast, by key — dismissing the front of the queue shows the next */
+    dismissAchievementNotice: (state, action: PayloadAction<string>) => {
+      state.achievementNotices = state.achievementNotices.filter(
+        (n) => n.key !== action.payload
+      );
     },
     resetGame: () => initialState,
   },
@@ -780,7 +838,7 @@ export const {
   setMyBet,
   markGuessSubmitted,
   clearError,
-  clearAchievementNotice,
+  dismissAchievementNotice,
   resetGame,
 } = gameSlice.actions;
 export default gameSlice.reducer;
