@@ -23,6 +23,7 @@ import {
   serverMessage,
   setMyBet,
 } from '@/app/redux/slicers/game_slice';
+import { useT } from '@/app/lib/i18n';
 
 export interface GameActions {
   username: string | null;
@@ -71,6 +72,9 @@ export default function GameProvider({
   const lobbyId = Array.isArray(params?.game) ? params.game[0] : params?.game;
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  // LanguageProvider sits above GameProvider in the root layout, so this is
+  // always inside it — the value is what the join message carries as `lang`
+  const { lang } = useT();
   const phase = useSelector((state: RootState) => state.game.phase);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
@@ -122,10 +126,18 @@ export default function GameProvider({
         lobbyId,
         token,
         displayName,
+        /*
+         * The language the player is reading the app in. The server counts
+         * these across everyone seated and picks ONE language for the match —
+         * a question is shown to the whole table, so it cannot be per-player.
+         * Sent on every join, reconnects included, so a language changed
+         * between matches is picked up at the next start.
+         */
+        lang,
         password: password ?? passwordRef.current ?? undefined,
       });
     },
-    [lobbyId, displayName, sendJsonMessage]
+    [lobbyId, displayName, lang, sendJsonMessage]
   );
 
   /*
