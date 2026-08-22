@@ -17,8 +17,25 @@ import { ErrorMessage, Field, Form, Formik } from 'formik';
 import Button from '@/app/components/general/button';
 import { apiFetch } from '@/app/helpers/api';
 import { fileToDataUrl } from '@/app/helpers/avatar';
+import {
+  checkUsernameAvailability,
+  walletRejectedName,
+  type UsernameAvailability,
+} from '@/app/helpers/username';
 import { useT } from '@/app/lib/i18n';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
+
+/** long enough that a name is not queried once per keystroke */
+const NAME_CHECK_DEBOUNCE_MS = 400;
+
+/**
+ * Is this the same name the player already has? Compared without case,
+ * because two names differing only in casing are the same handle to anyone
+ * reading a leaderboard — and re-saving your own name must never be a clash.
+ */
+function sameName(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
 
 /**
  * Account and preference toggles.
@@ -46,6 +63,12 @@ export default function Page() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  /** the name the server already has for this player — never "taken" by them */
+  const [savedName, setSavedName] = useState('');
+  /** where the availability check for the typed name has got to */
+  const [nameStatus, setNameStatus] = useState<
+    'idle' | 'checking' | UsernameAvailability
+  >('idle');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -69,6 +92,9 @@ export default function Page() {
     setUsername(
       (current) => current || storedName || identity?.displayName || ''
     );
+    setSavedName(
+      (current) => current || storedName || identity?.displayName || ''
+    );
     setEmail((current) => current || identity?.email || '');
     setCurrentAvatar(wallet?.avatar ?? null);
   }, [loading, identity, wallet, storedName]);
@@ -82,7 +108,38 @@ export default function Page() {
   /** Enough of an email to be worth submitting; the server decides the rest. */
   const emailValid = /^\S+@\S+\.\S+$/.test(email);
   const usernameValid = username.trim().length >= 3;
-  const canSave = usernameValid && emailValid;
+
+  /**
+   * Whether the typed name is somebody else's, asked while it is being typed.
+   *
+   * Debounced, because this fires on every keystroke, and skipped entirely for
+   * the name the player already has — nobody's own name is taken — and for one
+   * too short to be valid, which has its own message. A verdict the server
+   * could not give ('unsupported', 'unknown') never blocks the save; only a
+   * definite 'taken' does, and the save itself checks again anyway.
+   */
+  useEffect(() => {
+    const name = username.trim();
+    if (name.length < 3 || sameName(name, savedName)) {
+      setNameStatus('idle');
+      return;
+    }
+    setNameStatus('checking');
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const verdict = await checkUsernameAvailability(name);
+      // a slower earlier keystroke must not answer for a newer one
+      if (!cancelled) setNameStatus(verdict);
+    }, NAME_CHECK_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [username, savedName]);
+
+  const nameTaken = nameStatus === 'taken';
+  const canSave =
+    usernameValid && emailValid && !nameTaken && nameStatus !== 'checking';
 
   /**
    * Save the display name.
@@ -104,13 +161,35 @@ export default function Page() {
     setSaveError('');
     setSaved(false);
     try {
+      /*
+       * Ask once more before writing. The debounced check above can still be
+       * pending — or can have been answered before the last keystroke — for
+       * someone who types a name and hits Save in the same breath.
+       */
+      if (!sameName(name, savedName)) {
+        if ((await checkUsernameAvailability(name)) === 'taken') {
+          setNameStatus('taken');
+          return;
+        }
+      }
+
       const res = await apiFetch('/wallet', { body: { displayName: name } });
-      if (!res.ok) throw new Error('wallet');
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        // a conflict belongs on the field, not in the generic save error
+        if (walletRejectedName(res, data)) {
+          setNameStatus('taken');
+          return;
+        }
+        throw new Error('wallet');
+      }
 
       // the id token keeps the old name until it refreshes, so the store is
       // what updates the sidebar and profile header right now
       await updateUserAttributes({ userAttributes: { name } });
       dispatch(setDisplayName(name));
+      setSavedName(name);
+      setNameStatus('idle');
 
       setSaved(true);
       if (savedTimer.current) clearTimeout(savedTimer.current);
@@ -174,7 +253,7 @@ export default function Page() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8 ">
+    <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
       {cropSrc && (
         <AvatarCropper
           imageSrc={cropSrc}
@@ -236,12 +315,41 @@ export default function Page() {
                       handleChange(e);
                       setUsername(e.target.value);
                       setSaved(false);
+                      setSaveError('');
                     }}
                     onBlur={handleBlur}
-                    aria-invalid={!!errors.username}
-                    className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
+                    aria-invalid={!!errors.username || nameTaken}
+                    aria-describedby="username-status"
+                    className={`w-full border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                      errors.username || nameTaken
+                        ? 'border-gold/60'
+                        : 'border-white/10'
+                    }`}
                   />
-                  <ErrorMessage name="username" component="div" />
+                  {/*
+                    One line under the field for everything it can say: too
+                    short, taken, being checked, free. aria-live so the verdict
+                    that arrives after typing stopped is announced, not just
+                    coloured.
+                  */}
+                  <p
+                    id="username-status"
+                    aria-live="polite"
+                    className={`mt-1.5 min-h-[1rem] text-[11px] ${
+                      errors.username || nameTaken
+                        ? 'text-gold'
+                        : 'text-arena-300'
+                    }`}
+                  >
+                    {errors.username ||
+                      (nameTaken
+                        ? t('arena.settings.usernameTaken')
+                        : nameStatus === 'checking'
+                          ? t('arena.settings.usernameChecking')
+                          : nameStatus === 'free'
+                            ? t('arena.settings.usernameFree')
+                            : '')}
+                  </p>
                   <label
                     htmlFor="email"
                     className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
@@ -259,9 +367,17 @@ export default function Page() {
                     }}
                     onBlur={handleBlur}
                     aria-invalid={!!errors.email}
-                    className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
+                    aria-describedby={errors.email ? 'email-error' : undefined}
+                    className={`w-full border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                      errors.email ? 'border-gold/60' : 'border-white/10'
+                    }`}
                   />
-                  <ErrorMessage name="email" component="div" />
+                  <ErrorMessage
+                    name="email"
+                    id="email-error"
+                    component="p"
+                    className="mt-1.5 text-[11px] text-gold"
+                  />
                 </Form>
               )}
             </Formik>
