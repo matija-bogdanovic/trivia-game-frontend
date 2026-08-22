@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
-import { money } from '@/app/(arena)/_lib/money';
-import { rankBadges } from '@/app/(arena)/_mock/players';
+import { rankBadges } from '@/app/(arena)/_lib/rank_badges';
+import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
-import { getIdentity } from '@/app/helpers/token_operations';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 
 type Tab = 'global' | 'weekly' | 'monthly' | 'friends';
 const TABS: Tab[] = ['global', 'weekly', 'monthly', 'friends'];
@@ -32,10 +32,26 @@ interface LeaderboardApiRow {
   displayName: string;
   wins: number;
   gamesPlayed: number;
+  /**
+   * The shop balance — 25 a game plus 100 a win. NOT money won at the table,
+   * which nothing on this endpoint reports. It used to be printed under a
+   * "Money Won" heading, which made every figure in that column wrong.
+   */
   coins: number;
+  /** what the standings are actually ordered by */
   points: number;
   currentStreak: number;
   bestStreak: number;
+}
+
+/** A row of POST /friends/list — no gamesPlayed, so no win rate. */
+interface FriendApiRow {
+  username: string;
+  displayName: string;
+  online: boolean;
+  points: number;
+  currentStreak: number;
+  wins: number;
 }
 
 interface Row {
@@ -45,30 +61,57 @@ interface Row {
   initial: string;
   streak: number;
   wins: number;
+  points: number;
   rate: string;
-  money: number;
   isYou: boolean;
 }
 
 /**
- * The API returns raw counts; the table wants a rank, an initial and a win
- * percentage. Rank follows position in the returned order rather than being
- * stored, so a re-sorted response stays correct.
+ * The order the standings are in: points, then wins.
+ *
+ * The same two keys the server sorts by, applied again here because the server
+ * leaves players who match on both in DynamoDB scan order — which is not
+ * stable between calls, so a table of tied players visibly reshuffled on every
+ * load. The username breaks the last tie and settles it.
  */
-const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] =>
-  api.map((r, i) => ({
-    rank: i + 1,
-    username: r.username,
-    name: r.displayName || r.username,
-    initial: (r.displayName || r.username).charAt(0).toUpperCase(),
-    streak: r.currentStreak,
-    wins: r.wins,
-    rate: r.gamesPlayed
-      ? `${Math.round((r.wins / r.gamesPlayed) * 100)}%`
-      : '—',
-    money: r.coins,
-    isYou: me !== null && r.username === me,
-  }));
+const byStanding = (a: LeaderboardApiRow, b: LeaderboardApiRow) =>
+  b.points - a.points ||
+  b.wins - a.wins ||
+  a.username.localeCompare(b.username);
+
+/** Two players are level when both sort keys match — the username is only a
+ *  tiebreak for display order and must not separate their ranks. */
+const level = (a: LeaderboardApiRow, b: LeaderboardApiRow) =>
+  a.points === b.points && a.wins === b.wins;
+
+/**
+ * Rank and format the standings.
+ *
+ * Standard competition ranking: players who are level share a place and the
+ * next one skips it — 1, 2, 2, 4. Numbering by array position, as this did
+ * before, handed three players tied on 25 points the places 2, 3 and 4 and
+ * made an arbitrary scan order look like a result.
+ */
+const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] => {
+  const sorted = [...api].sort(byStanding);
+  let rank = 0;
+  return sorted.map((r, i) => {
+    if (i === 0 || !level(r, sorted[i - 1])) rank = i + 1;
+    return {
+      rank,
+      username: r.username,
+      name: r.displayName || r.username,
+      initial: (r.displayName || r.username).charAt(0).toUpperCase(),
+      streak: r.currentStreak,
+      wins: r.wins,
+      points: r.points,
+      rate: r.gamesPlayed
+        ? `${Math.round((r.wins / r.gamesPlayed) * 100)}%`
+        : '—',
+      isYou: me !== null && r.username === me,
+    };
+  });
+};
 
 /**
  * Standings, translated from the Angular app's leaderboards screen.
@@ -82,63 +125,124 @@ export default function Page() {
   const { t } = useT();
   const [tab, setTab] = useState<Tab>('global');
   const [api, setApi] = useState<LeaderboardApiRow[]>([]);
-  const [me, setMe] = useState<string | null>(null);
-  const [friendNames, setFriendNames] = useState<Set<string>>(new Set());
+  const [friends, setFriends] = useState<FriendApiRow[]>([]);
   const [loading, setLoading] = useState(true);
+  /** the standings could not be fetched — not the same as nobody having played */
+  const [failed, setFailed] = useState(false);
 
-  // the standings are public; the signed-in user is only needed to mark YOU
+  /*
+   * The signed-in player's own record. The standings themselves are public and
+   * need no session — this is here to mark YOU in the table, and to put you in
+   * your own friends standings even when you are nowhere near the global top.
+   */
+  const { identity, wallet } = useWallet();
+  const me = identity?.username ?? null;
+
   useEffect(() => {
     fetch(`${getPort()}/leaderboard`)
-      .then((res) => (res.ok ? res.json() : { leaderboard: [] }))
+      .then((res) => {
+        if (!res.ok) throw new Error(`leaderboard ${res.status}`);
+        return res.json();
+      })
       .then((d) => setApi(d.leaderboard ?? []))
-      .catch(() => setApi([]))
+      .catch((err) => {
+        console.error('Loading the leaderboard failed:', err);
+        setApi([]);
+        setFailed(true);
+      })
       .finally(() => setLoading(false));
+  }, []);
 
-    getIdentity().then(async (id) => {
-      if (!id) return;
-      setMe(id.username);
+  useEffect(() => {
+    if (!me) return;
+    let cancelled = false;
+    (async () => {
       try {
-        const { apiFetch } = await import('@/app/helpers/api');
         const res = await apiFetch('/friends/list');
         if (!res.ok) return;
         const data = await res.json();
-        setFriendNames(
-          new Set(
-            (data.friends ?? []).map((f: { username: string }) => f.username)
-          )
-        );
+        if (!cancelled) setFriends((data.friends ?? []) as FriendApiRow[]);
       } catch {
         // the friends tab just stays empty
       }
-    });
-  }, []);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [me]);
+
+  /**
+   * The friends tab, from the friends themselves.
+   *
+   * It used to filter the global top 20 down to friends, so a friend who was
+   * not in that 20 — most of them — simply did not exist on this screen, and
+   * the stats already fetched from /friends/list went unused. The friend list
+   * is the source now; the global row is merged in where there is one, because
+   * only it carries gamesPlayed and therefore the win rate.
+   */
+  const friendStandings = useMemo(() => {
+    const global = new Map(api.map((r) => [r.username, r]));
+    const rows = new Map<string, LeaderboardApiRow>();
+    for (const f of friends) {
+      rows.set(
+        f.username,
+        global.get(f.username) ?? {
+          username: f.username,
+          displayName: f.displayName,
+          wins: f.wins,
+          gamesPlayed: 0,
+          coins: 0,
+          points: f.points,
+          currentStreak: f.currentStreak,
+          bestStreak: 0,
+        }
+      );
+    }
+    const mine = me ? global.get(me) : undefined;
+    if (mine) rows.set(mine.username, mine);
+    return [...rows.values()];
+  }, [api, friends, me]);
 
   const rows = useMemo(() => {
     // the backend keeps one all-time table; weekly and monthly have no
     // endpoint yet and say so rather than showing the global rows twice
     if (tab === 'weekly' || tab === 'monthly') return [];
-    const all = toRows(api, me);
-    if (tab === 'friends')
-      return all
-        .filter((r) => r.isYou || friendNames.has(r.username))
-        .map((r, i) => ({ ...r, rank: i + 1 }));
-    return all;
-  }, [tab, api, me, friendNames]);
+    // ranked within the friends set, so the places read 1..n and not the
+    // holes left by everyone else in the global table
+    if (tab === 'friends') return toRows(friendStandings, me);
+    return toRows(api, me);
+  }, [tab, api, me, friendStandings]);
 
-  /** Second, first, third — the order a podium is read in. */
+  /**
+   * Second, first, third — the order a podium is read in.
+   *
+   * By rank rather than by row, so a tie for first puts both players on a
+   * first-place tile instead of demoting one of them to second.
+   */
   const podium = useMemo(() => {
     const [first, second, third] = rows;
     return [
-      { row: second, place: 2 },
-      { row: first, place: 1 },
-      { row: third, place: 3 },
-    ].filter((slot) => !!slot.row);
+      { row: second, place: second?.rank ?? 2 },
+      { row: first, place: first?.rank ?? 1 },
+      { row: third, place: third?.rank ?? 3 },
+    ].filter((slot) => !!slot.row && slot.place <= 3);
   }, [rows]);
 
   const you = rows.find((r) => r.isYou) ?? null;
-  const third = rows[2];
-  const winsFromPodium =
-    !you || !third || you.rank <= 3 ? 0 : Math.max(0, third.wins - you.wins);
+  /**
+   * How far off the podium you are, in the currency the table is ranked in.
+   *
+   * This subtracted *wins* while the standings run on points, so someone fifth
+   * with more wins than the player in third got "0", which the callout then
+   * read as "on the podium". The gap is measured against the last player
+   * actually holding a top-three place, which with a tie is not row three.
+   */
+  const podiumLast = [...rows].reverse().find((r) => r.rank <= 3) ?? null;
+  const onPodium = !!you && you.rank <= 3;
+  const pointsFromPodium =
+    !you || !podiumLast || onPodium
+      ? 0
+      : Math.max(0, podiumLast.points - you.points);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
@@ -182,7 +286,9 @@ export default function Page() {
           <div className="text-sm tracking-wider uppercase">
             {tab === 'weekly' || tab === 'monthly'
               ? t('arena.lb.unavailable')
-              : t('arena.lb.empty')}
+              : failed
+                ? t('arena.lb.failed')
+                : t('arena.lb.empty')}
           </div>
         </div>
       )}
@@ -200,6 +306,8 @@ export default function Page() {
               <div className="mb-3 flex justify-center">
                 <Avatar
                   initial={slot.row.initial}
+                  username={slot.row.username}
+                  alt={slot.row.name}
                   size={PODIUM_AVATAR[slot.place] ?? 'sm'}
                   accent={slot.place === 1}
                 />
@@ -217,11 +325,13 @@ export default function Page() {
               >
                 {badgeFor(slot.place)}
               </div>
+              {/* points first: it is what put them on this tile */}
               <div className="font-bold text-white tabular-nums">
-                {t('arena.lb.winsCount', { n: slot.row.wins })}
+                {t('arena.lb.pointsCount', { n: slot.row.points })}
               </div>
               <div className="mt-1 text-[10px] text-arena-200">
-                🔥 {t('arena.lb.streakCount', { n: slot.row.streak })}
+                {t('arena.lb.winsCount', { n: slot.row.wins })} · 🔥{' '}
+                {t('arena.lb.streakCount', { n: slot.row.streak })}
               </div>
             </div>
           ))}
@@ -238,7 +348,7 @@ export default function Page() {
               <span>{t('arena.lb.streak')}</span>
               <span>{t('arena.lb.wins')}</span>
               <span>{t('arena.lb.rate')}</span>
-              <span className="text-right">{t('arena.lb.moneyWon')}</span>
+              <span className="text-right">{t('arena.lb.points')}</span>
             </div>
 
             {rows.map((row) => (
@@ -258,6 +368,8 @@ export default function Page() {
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar
                     initial={row.initial}
+                    username={row.username}
+                    alt={row.name}
                     size="xs"
                     accent={row.rank === 1}
                   />
@@ -280,7 +392,7 @@ export default function Page() {
                 </div>
                 <div className="text-sm text-arena-200">{row.rate}</div>
                 <div className="text-right text-sm font-bold text-gold tabular-nums">
-                  {money(row.money)}
+                  {row.points.toLocaleString('en-US')}
                 </div>
               </div>
             ))}
@@ -301,9 +413,9 @@ export default function Page() {
             {t('arena.lb.rank', { n: you.rank })}
           </div>
           <div className="text-[11px] text-arena-200">
-            {winsFromPodium > 0
-              ? t('arena.lb.fromPodium', { n: winsFromPodium })
-              : t('arena.lb.onPodium')}
+            {onPodium
+              ? t('arena.lb.onPodium')
+              : t('arena.lb.fromPodium', { n: pointsFromPodium })}
           </div>
         </div>
       )}

@@ -12,7 +12,7 @@ this directory is empty, the wiring is done.
 | File          | Feeds                           | Real source                                      |
 | ------------- | ------------------------------- | ------------------------------------------------ |
 | `rooms.ts`    | `/rooms`                        | `GET /rooms` on the game server                  |
-| `players.ts`  | `/leaderboards`, `/friends`     | leaderboard + friends endpoints                  |
+| `players.ts`  | `/home` (friends rail)          | `POST /friends/list`                             |
 | `matches.ts`  | `/home`                         | `wallet.matchHistory` + `POST /matches/detail`   |
 
 The mock player is always `AlphaWolf` — grep for that name to find every spot
