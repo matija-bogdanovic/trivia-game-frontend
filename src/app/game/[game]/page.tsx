@@ -45,6 +45,7 @@ function Page() {
     roomClosed,
     kickedReason,
     notImplemented,
+    spectating,
   } = useSelector((state: RootState) => state.game);
 
   /*
@@ -87,10 +88,29 @@ function Page() {
    */
   const iAmAnswering = Boolean(username) && answering === username;
   const meNow = players.find((p) => p.username === username);
+
+  /**
+   * Watching rather than playing.
+   *
+   * Two sources, either sufficient. The server says so once on the join
+   * resync — the only message that can answer it per viewer — and the roster
+   * says so continuously: a match is running and I am not in it. The derived
+   * half is what keeps this right after a broadcast replaces `players`, and
+   * what makes the screen correct even against a server that does not send
+   * the flag at all.
+   *
+   * Deliberately false during `gameover`: the match is over, the results are
+   * for everyone, and there is nothing left to be excluded from.
+   */
+  const inMatch =
+    !inLobby && phase !== 'connecting' && phase !== 'gameover' && !blocked;
+  const iAmSpectator = inMatch && (spectating || (Boolean(username) && !meNow));
+
   const bookOpen =
     (phase === 'question' || phase === 'betting') &&
     turnMode !== 'challenge' &&
     !iAmAnswering &&
+    !iAmSpectator &&
     Boolean(meNow?.alive);
 
   return (
@@ -124,6 +144,7 @@ function Page() {
       {!inLobby && phase !== 'connecting' && !blocked && (
         <GameShell
           onLeave={() => void leaveRoom()}
+          spectating={iAmSpectator}
           aside={bookOpen ? <ArenaBetting /> : undefined}
         >
           {phase === 'question' || phase === 'betting' ? (

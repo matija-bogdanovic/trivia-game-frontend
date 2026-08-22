@@ -28,12 +28,15 @@ export default function GameShell({
   children,
   aside,
   onLeave,
+  spectating = false,
 }: {
   children: React.ReactNode;
   /** the bet panel, when the book is open — it spans two phases, so it
    *  sits beside the stage rather than replacing it */
   aside?: React.ReactNode;
   onLeave: () => void;
+  /** watching, not playing: the frame says so and offers nothing to press */
+  spectating?: boolean;
 }) {
   const { t } = useT();
   const { username } = useGame();
@@ -79,6 +82,15 @@ export default function GameShell({
         </div>
 
         <div className="flex items-center gap-4">
+          {/* said once, where the frame is, rather than on every phase card */}
+          {spectating && (
+            <div
+              className="border border-gold/40 bg-gold/10 px-2.5 py-1 text-[9px] font-bold tracking-[0.2em] text-gold uppercase"
+              role="status"
+            >
+              {t('arena.game.spectatingBadge')}
+            </div>
+          )}
           <div className="hidden text-xs text-arena-200 sm:block">
             {t('arena.game.round', { n: round })}
           </div>
@@ -99,43 +111,53 @@ export default function GameShell({
             {t('arena.lobby.players')}
           </div>
 
-          {players.map((p) => {
-            const isMe = p.username === username;
-            const isAnswering = p.username === answering;
-            return (
-              <div
-                key={p.username}
-                className={`min-w-[9.5rem] border p-3 transition-colors duration-150 lg:min-w-0 ${
-                  isAnswering
-                    ? 'border-gold/50 bg-gold/10'
-                    : 'border-white/[0.07] bg-arena-800'
-                } ${isMe ? 'border-l-2 border-l-gold' : ''} ${
-                  p.alive ? '' : 'opacity-40'
-                }`}
-              >
-                <div className="mb-2 flex items-center gap-2">
-                  <Avatar
-                    name={p.displayName}
-                    username={p.username}
-                    avatar={p.avatar}
-                    accent={isAnswering}
-                    size="xs"
-                  />
-                  <div className="min-w-0">
-                    <div className="truncate text-[11px] font-bold text-white">
-                      {isMe ? t('arena.common.you') : p.displayName}
+          {/*
+            Competitors only. A spectator has no money and cannot be picked,
+            so listing them beside the players would put a zero balance in a
+            column that means something else. lobby_state marks them; the
+            running match simply never contains them.
+          */}
+          {players
+            .filter((p) => !p.isSpectator)
+            .map((p) => {
+              const isMe = p.username === username;
+              const isAnswering = p.username === answering;
+              return (
+                <div
+                  key={p.username}
+                  className={`min-w-[9.5rem] border p-3 transition-colors duration-150 lg:min-w-0 ${
+                    isAnswering
+                      ? 'border-gold/50 bg-gold/10'
+                      : 'border-white/[0.07] bg-arena-800'
+                  } ${isMe ? 'border-l-2 border-l-gold' : ''} ${
+                    p.alive ? '' : 'opacity-40'
+                  }`}
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <Avatar
+                      name={p.displayName}
+                      username={p.username}
+                      avatar={p.avatar}
+                      accent={isAnswering}
+                      size="xs"
+                    />
+                    <div className="min-w-0">
+                      <div className="truncate text-[11px] font-bold text-white">
+                        {isMe ? t('arena.common.you') : p.displayName}
+                      </div>
+                      {p.streak > 0 && (
+                        <div className="text-[9px] text-gold">
+                          🔥 {p.streak}
+                        </div>
+                      )}
                     </div>
-                    {p.streak > 0 && (
-                      <div className="text-[9px] text-gold">🔥 {p.streak}</div>
-                    )}
+                  </div>
+                  <div className="text-sm font-bold text-gold tabular-nums">
+                    {money(p.money)}
                   </div>
                 </div>
-                <div className="text-sm font-bold text-gold tabular-nums">
-                  {money(p.money)}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </aside>
 
         {/* =========================================================== stage */}
@@ -152,10 +174,17 @@ export default function GameShell({
           {t('arena.game.round', { n: round })}
         </div>
         <div className="text-center" aria-live="polite">
-          {phase === 'question' && iAmAnswering && (
-            <span className="animate-pulse text-[10px] font-bold tracking-wider text-gold uppercase">
-              {t('arena.game.yourTurn')}
+          {spectating ? (
+            <span className="text-[10px] tracking-wider text-arena-300 uppercase">
+              {t('arena.game.spectatingHint')}
             </span>
+          ) : (
+            phase === 'question' &&
+            iAmAnswering && (
+              <span className="animate-pulse text-[10px] font-bold tracking-wider text-gold uppercase">
+                {t('arena.game.yourTurn')}
+              </span>
+            )
           )}
         </div>
         <div className="hidden text-[10px] tracking-widest text-arena-300 uppercase sm:block">

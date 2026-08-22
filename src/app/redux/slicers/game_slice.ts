@@ -234,6 +234,16 @@ export interface GameState {
    * rather than a single slot: a match can end several at once, and the one
    * that arrived second is not less earned than the first.
    */
+  /**
+   * The server said this socket is watching rather than playing.
+   *
+   * Set from the join resync, which is the one message that can answer it per
+   * viewer — the broadcast `game_state` goes to the whole lobby and cannot.
+   * It is a corroboration, not the only source: the screen also derives the
+   * same fact from its own absence in the roster, and either is enough. See
+   * the game page.
+   */
+  spectating: boolean;
   achievementNotices: AchievementNotice[];
   // duel
   duelKind: 'guess' | 'code' | null;
@@ -369,6 +379,7 @@ const initialState: GameState = {
   totalRounds: 0,
   standings: [],
   chatMessages: [],
+  spectating: false,
   achievementNotices: [],
   roomClosed: null,
   notImplemented: null,
@@ -437,6 +448,9 @@ const gameSlice = createSlice({
           state.players = message.players ?? [];
           state.round = message.round;
           if (message.phase === 'lobby') {
+            // back in the lobby, so the next start_game seats everyone who is
+            // connected — nobody is a spectator until a match is running again
+            state.spectating = false;
             state.questionText = '';
             state.options = [];
             state.answerEndsAt = null;
@@ -467,6 +481,11 @@ const gameSlice = createSlice({
          */
         case 'game_state': {
           const s = message.state ?? {};
+          // only the per-socket resync carries this; a broadcast omits it and
+          // must not be read as "no longer spectating"
+          if (typeof message.spectating === 'boolean') {
+            state.spectating = message.spectating;
+          }
           if (Array.isArray(s.players)) state.players = s.players;
           if (typeof s.round === 'number') state.round = s.round;
           if (typeof s.chainDepth === 'number') state.chainDepth = s.chainDepth;
@@ -758,6 +777,14 @@ const gameSlice = createSlice({
           }
           break;
         }
+        /*
+         * Sent once, to a socket that joined a match already in progress.
+         * The resync before it is the same live state a player gets; this is
+         * the sentence that says which of the two you are.
+         */
+        case 'spectating':
+          state.spectating = true;
+          break;
         case 'chat_history':
           state.chatMessages = message.messages ?? [];
           break;

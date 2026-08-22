@@ -127,6 +127,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.game.pot': 'Pot',
     'arena.game.round': 'Round {n}',
     'arena.game.hudPlayers': '{n} players · {money} starting',
+    'arena.game.spectatingBadge': 'Watching',
+    'arena.game.spectatingHint':
+      'You joined after this match started — you can watch and chat.',
     'arena.game.yourTurn': 'Your turn — answer now',
     'arena.game.isAnswering': '{name} is answering',
     'arena.game.difficulty': 'Difficulty {n}',
@@ -889,6 +892,9 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.game.pot': 'Kasa',
     'arena.game.round': 'Runda {n}',
     'arena.game.hudPlayers': '{n} igrača · početno {money}',
+    'arena.game.spectatingBadge': 'Gledaš',
+    'arena.game.spectatingHint':
+      'Priključio si se posle početka meča — možeš da gledaš i pišeš.',
     'arena.game.yourTurn': 'Tvoj red — odgovaraj',
     'arena.game.isAnswering': '{name} odgovara',
     'arena.game.difficulty': 'Težina {n}',
