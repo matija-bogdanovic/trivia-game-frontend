@@ -6,6 +6,11 @@ import PageHeader from '@/app/(arena)/_components/page_header';
 import { useT } from '@/app/lib/i18n';
 import { apiFetch } from '@/app/helpers/api';
 import { getIdentity } from '@/app/helpers/token_operations';
+import {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
 
 /** A row of POST /friends/list. `online` is degraded while the game is not serverless. */
 interface Friend {
@@ -201,10 +206,23 @@ export default function Page() {
             />
           </div>
 
+          {/* friend rows, avatar and name and the action on the right */}
           {loading && (
-            <div className="py-8 text-center text-[11px] tracking-wider text-arena-300 uppercase">
-              {t('arena.common.loading')}
-            </div>
+            <SkeletonRegion className="space-y-2">
+              {Array.from({ length: 5 }, (_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
+                >
+                  <SkeletonAvatar size="sm" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <Skeleton className="h-3 w-28" />
+                    <Skeleton className="h-2.5 w-16" />
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))}
+            </SkeletonRegion>
           )}
 
           {!loading && !signedIn && (

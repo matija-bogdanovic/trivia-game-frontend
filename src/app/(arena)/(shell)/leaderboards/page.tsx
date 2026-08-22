@@ -8,6 +8,11 @@ import { rankBadges } from '@/app/(arena)/_lib/rank_badges';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
 
 type Tab = 'global' | 'weekly' | 'monthly' | 'friends';
 const TABS: Tab[] = ['global', 'weekly', 'monthly', 'friends'];
@@ -292,10 +297,51 @@ export default function Page() {
         ))}
       </div>
 
+      {/*
+        The standings, in outline: three podium tiles over a run of rows on the
+        same six-column grid the real table uses. Sized to what is coming, so
+        the page does not jump a screen's height when it arrives.
+      */}
       {loading && (
-        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
-          {t('arena.common.loading')}
-        </div>
+        <SkeletonRegion>
+          <div className="mb-8 grid gap-4 sm:grid-cols-3">
+            {[2, 1, 3].map((place) => (
+              <div
+                key={place}
+                className="flex flex-col items-center border border-white/[0.07] bg-arena-800 p-6"
+              >
+                <SkeletonAvatar
+                  size={place === 1 ? 'lg' : place === 2 ? 'md' : 'sm'}
+                  className="mb-3"
+                />
+                <Skeleton className="mb-2 h-3.5 w-24" />
+                <Skeleton className="mb-2 h-7 w-7" />
+                <Skeleton className="h-3.5 w-20" />
+              </div>
+            ))}
+          </div>
+
+          <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
+            <div className="min-w-[42rem]">
+              {Array.from({ length: 8 }, (_, i) => (
+                <div
+                  key={i}
+                  className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] items-center gap-4 border-b border-white/[0.05] px-5 py-4"
+                >
+                  <Skeleton className="h-4 w-5" />
+                  <div className="flex items-center gap-3">
+                    <SkeletonAvatar size="xs" />
+                    <Skeleton className="h-3.5 w-28" />
+                  </div>
+                  <Skeleton className="h-3.5 w-10" />
+                  <Skeleton className="h-3.5 w-8" />
+                  <Skeleton className="h-3.5 w-9" />
+                  <Skeleton className="h-3.5 w-14 justify-self-end" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </SkeletonRegion>
       )}
 
       {!loading && rows.length === 0 && (

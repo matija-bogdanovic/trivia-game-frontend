@@ -111,6 +111,47 @@ body:has(.arena-root) {
   border-radius: 4px;
 }
 
+/*
+ * ---- skeleton loading ----------------------------------------------------
+ * The shape of the content, drawn before the content arrives. One class, so
+ * every screen's placeholders pulse in step instead of each inventing its own
+ * grey; see _components/skeleton.tsx for the components that apply it.
+ *
+ * The base is arena-750 — the same fill the app's own inset surfaces use, so a
+ * placeholder reads as part of the page rather than as a hole in it. The sheen
+ * is a white gradient at 5%, which is the most that survives on this palette
+ * without looking like a highlight on a real control.
+ *
+ * The reduced-motion block below catches the sweep: at one iteration of
+ * 0.01ms it finishes off-screen immediately and the flat fill is what remains,
+ * which is exactly the right fallback.
+ */
+.arena-root .skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-arena-750);
+}
+
+.arena-root .skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: arena-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes arena-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* every animation in here is decorative — none of it carries meaning alone */
 @media (prefers-reduced-motion: reduce) {
   .arena-root *,

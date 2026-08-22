@@ -15,7 +15,7 @@ import { useWallet } from '@/app/(arena)/_data/use_wallet';
  */
 export default function Page() {
   const { t } = useT();
-  const { wallet } = useWallet();
+  const { wallet, loading } = useWallet();
   /** The teaser row links through to the full achievements screen. */
   const teasers = buildAchievements(
     wallet?.achievementCatalog,
@@ -205,7 +205,7 @@ export default function Page() {
             {t('arena.common.viewAll')}
           </Link>
         </div>
-        <AchievementGrid items={teasers} limit={4} />
+        <AchievementGrid items={teasers} limit={4} loading={loading} />
       </section>
     </div>
   );

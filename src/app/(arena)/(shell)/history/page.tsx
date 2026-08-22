@@ -11,6 +11,7 @@ import {
   useMatchDetail,
   type MatchRecord,
 } from '@/app/(arena)/_data/use_match_detail';
+import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
@@ -102,10 +103,24 @@ export default function Page() {
         </div>
       </div>
 
+      {/* collapsed match rows, at the height the real ones open at */}
       {loading && (
-        <div className="py-16 text-center text-[11px] tracking-wider text-arena-300 uppercase">
-          {t('arena.common.loading')}
-        </div>
+        <SkeletonRegion className="space-y-2">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div
+              key={i}
+              className="flex flex-wrap items-center gap-3 border border-white/[0.07] bg-arena-800 p-4 sm:flex-nowrap sm:gap-4 sm:p-5"
+            >
+              <Skeleton className="h-12 w-2 shrink-0" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-40" />
+                <Skeleton className="h-2.5 w-28" />
+              </div>
+              <Skeleton className="h-3.5 w-16" />
+              <Skeleton className="h-3.5 w-12" />
+            </div>
+          ))}
+        </SkeletonRegion>
       )}
 
       {/*
@@ -221,10 +236,27 @@ export default function Page() {
                   id={`match-detail-${match.matchId}`}
                   className="border-t border-white/[0.07] px-5 py-4"
                 >
+                  {/* the fact row and the standings list the body will fill */}
                   {detail.status === 'loading' && (
-                    <p className="py-4 text-center text-[11px] tracking-wider text-arena-300 uppercase">
-                      {t('arena.common.loading')}
-                    </p>
+                    <SkeletonRegion className="space-y-4 py-2">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {Array.from({ length: 4 }, (_, i) => (
+                          <div key={i} className="space-y-1.5">
+                            <Skeleton className="h-2.5 w-14" />
+                            <Skeleton className="h-3.5 w-16" />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="space-y-2">
+                        {Array.from({ length: 3 }, (_, i) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <Skeleton className="h-3.5 w-6" />
+                            <Skeleton className="h-3.5 w-32" />
+                            <Skeleton className="ml-auto h-3.5 w-16" />
+                          </div>
+                        ))}
+                      </div>
+                    </SkeletonRegion>
                   )}
 
                   {detail.status === 'error' && (

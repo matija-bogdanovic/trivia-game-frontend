@@ -5,6 +5,7 @@ import PageHeader from '@/app/(arena)/_components/page_header';
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
 
 /**
  * The achievement gallery, on the wallet's own catalog.
@@ -36,6 +37,30 @@ export default function Page() {
         eyebrow={t('arena.achv.eyebrow')}
         title={t('arena.achv.title')}
       />
+
+      {/*
+        Nothing rendered here at all while the wallet was in flight: `signedIn`
+        is false until it resolves, and the sign-in line is held back by
+        !loading, so the screen was blank. It is the gallery's own shape now —
+        the completion card, then the two grids.
+      */}
+      {loading && (
+        <>
+          <SkeletonRegion className="mb-8 flex flex-col gap-4 border border-white/[0.07] bg-arena-800 p-5 sm:flex-row sm:items-center sm:gap-6">
+            <Skeleton className="h-9 w-20" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-2.5 w-28" />
+              <Skeleton className="h-1.5 w-full" />
+            </div>
+          </SkeletonRegion>
+          <Skeleton className="mb-3 h-2.5 w-32" />
+          <div className="mb-8">
+            <AchievementGrid items={[]} loading />
+          </div>
+          <Skeleton className="mb-3 h-2.5 w-32" />
+          <AchievementGrid items={[]} loading />
+        </>
+      )}
 
       {!signedIn && !loading && (
         <p className="text-[11px] tracking-wider text-arena-300 uppercase">

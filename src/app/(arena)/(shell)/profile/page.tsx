@@ -11,6 +11,11 @@ import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { money } from '@/app/(arena)/_lib/money';
 import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
+import {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
 
 /** how many of the wallet's matches the profile card shows before /history */
 const RECENT_COUNT = 3;
@@ -67,23 +72,31 @@ export default function Page() {
           avatar string for the version. Without them this renders initials
           even for a player who has uploaded a photo.
         */}
-        <Avatar
-          initial={initial}
-          username={identity?.username}
-          avatar={wallet?.avatar}
-          alt={name}
-          size="xl"
-          accent
-        />
+        {loading ? (
+          <SkeletonAvatar size="xl" />
+        ) : (
+          <Avatar
+            initial={initial}
+            username={identity?.username}
+            avatar={wallet?.avatar}
+            alt={name}
+            size="xl"
+            accent
+          />
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="mb-1 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.eyebrow')}
           </div>
           <div className="mb-2 flex items-center gap-3">
-            <h1 className="min-w-0 text-3xl font-bold tracking-wide text-white sm:text-4xl">
-              {loading ? '…' : name || t('arena.nav.notSignedIn')}
-            </h1>
+            {loading ? (
+              <Skeleton className="h-9 w-52 sm:h-10" />
+            ) : (
+              <h1 className="min-w-0 text-3xl font-bold tracking-wide text-white sm:text-4xl">
+                {name || t('arena.nav.notSignedIn')}
+              </h1>
+            )}
             {/* only federated accounts are marked; password accounts get nothing */}
             {identity?.provider === 'google' && (
               <GoogleBadge label={t('arena.auth.googleAccount')} />
@@ -119,6 +132,20 @@ export default function Page() {
       </section>
 
       {/* ============================================================ stats */}
+      {loading && (
+        <SkeletonRegion className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center border border-white/[0.07] bg-arena-800 p-4"
+            >
+              <Skeleton className="mb-2 h-7 w-14" />
+              <Skeleton className="h-2.5 w-16" />
+            </div>
+          ))}
+        </SkeletonRegion>
+      )}
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {stats.map((stat) => (
           <div
@@ -189,10 +216,23 @@ export default function Page() {
             an empty list. A never-played account gets the second, not three
             blank rows where matches would go.
           */}
+          {/* the same three-row card that is about to be here, in outline */}
           {loading && (
-            <p className="text-[11px] text-arena-300">
-              {t('arena.common.loading')}
-            </p>
+            <SkeletonRegion className="space-y-3">
+              {Array.from({ length: RECENT_COUNT }, (_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 border-b border-white/[0.05] py-3"
+                >
+                  <Skeleton className="h-8 w-2 shrink-0" />
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <Skeleton className="h-3 w-32" />
+                    <Skeleton className="h-2.5 w-24" />
+                  </div>
+                  <Skeleton className="h-3.5 w-14" />
+                </div>
+              ))}
+            </SkeletonRegion>
           )}
           {!loading && !signedIn && (
             <p className="text-[11px] text-arena-300">
@@ -248,7 +288,7 @@ export default function Page() {
             {t('arena.common.viewAll')}
           </Link>
         </div>
-        <AchievementGrid items={badges} limit={8} />
+        <AchievementGrid items={badges} limit={8} loading={loading} />
       </section>
     </div>
   );

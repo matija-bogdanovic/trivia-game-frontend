@@ -9,6 +9,10 @@ import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
 import { useT } from '@/app/lib/i18n';
+import {
+  Skeleton,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
 
 type RoomSort = 'players' | 'newest';
 
@@ -227,6 +231,38 @@ export default function Page() {
       )}
 
       {/* ============================================================ rooms */}
+      {/*
+        Room cards in outline, on the same two-column grid: title and code,
+        the two-up stat row, and the join button's full-width bar.
+      */}
+      {loading && (
+        <SkeletonRegion className="grid gap-4 xl:grid-cols-2">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div
+              key={i}
+              className="border border-white/[0.07] bg-arena-800 p-5"
+            >
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-6 w-16 shrink-0" />
+              </div>
+              <div className="mb-4 grid grid-cols-2 gap-3">
+                {[0, 1].map((cell) => (
+                  <div key={cell} className="space-y-1.5">
+                    <Skeleton className="h-2.5 w-14" />
+                    <Skeleton className="h-3.5 w-10" />
+                  </div>
+                ))}
+              </div>
+              <Skeleton className="h-11 w-full" />
+            </div>
+          ))}
+        </SkeletonRegion>
+      )}
+
       <div className="grid gap-4 xl:grid-cols-2">
         {visible.map((room) => (
           <article

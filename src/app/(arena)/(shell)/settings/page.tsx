@@ -24,6 +24,11 @@ import {
 } from '@/app/helpers/username';
 import { useT } from '@/app/lib/i18n';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
+import {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
 
 /** long enough that a name is not queried once per keystroke */
 const NAME_CHECK_DEBOUNCE_MS = 400;
@@ -282,7 +287,33 @@ export default function Page() {
               {t('arena.common.signInPrompt')}
             </p>
           )}
-          <div>
+
+          {/*
+            The form used to mount empty and fill in a moment later, so the
+            name and email fields flashed blank at whoever opened the page —
+            and an empty username field briefly failed its own "at least three
+            characters" check. Label-and-field bars stand in until the wallet
+            is here, then the real form mounts with its values already in it.
+          */}
+          {loading && (
+            <SkeletonRegion className="space-y-4">
+              {[0, 1].map((field) => (
+                <div key={field} className="space-y-2">
+                  <Skeleton className="h-2.5 w-20" />
+                  <Skeleton className="h-[46px] w-full" />
+                </div>
+              ))}
+              <div className="space-y-2 pt-2">
+                <Skeleton className="h-2.5 w-28" />
+                <div className="flex flex-wrap items-center gap-4">
+                  <SkeletonAvatar size="lg" />
+                  <Skeleton className="h-10 w-32" />
+                </div>
+              </div>
+            </SkeletonRegion>
+          )}
+
+          <div className={loading ? 'hidden' : undefined}>
             <Formik
               initialValues={{ username, email }}
               enableReinitialize
@@ -382,7 +413,7 @@ export default function Page() {
               )}
             </Formik>
           </div>
-          <div>
+          <div className={loading ? 'hidden' : undefined}>
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
               {t('arena.settings.profilePicture')}
             </div>
