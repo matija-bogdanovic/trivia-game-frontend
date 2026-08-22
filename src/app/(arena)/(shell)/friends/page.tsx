@@ -4,45 +4,59 @@ import { useEffect, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { useT } from '@/app/lib/i18n';
-import { apiFetch } from '@/app/helpers/api';
 import { getIdentity } from '@/app/helpers/token_operations';
+import {
+  fetchFriends,
+  friendAction,
+  type FriendActionError,
+  type FriendRequestEntry,
+  type FriendSummary,
+} from '@/app/helpers/friends';
 import {
   Skeleton,
   SkeletonAvatar,
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
 
-/** A row of POST /friends/list. `online` is degraded while the game is not serverless. */
-interface Friend {
-  username: string;
-  displayName: string;
-  online: boolean;
-  points: number;
-  currentStreak: number;
-  wins: number;
-}
+/** how a refused action is worded on this screen, in the player's language */
+const ERROR_KEY: Record<FriendActionError, string> = {
+  self: 'arena.friends.errSelf',
+  'not-found': 'arena.friends.errNoUser',
+  'already-friends': 'arena.friends.errAlready',
+  'already-sent': 'arena.friends.errPending',
+  'no-such-request': 'arena.friends.errFailed',
+  unauthenticated: 'arena.friends.errFailed',
+  failed: 'arena.friends.errFailed',
+  unreachable: 'arena.friends.errUnreachable',
+};
 
 /**
- * POST /friends/list returns `requests` as bare usernames — `requests:
- * [username]` in the handler's contract, read straight off me.friendRequests.
- * It was typed as an object here, so nameOf() resolved every row to the empty
- * string: the rows rendered blank and accept/decline posted target: "", which
- * the backend answers with 400 "target and action required". The panel has
- * never worked. The object form is tolerated in case the shape ever grows.
- */
-type FriendRequest = string | { username?: string; name?: string };
-
-/**
- * Friend list, search and incoming requests.
+ * Friend list, search, and both sides of the request flow.
  *
  * The export rendered the accept/decline buttons and the "send request" form
  * without wiring any of them, so every control was inert. They act on the list
  * here, as in the Angular app.
+ *
+ * Every call goes through helpers/friends.ts, which is where the endpoint
+ * shapes, the status vocabulary and the server's English refusals are read —
+ * this screen deals in states and reasons, not in response bodies.
  */
 export default function Page() {
   const { t } = useT();
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [friends, setFriends] = useState<FriendSummary[]>([]);
+  const [requests, setRequests] = useState<FriendRequestEntry[]>([]);
+  /** requests I sent — populated only where the server reports them */
+  const [outgoing, setOutgoing] = useState<FriendRequestEntry[]>([]);
+  /**
+   * Whether the server answers with outgoing requests at all.
+   *
+   * Today it does not: a request is written to the RECIPIENT's record only,
+   * so the sender's own record has nothing in it to return. That is why the
+   * sent-requests panel is gated on this rather than on the array being
+   * non-empty — an empty panel would read as "you have sent none", which is
+   * a claim this endpoint cannot currently make.
+   */
+  const [outgoingSupported, setOutgoingSupported] = useState(false);
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
 
@@ -58,19 +72,15 @@ export default function Page() {
         return;
       }
       if (!cancelled) setSignedIn(true);
-      try {
-        const res = await apiFetch('/friends/list');
-        if (res.ok) {
-          const data = await res.json();
-          if (!cancelled) {
-            setFriends(data.friends ?? []);
-            setRequests(data.requests ?? []);
-          }
+      const snapshot = await fetchFriends();
+      if (!cancelled) {
+        if (snapshot) {
+          setFriends(snapshot.friends);
+          setRequests(snapshot.incoming);
+          setOutgoing(snapshot.outgoing);
+          setOutgoingSupported(snapshot.outgoingSupported);
         }
-      } catch {
-        // the list just stays empty
-      } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
     return () => {
@@ -88,15 +98,12 @@ export default function Page() {
 
   /** reload after anything that changes the friendship graph */
   const reload = async () => {
-    try {
-      const res = await apiFetch('/friends/list');
-      if (!res.ok) return;
-      const data = await res.json();
-      setFriends(data.friends ?? []);
-      setRequests(data.requests ?? []);
-    } catch {
-      // the list just stays as it was
-    }
+    const snapshot = await fetchFriends();
+    if (!snapshot) return; // the list just stays as it was
+    setFriends(snapshot.friends);
+    setRequests(snapshot.incoming);
+    setOutgoing(snapshot.outgoing);
+    setOutgoingSupported(snapshot.outgoingSupported);
   };
 
   const term = search.trim().toLowerCase();
@@ -129,57 +136,63 @@ export default function Page() {
 
     setSending(true);
     setAddNotice(null);
-    try {
-      const res = await apiFetch('/friends/action', {
-        body: { target: name, action: 'request' },
-      });
-      const data = await res.json().catch(() => ({}));
 
-      if (res.ok) {
-        const accepted = data.status === 'accepted';
-        setAddNotice({
-          kind: accepted ? 'accepted' : 'sent',
-          text: accepted
-            ? t('arena.friends.nowFriends', { name })
-            : t('arena.friends.requestSent', { name }),
-        });
-        setAddName('');
-        await reload();
-      } else {
-        const reason = String(data.message ?? '');
-        const key =
-          reason === "That's you"
-            ? 'arena.friends.errSelf'
-            : reason === 'User not found'
-              ? 'arena.friends.errNoUser'
-              : reason === 'Already friends'
-                ? 'arena.friends.errAlready'
-                : reason === 'Request already sent'
-                  ? 'arena.friends.errPending'
-                  : 'arena.friends.errFailed';
-        setAddNotice({ kind: 'error', text: t(key, { name }) });
-      }
-    } catch {
-      setAddNotice({ kind: 'error', text: t('arena.friends.errUnreachable') });
-    } finally {
-      setSending(false);
+    const result = await friendAction(name, 'request');
+    if (result.ok) {
+      const accepted = result.status === 'accepted';
+      setAddNotice({
+        kind: accepted ? 'accepted' : 'sent',
+        text: accepted
+          ? t('arena.friends.nowFriends', { name })
+          : t('arena.friends.requestSent', { name }),
+      });
+      setAddName('');
+      await reload();
+    } else {
+      setAddNotice({
+        kind: 'error',
+        text: t(ERROR_KEY[result.reason], { name }),
+      });
     }
+    setSending(false);
   };
 
-  const nameOf = (r: FriendRequest): string =>
-    typeof r === 'string' ? r : (r.username ?? r.name ?? '');
-
-  const act = async (request: FriendRequest, action: 'accept' | 'decline') => {
-    const target = nameOf(request);
-    setRequests((current) => current.filter((r) => nameOf(r) !== target));
+  /**
+   * Answer an incoming request.
+   *
+   * The row leaves the list first and the call follows, because the answer is
+   * the same either way — an accepted request stops being a request, and so
+   * does a denied one. Accepting also produces a friend, so that case waits
+   * for the list to come back rather than guessing a row.
+   */
+  const act = async (
+    request: FriendRequestEntry,
+    action: 'accept' | 'decline'
+  ) => {
+    const target = request.username;
     if (!target) return;
-    try {
-      await apiFetch('/friends/action', { body: { target, action } });
-      // accepting adds a friend row, so the list has to come back
-      if (action === 'accept') await reload();
-    } catch {
-      // optimistic — the list reloads on the next visit
+    setRequests((current) => current.filter((r) => r.username !== target));
+    const result = await friendAction(target, action);
+    // put it back if the server refused: a row that vanished on a failed
+    // call is a request the player can no longer answer
+    if (!result.ok) {
+      await reload();
+      return;
     }
+    if (action === 'accept') await reload();
+  };
+
+  /**
+   * Withdraw a request I sent. Needs the `cancel` action on the endpoint, and
+   * is only reachable from the panel that needs `outgoing` — the same backend
+   * piece delivers both, so this cannot be pressed before it exists.
+   */
+  const cancelOutgoing = async (entry: FriendRequestEntry) => {
+    setOutgoing((current) =>
+      current.filter((r) => r.username !== entry.username)
+    );
+    const result = await friendAction(entry.username, 'cancel');
+    if (!result.ok) await reload();
   };
 
   return (
@@ -313,10 +326,11 @@ export default function Page() {
               {sending ? '…' : t('arena.friends.send')}
             </button>
             {/*
-              A receipt for the action just taken, not a durable state. The
-              backend records a request only on the RECIPIENT's wallet, so
-              there is nothing to read back that would say "still pending" on
-              a later visit — see the note above the friend list.
+              A receipt for the action just taken. It is the only thing this
+              screen can say about a sent request while the backend records it
+              on the RECIPIENT's wallet alone — nothing comes back that would
+              still say "pending" on a later visit. The panel below takes over
+              the moment /friends/list answers with `outgoing`.
             */}
             {addNotice && (
               <p
@@ -340,16 +354,21 @@ export default function Page() {
               <div className="space-y-3">
                 {requests.map((request) => (
                   <div
-                    key={nameOf(request)}
+                    key={request.username}
                     className="flex items-center gap-3"
                   >
                     <Avatar
-                      initial={nameOf(request).charAt(0).toUpperCase()}
+                      initial={request.displayName.charAt(0).toUpperCase()}
+                      username={request.username}
+                      alt={request.displayName}
                       size="sm"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-bold text-white">
-                        {nameOf(request)}
+                        {request.displayName}
+                      </div>
+                      <div className="text-[10px] tracking-wider text-arena-300 uppercase">
+                        {t('arena.friends.statusPending')}
                       </div>
                     </div>
                     <button
@@ -357,7 +376,7 @@ export default function Page() {
                       onClick={() => act(request, 'accept')}
                       className="cursor-pointer border border-gold/40 px-2 py-1 text-[10px] text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.accept', {
-                        name: nameOf(request),
+                        name: request.displayName,
                       })}
                     >
                       ✓
@@ -367,11 +386,74 @@ export default function Page() {
                       onClick={() => act(request, 'decline')}
                       className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.decline', {
-                        name: nameOf(request),
+                        name: request.displayName,
                       })}
                     >
                       ✗
                     </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/*
+            ============================================== sent requests
+
+            The sender's half of the flow, and the half the data cannot
+            currently express: a request lands in the recipient's
+            `friendRequests` array and touches nothing of the sender's, so
+            there is no record of it to show you here. This panel renders only
+            when /friends/list answers with an `outgoing` array — which is the
+            backend piece that gives a friendship a status of its own. Until
+            then it is absent rather than empty, because "you have sent no
+            requests" is a different statement from "this server cannot tell
+            you", and only one of them is true.
+          */}
+          {outgoingSupported && outgoing.length > 0 && (
+            <section className="border border-white/[0.07] bg-arena-800 p-5">
+              <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
+                {t('arena.friends.sentRequests', { n: outgoing.length })}
+              </h2>
+              <div className="space-y-3">
+                {outgoing.map((entry) => (
+                  <div key={entry.username} className="flex items-center gap-3">
+                    <Avatar
+                      initial={entry.displayName.charAt(0).toUpperCase()}
+                      username={entry.username}
+                      alt={entry.displayName}
+                      size="sm"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-bold text-white">
+                        {entry.displayName}
+                      </div>
+                      {/* the status the record actually holds, not a guess */}
+                      <div
+                        className={`text-[10px] tracking-wider uppercase ${
+                          entry.status === 'denied'
+                            ? 'text-arena-400'
+                            : 'text-gold'
+                        }`}
+                      >
+                        {entry.status === 'denied'
+                          ? t('arena.friends.statusDenied')
+                          : t('arena.friends.statusPending')}
+                      </div>
+                    </div>
+                    {/* a denied request is over; only a live one can be withdrawn */}
+                    {entry.status === 'pending' && (
+                      <button
+                        type="button"
+                        onClick={() => cancelOutgoing(entry)}
+                        className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                        aria-label={t('arena.friends.cancelRequest', {
+                          name: entry.displayName,
+                        })}
+                      >
+                        ✗
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -383,7 +465,7 @@ export default function Page() {
   );
 }
 
-function FriendRow({ friend }: { friend: Friend }) {
+function FriendRow({ friend }: { friend: FriendSummary }) {
   const { t } = useT();
   return (
     <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
