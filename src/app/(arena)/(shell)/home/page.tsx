@@ -468,7 +468,7 @@ export default function Page() {
             {t('arena.home.recentAchievements')}
           </h2>
           <Link
-            href="/achievements"
+            href="/profile"
             className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.common.viewAll')}

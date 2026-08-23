@@ -18,7 +18,6 @@ import {
   GearIcon,
   HouseIcon,
   RankingIcon,
-  StarIcon,
   UserCircleIcon,
   UsersIcon,
 } from './icons';
@@ -36,7 +35,7 @@ export interface NavItem {
 }
 
 /*
- * Eight entries.
+ * Seven entries.
  *
  * Browse, create and join are ONE screen now — rooms/_panels/rooms_shell.tsx
  * — so they are one nav row: Sobe, wearing the door. Three rows pointing at
@@ -46,6 +45,11 @@ export interface NavItem {
  * The circle-plus and add-person icons that used to sit here are not
  * discarded; they moved onto the Napravi and Uđi tabs inside that page, which
  * is where those two actions now live.
+ *
+ * Dostignuća is gone for the same reason Sobe collapsed: /profile already
+ * shows the achievements, from the same wallet through the same grid, so the
+ * nav row pointed at a second rendering of a list the reader could already
+ * see. The route still redirects there — see its page.tsx.
  */
 export const navItems: NavItem[] = [
   { href: '/home', labelKey: 'arena.nav.home', icon: <HouseIcon /> },
@@ -57,11 +61,6 @@ export const navItems: NavItem[] = [
   },
   { href: '/friends', labelKey: 'arena.nav.friends', icon: <UsersIcon /> },
   { href: '/history', labelKey: 'arena.nav.history', icon: <CalendarIcon /> },
-  {
-    href: '/achievements',
-    labelKey: 'arena.nav.achievements',
-    icon: <StarIcon />,
-  },
   { href: '/profile', labelKey: 'arena.nav.profile', icon: <UserCircleIcon /> },
   { href: '/settings', labelKey: 'arena.nav.settings', icon: <GearIcon /> },
 ];

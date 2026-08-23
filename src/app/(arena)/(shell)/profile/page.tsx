@@ -354,12 +354,6 @@ export default function Page() {
           <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.achievements')}
           </h2>
-          <Link
-            href="/achievements"
-            className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          >
-            {t('arena.common.viewAll')}
-          </Link>
         </div>
         <AchievementGrid items={badges} limit={8} loading={loading} />
       </section>
