@@ -150,7 +150,7 @@ export default function Page() {
         {homeStats.map((stat) => (
           <div
             key={stat.labelKey}
-            className="border border-white/[0.07] bg-black p-5"
+            className="border border-white/[0.07] bg-arena-800 p-5"
           >
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
               {t(stat.labelKey)}
@@ -167,9 +167,6 @@ export default function Page() {
 
       {/* ============================================================= hero */}
       {/*
-        The green gradient, restored. It went black for one commit and came
-        straight back — the rail panels below are the ones that wanted it.
-
         arena-800 climbing to arena-650, so the hero is the same greens as the
         rest of the app rather than a hole in it, and the gold has something
         warm to sit against.
@@ -185,11 +182,7 @@ export default function Page() {
           className="pointer-events-none absolute top-0 right-0 bottom-0 hidden w-64 items-center justify-center opacity-5 sm:flex"
           aria-hidden="true"
         >
-          {/*
-            Gold, as it always was. It was turned black once on a misreading of
-            "make it black" — the request was about the background — and it has
-            been gold again ever since.
-          */}
+          {/* Gold, at 5%: a mark in the corner rather than a second heading */}
           <div className="text-[200px] leading-none font-bold text-gold">?</div>
         </div>
         <div className="relative">
@@ -268,7 +261,7 @@ export default function Page() {
             browse what is open, or open one.
           */}
           {!loading && signedIn && recentMatches.length === 0 && (
-            <div className="border border-white/[0.07] bg-black px-4 py-10 text-center">
+            <div className="border border-white/[0.07] bg-arena-800 px-4 py-10 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
                 <CalendarXIcon className="h-8 w-8 text-arena-500" />
               </div>
@@ -318,7 +311,7 @@ export default function Page() {
             <Link
               key={match.matchId}
               href="/history"
-              className="flex items-center gap-4 border border-white/[0.07] bg-black p-4 transition-colors hover:bg-arena-900 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               <span
                 className={`h-12 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
@@ -379,7 +372,7 @@ export default function Page() {
             one the page scrolls to.
           */}
           {friends !== null && onlineFriends.length === 0 && (
-            <div className="border border-white/[0.07] bg-black px-4 py-8 text-center">
+            <div className="border border-white/[0.07] bg-arena-800 px-4 py-8 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
                 <UsersThreeIcon className="h-8 w-8 text-arena-500" />
               </div>
@@ -407,7 +400,7 @@ export default function Page() {
             return (
               <div
                 key={friend.username}
-                className="flex items-center gap-3 border border-white/[0.07] bg-black p-3"
+                className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
               >
                 {/*
                   Avatar and name are one target, as on the friends list, and
