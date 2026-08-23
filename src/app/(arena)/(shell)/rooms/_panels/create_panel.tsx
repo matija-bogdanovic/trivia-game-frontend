@@ -15,7 +15,6 @@ import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
 import { usePasswordReveal } from '@/app/(arena)/_components/password_reveal';
 import {
-  CheckIcon,
   CoinsIcon,
   GlobeIcon,
   LockIcon,
@@ -77,11 +76,6 @@ const VISIBILITY = {
   private: { Icon: LockIcon, tint: 'text-gold' },
 } as const;
 
-interface Created {
-  lobbyId: string;
-  roomCode: number;
-}
-
 export default function CreatePanel() {
   const { t } = useT();
   const router = useRouter();
@@ -122,8 +116,6 @@ export default function CreatePanel() {
   const [credits, setCredits] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-  const [created, setCreated] = useState<Created | null>(null);
-  const [copied, setCopied] = useState(false);
   const roomPassword = usePasswordReveal('room-password');
 
   useEffect(() => {
@@ -187,86 +179,25 @@ export default function CreatePanel() {
         return;
       }
 
-      if (typeof data.creditsLeft === 'number') setCredits(data.creditsLeft);
-      setCreated({ lobbyId: String(data.lobbyId), roomCode: data.roomCode });
-      setCreating(false);
+      /*
+       * Straight into the room, no interstitial.
+       *
+       * There used to be a confirmation screen here whose job was to show the
+       * host the room code so they could send it to somebody. The lobby shows
+       * that code at 3xl with click-to-copy, so the screen was a stop between
+       * making a room and being in it that carried nothing the destination did
+       * not already carry.
+       *
+       * `creating` stays TRUE through the push. The route change is not
+       * instant, and re-enabling the button for those few hundred milliseconds
+       * invites a second click that would spend another lobby credit on a
+       * second room.
+       */
+      router.push(`/game/${String(data.lobbyId)}`);
     } catch {
       setError(t('arena.create.unreachable'));
       setCreating(false);
     }
-  }
-
-  const copyCode = () => {
-    if (!created) return;
-    navigator.clipboard?.writeText(String(created.roomCode)).then(
-      () => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      },
-      () => {}
-    );
-  };
-
-  if (created) {
-    return (
-      <div className="max-w-2xl p-4 sm:p-6 lg:p-8">
-        <div className="mb-6 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-          {t('arena.create.created')}
-        </div>
-        <div className="mb-6 border border-gold/20 bg-arena-800 p-6 text-center sm:p-8">
-          <div className="text-arena-200 text-[11px] tracking-[0.3em] uppercase mb-4">
-            {t('arena.common.roomCode')}
-          </div>
-          <div className="mb-6 text-4xl font-bold tracking-[0.2em] text-gold tabular-nums sm:text-6xl sm:tracking-[0.3em]">
-            {created.roomCode}
-          </div>
-          <div className="flex flex-wrap justify-center gap-3">
-            <button
-              onClick={copyCode}
-              className="inline-flex items-center gap-2 border border-gold/40 text-gold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold/10 transition-colors"
-            >
-              {copied && <CheckIcon className="h-3.5 w-3.5 shrink-0" />}
-              {copied ? t('arena.create.copied') : t('arena.create.copyCode')}
-            </button>
-          </div>
-          <p className="sr-only" aria-live="polite">
-            {copied ? t('arena.create.copiedSr') : ''}
-          </p>
-        </div>
-        <div className="mb-6 grid grid-cols-1 gap-4 border border-white/[0.07] bg-arena-750 p-5 text-center sm:grid-cols-3">
-          <Recap
-            label={t('arena.common.startingMoney')}
-            value={money(startingMoney)}
-          />
-          <Recap
-            label={t('arena.create.seats')}
-            value={t('arena.create.seatsValue', { n: maxPlayers })}
-          />
-          <Recap
-            label={t('arena.create.visibility')}
-            value={
-              visibility === 'private'
-                ? t('arena.common.private')
-                : t('arena.common.public')
-            }
-          />
-        </div>
-        <div className="flex flex-wrap gap-4">
-          <Link
-            href={`/game/${created.lobbyId}`}
-            className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-8 py-4 hover:bg-gold-light transition-colors"
-          >
-            {t('arena.create.enterLobby')}
-          </Link>
-          <button
-            onClick={() => router.push('/rooms')}
-            className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
-          >
-            {t('arena.create.backToRooms')}
-          </button>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -283,8 +214,37 @@ export default function CreatePanel() {
           maxLength={NAME_MAX}
           disabled={creating}
         />
-        <div className="text-arena-300 text-[10px] mt-2 tracking-wider">
-          {t('arena.create.nameHint', { min: NAME_MIN, max: NAME_MAX })}
+        {/*
+          The rule on the left, the count on the right.
+
+          maxLength already stopped the 14th character from being typed, but
+          silently — a key press that does nothing and says nothing reads as a
+          broken keyboard. The counter turns the same limit into something the
+          reader can see coming.
+
+          It goes gold at the ceiling rather than red: hitting the limit is not
+          an error, it is the field being full, and this app spends red on
+          nothing at all outside an achievement badge.
+
+          aria-live is deliberately ABSENT. The count changes on every
+          keystroke, and a screen reader reciting "6 of 13, 7 of 13" over the
+          characters being typed is worse than not knowing — the rule beside it
+          is static, and that is the part worth hearing.
+        */}
+        <div className="mt-2 flex items-baseline justify-between gap-3 text-[10px] tracking-wider text-arena-300">
+          <span>
+            {t('arena.create.nameHint', { min: NAME_MIN, max: NAME_MAX })}
+          </span>
+          <span
+            className={`shrink-0 tabular-nums ${
+              roomName.length >= NAME_MAX ? 'text-gold' : ''
+            }`}
+          >
+            {t('arena.create.nameCount', {
+              n: roomName.length,
+              max: NAME_MAX,
+            })}
+          </span>
         </div>
       </Section>
 
