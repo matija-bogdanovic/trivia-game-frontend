@@ -56,6 +56,24 @@
   --color-gold-light: #e0b93a;
   --color-gold-dark: #a07e1a;
 
+  /*
+   * The streak pair — a run of wins and a run of losses, read as hot and cold.
+   *
+   * Neither could be gold. Gold is this app's "this matters" accent and it is
+   * already spent on money, active nav and every number on a podium; a streak
+   * painted in it competes with all of that and, worse, makes a losing run
+   * look like an award.
+   *
+   * Both are picked to sit on the arena greens rather than against them.
+   * Flame is warm enough to separate from gold at a glance — gold is yellow
+   * at 47° hue, this is orange at 19° — without turning red, which on a dark
+   * green would read as an error state. Frost is a desaturated ice blue: cold
+   * and clearly not-green, but muted enough that a losing streak states
+   * itself instead of shouting.
+   */
+  --color-flame: #e2703a;
+  --color-frost: #6ab5dd;
+
   --radius: 0.25rem;
 }
 

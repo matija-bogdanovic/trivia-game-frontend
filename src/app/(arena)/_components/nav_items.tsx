@@ -15,12 +15,11 @@ import type { ReactNode } from 'react';
 import {
   BarChartIcon,
   CalendarIcon,
+  DoorIcon,
   GearIcon,
   HouseIcon,
-  PlusCircleIcon,
   StarIcon,
   UserCircleIcon,
-  UserPlusIcon,
   UsersIcon,
 } from './icons';
 
@@ -39,22 +38,20 @@ export interface NavItem {
 }
 
 /*
- * Nine entries, nine icons.
+ * Eight entries.
  *
- * "Pronađi sobu" is deliberately NOT among them any more. Browse, create and
- * join are one screen now (rooms/_panels/rooms_shell.tsx) and Find is its
- * default tab, so a fourth nav row pointing at the same page would be the
- * third shortcut into it. Create and Join keep theirs because they are
- * distinct actions worth one click; Find is where the hub already opens.
+ * Browse, create and join are ONE screen now — rooms/_panels/rooms_shell.tsx
+ * — so they are one nav row: Sobe, wearing the door. Three rows pointing at
+ * three tabs of the same page would have been the nav re-implementing a tab
+ * strip that is already on the page.
+ *
+ * The circle-plus and add-person icons that used to sit here are not
+ * discarded; they moved onto the Napravi and Uđi tabs inside that page, which
+ * is where those two actions now live.
  */
 export const navItems: NavItem[] = [
   { href: '/home', labelKey: 'arena.nav.home', icon: <HouseIcon /> },
-  {
-    href: '/rooms/create',
-    labelKey: 'arena.nav.create',
-    icon: <PlusCircleIcon />,
-  },
-  { href: '/rooms/join', labelKey: 'arena.nav.join', icon: <UserPlusIcon /> },
+  { href: '/rooms', labelKey: 'arena.nav.rooms', icon: <DoorIcon /> },
   {
     href: '/leaderboards',
     labelKey: 'arena.nav.leaderboards',

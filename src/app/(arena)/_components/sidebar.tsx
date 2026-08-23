@@ -82,7 +82,17 @@ export default function Sidebar() {
           aria-label={t('arena.nav.main')}
         >
           {navItems.map((item) => {
-            const active = pathname === item.href;
+            /*
+             * Exact match, except for the rooms hub: its three tabs are three
+             * routes (/rooms, /rooms/create, /rooms/join) behind one nav row,
+             * so an exact test would leave Sobe unlit on two of its own tabs.
+             * Scoped to this one entry rather than a general startsWith, which
+             * would also light /rooms for anything nested under it later.
+             */
+            const active =
+              item.href === '/rooms'
+                ? pathname === '/rooms' || pathname.startsWith('/rooms/')
+                : pathname === item.href;
             return (
               <Link
                 key={item.href}

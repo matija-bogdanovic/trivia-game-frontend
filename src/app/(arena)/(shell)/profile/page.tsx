@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import GoogleBadge from '@/app/(arena)/_components/google_mark';
+import { FlameIcon, SnowflakeIcon } from '@/app/(arena)/_components/icons';
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
@@ -117,11 +118,19 @@ export default function Page() {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+            {/*
+              Hot and cold, side by side and built the same way. Neither is
+              gold: gold is this app's "this matters" accent, already spent on
+              money and every podium number, and a losing run wearing it would
+              read as an award. --color-flame and --color-frost exist for this
+              pair and nothing else.
+            */}
             <div>
               <div className="text-[10px] tracking-widest text-arena-300 uppercase">
                 {t('arena.profile.currentStreak')}
               </div>
-              <div className="text-2xl font-bold text-gold">
+              <div className="flex items-center gap-2 text-2xl font-bold text-flame">
+                <FlameIcon className="h-6 w-6" />
                 {t('arena.profile.streakWins', {
                   n: wallet?.currentStreak ?? 0,
                 })}
@@ -147,7 +156,8 @@ export default function Page() {
               <div className="text-[10px] tracking-widest text-arena-300 uppercase">
                 {t('arena.profile.losingStreak')}
               </div>
-              <div className="text-2xl font-bold text-arena-200">
+              <div className="flex items-center gap-2 text-2xl font-bold text-frost">
+                <SnowflakeIcon className="h-6 w-6" />
                 {t('arena.profile.streakLosses', {
                   n: wallet?.currentLosingStreak ?? 0,
                 })}

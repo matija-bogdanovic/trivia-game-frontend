@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { PlusCircleIcon, UserPlusIcon } from '@/app/(arena)/_components/icons';
 import { useT } from '@/app/lib/i18n';
 import BrowsePanel from './browse_panel';
 import CreatePanel from './create_panel';
@@ -36,10 +37,35 @@ import JoinPanel from './join_panel';
 
 export type RoomsTab = 'find' | 'create' | 'join';
 
-const TABS: { tab: RoomsTab; href: string; labelKey: string }[] = [
-  { tab: 'create', href: '/rooms/create', labelKey: 'arena.rooms.tabCreate' },
+/*
+ * The two icons freed from the sidebar when create and join collapsed into
+ * this page follow the actions here: a plus in a circle opens a room, a plus
+ * beside a person enters one.
+ *
+ * Pronađi is text only, and that is a choice rather than an omission — there
+ * is no search glyph in the set, and inventing one to fill the slot would put
+ * a shape on screen that nobody drew. Two labelled icons and one plain label
+ * reads as deliberate; a made-up magnifier would not.
+ */
+const TABS: {
+  tab: RoomsTab;
+  href: string;
+  labelKey: string;
+  Icon?: (props: { className?: string }) => React.ReactElement;
+}[] = [
+  {
+    tab: 'create',
+    href: '/rooms/create',
+    labelKey: 'arena.rooms.tabCreate',
+    Icon: PlusCircleIcon,
+  },
   { tab: 'find', href: '/rooms', labelKey: 'arena.rooms.tabFind' },
-  { tab: 'join', href: '/rooms/join', labelKey: 'arena.rooms.tabJoin' },
+  {
+    tab: 'join',
+    href: '/rooms/join',
+    labelKey: 'arena.rooms.tabJoin',
+    Icon: UserPlusIcon,
+  },
 ];
 
 export default function RoomsShell({ tab }: { tab: RoomsTab }) {
@@ -72,12 +98,13 @@ export default function RoomsShell({ tab }: { tab: RoomsTab }) {
               role="tab"
               aria-selected={active}
               aria-current={active ? 'page' : undefined}
-              className={`cursor-pointer border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
+              className={`inline-flex cursor-pointer items-center gap-2 border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
                 active
                   ? 'border-gold bg-gold text-arena-950'
                   : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
               }`}
             >
+              {entry.Icon && <entry.Icon className="h-4 w-4" />}
               {t(entry.labelKey)}
             </Link>
           );
