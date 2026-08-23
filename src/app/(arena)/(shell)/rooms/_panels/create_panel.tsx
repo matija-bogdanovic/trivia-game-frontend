@@ -56,6 +56,23 @@ const clampMoney = (n: number) =>
     Math.max(MONEY_MIN, Math.round(n / MONEY_STEP) * MONEY_STEP)
   );
 
+/**
+ * The two room types, and the colour each one is told apart by.
+ *
+ * Frost for public and gold for private is not decoration — it is the same
+ * pairing the browse list uses on every room card, so a host picking a type
+ * here sees the badge their room will wear there. Opposite temperatures do the
+ * work: open to anyone, or shut behind a password.
+ *
+ * The tint is on the ICON, never the label — the label already carries the
+ * card's selected state in gold, and a heading that changed colour for two
+ * different reasons at once would say neither clearly.
+ */
+const VISIBILITY = {
+  public: { Icon: GlobeIcon, tint: 'text-frost' },
+  private: { Icon: LockIcon, tint: 'text-gold' },
+} as const;
+
 interface Created {
   lobbyId: string;
   roomCode: number;
@@ -284,7 +301,7 @@ export default function CreatePanel() {
           aria-labelledby="visibility-label"
         >
           {(['public', 'private'] as const).map((v) => {
-            const Icon = v === 'public' ? GlobeIcon : LockIcon;
+            const { Icon, tint } = VISIBILITY[v];
             return (
               <button
                 key={v}
@@ -300,7 +317,7 @@ export default function CreatePanel() {
                 <div
                   className={`mb-1 flex items-center gap-2 text-sm font-bold tracking-widest ${visibility === v ? 'text-gold' : 'text-white'}`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
+                  <Icon className={`h-4 w-4 shrink-0 ${tint}`} />
                   {v === 'public'
                     ? t('arena.create.publicLabel')
                     : t('arena.create.privateLabel')}
