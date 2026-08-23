@@ -7,9 +7,22 @@
  * "Play now" button goes to /rooms instead. Results is the third: it is the
  * end of a match, not a destination, so it is not routed at all — the design
  * lives in game/[game]/_deferred/results.tsx.
+ *
+ * Every entry now carries a drawn icon rather than a typed character. A glyph
+ * is whatever the user's font decides it is; see _components/icons.tsx.
  */
 import type { ReactNode } from 'react';
-import { BarChartIcon, PlusCircleIcon, UserPlusIcon, UsersIcon } from './icons';
+import {
+  BarChartIcon,
+  CalendarIcon,
+  GearIcon,
+  HouseIcon,
+  PlusCircleIcon,
+  StarIcon,
+  UserCircleIcon,
+  UserPlusIcon,
+  UsersIcon,
+} from './icons';
 
 export interface NavItem {
   href: string;
@@ -25,9 +38,17 @@ export interface NavItem {
   icon: ReactNode;
 }
 
+/*
+ * Nine entries, nine icons.
+ *
+ * "Pronađi sobu" is deliberately NOT among them any more. Browse, create and
+ * join are one screen now (rooms/_panels/rooms_shell.tsx) and Find is its
+ * default tab, so a fourth nav row pointing at the same page would be the
+ * third shortcut into it. Create and Join keep theirs because they are
+ * distinct actions worth one click; Find is where the hub already opens.
+ */
 export const navItems: NavItem[] = [
-  { href: '/home', labelKey: 'arena.nav.home', icon: 'H' },
-  { href: '/rooms', labelKey: 'arena.nav.rooms', icon: 'F' },
+  { href: '/home', labelKey: 'arena.nav.home', icon: <HouseIcon /> },
   {
     href: '/rooms/create',
     labelKey: 'arena.nav.create',
@@ -40,8 +61,12 @@ export const navItems: NavItem[] = [
     icon: <BarChartIcon />,
   },
   { href: '/friends', labelKey: 'arena.nav.friends', icon: <UsersIcon /> },
-  { href: '/history', labelKey: 'arena.nav.history', icon: '◷' },
-  { href: '/achievements', labelKey: 'arena.nav.achievements', icon: '★' },
-  { href: '/profile', labelKey: 'arena.nav.profile', icon: '◎' },
-  { href: '/settings', labelKey: 'arena.nav.settings', icon: '⚙' },
+  { href: '/history', labelKey: 'arena.nav.history', icon: <CalendarIcon /> },
+  {
+    href: '/achievements',
+    labelKey: 'arena.nav.achievements',
+    icon: <StarIcon />,
+  },
+  { href: '/profile', labelKey: 'arena.nav.profile', icon: <UserCircleIcon /> },
+  { href: '/settings', labelKey: 'arena.nav.settings', icon: <GearIcon /> },
 ];
