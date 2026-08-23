@@ -4,7 +4,10 @@ import Link from 'next/link';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import { money } from '@/app/(arena)/_lib/money';
 import { useT } from '@/app/lib/i18n';
-import { roomCategories } from '@/app/(arena)/_mock/rooms';
+import {
+  QUESTION_CATEGORIES,
+  categoriesToSend,
+} from '@/app/(arena)/_lib/categories';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/helpers/api';
@@ -60,7 +63,15 @@ export default function Page() {
   const [visibility, setVisibility] = useState<'public' | 'private'>('public');
   const [password, setPassword] = useState('');
   /** the question pool the room draws from; at least one is required */
-  const [categories, setCategories] = useState<string[]>(['Mixed']);
+  /*
+   * Every category selected by default — the room a host creates without
+   * touching this draws from the whole bank, which is what they expect if
+   * they never open the section. It is sent as [] (see categoriesToSend).
+   */
+  const [categories, setCategories] = useState<string[]>(() =>
+    QUESTION_CATEGORIES.map((c) => c.id)
+  );
+  const allSelected = categories.length === QUESTION_CATEGORIES.length;
   const [maxPlayers, setMaxPlayers] = useState<number>(DEFAULT_CAPACITY);
   const [startingMoney, setStartingMoney] = useState<number>(DEFAULT_MONEY);
   const [credits, setCredits] = useState<number | null>(null);
@@ -90,10 +101,6 @@ export default function Page() {
       setError(t('arena.create.passwordShort'));
       return;
     }
-    if (categories.length === 0) {
-      setError(t('arena.create.needCategory'));
-      return;
-    }
     if (creating) return;
 
     setCreating(true);
@@ -106,7 +113,7 @@ export default function Page() {
           roomName: roomName.trim(),
           isPrivate: visibility === 'private',
           password: visibility === 'private' ? password : undefined,
-          categories,
+          categories: categoriesToSend(categories),
           maxPlayers,
           // clamped again on the way out: the slider is bounded, but a stale
           // value from a restored form should not reach the server unchecked
@@ -297,43 +304,82 @@ export default function Page() {
       </Section>
 
       <Section label={t('arena.create.categories')} id="categories-label">
+        {/*
+          All / none, because 24 toggles is a lot of tapping to say "just
+          history". Selecting all is the same room as selecting none — both
+          send [] — so the two buttons are shortcuts, not distinct states.
+        */}
+        <div className="mb-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() =>
+              setCategories(QUESTION_CATEGORIES.map((category) => category.id))
+            }
+            disabled={creating || allSelected}
+            className="cursor-pointer text-[10px] tracking-wider text-gold uppercase transition-colors hover:text-gold-light disabled:cursor-default disabled:text-arena-500 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            {t('arena.create.selectAll')}
+          </button>
+          <span className="text-arena-500" aria-hidden="true">
+            ·
+          </span>
+          <button
+            type="button"
+            onClick={() => setCategories([])}
+            disabled={creating || categories.length === 0}
+            className="cursor-pointer text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:text-white disabled:cursor-default disabled:text-arena-500 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            {t('arena.create.clearAll')}
+          </button>
+          <span
+            className="ml-auto text-[10px] tracking-wider text-arena-300 uppercase"
+            aria-live="polite"
+          >
+            {allSelected
+              ? t('arena.create.allCategories')
+              : t('arena.create.categoriesChosen', { n: categories.length })}
+          </span>
+        </div>
+
         <div
           className="flex flex-wrap gap-2"
           role="group"
           aria-labelledby="categories-label"
         >
-          {roomCategories.map((category) => {
-            const selected = categories.includes(category);
+          {QUESTION_CATEGORIES.map((category) => {
+            const selected = categories.includes(category.id);
             return (
               <button
-                key={category}
+                key={category.id}
                 type="button"
                 onClick={() =>
                   setCategories((current) =>
-                    current.includes(category)
-                      ? current.filter((c) => c !== category)
-                      : [...current, category]
+                    current.includes(category.id)
+                      ? current.filter((c) => c !== category.id)
+                      : [...current, category.id]
                   )
                 }
                 aria-pressed={selected}
                 disabled={creating}
-                className={`cursor-pointer border px-4 py-2 text-[11px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`cursor-pointer border px-3 py-2 text-[11px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   selected
                     ? 'border-gold bg-gold font-bold text-arena-950'
                     : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
                 }`}
               >
-                {category}
+                {t(category.labelKey)}
               </button>
             );
           })}
         </div>
+        {/*
+          Not an error. Clearing every category is how you say "any question",
+          and it is the same room as ticking all 24 — the old screen refused to
+          submit here, which made the clear button a trap.
+        */}
         {categories.length === 0 && (
-          <p
-            className="mt-3 text-[11px] tracking-wider text-gold"
-            aria-live="polite"
-          >
-            {t('arena.create.needCategory')}
+          <p className="mt-3 text-[11px] text-arena-300" aria-live="polite">
+            {t('arena.create.noneMeansAll')}
           </p>
         )}
       </Section>
