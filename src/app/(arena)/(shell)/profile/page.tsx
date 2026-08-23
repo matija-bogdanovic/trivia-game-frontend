@@ -255,7 +255,7 @@ export default function Page() {
             {recent.length > 0 && (
               <Link
                 href="/history"
-                className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
                 {t('arena.common.viewAll')}
               </Link>
@@ -334,7 +334,7 @@ export default function Page() {
           </h2>
           <Link
             href="/achievements"
-            className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.common.viewAll')}
           </Link>

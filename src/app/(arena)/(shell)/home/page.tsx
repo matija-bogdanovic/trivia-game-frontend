@@ -126,16 +126,27 @@ export default function Page() {
         </div>
       </section>
 
-      {/* ================================================ matches + friends */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <section className="space-y-3 lg:col-span-3">
-          <div className="mb-1 flex items-center justify-between">
+      {/*
+        The page runs on space-y-8 between sections, and these two columns sat
+        at gap-6 with space-y-3 inside — visibly tighter than everything above
+        them, which is what made the lower half read as a different screen.
+
+        The SECTION rhythm is unified to 8: the grid gap matches the page, and
+        each column's header sits mb-3 off its list. The rhythm INSIDE a list
+        is deliberately not 8 — space-y-4 rather than space-y-3, so the rows
+        breathe without drifting so far apart that a list of matches reads as
+        four separate sections. Consistency here means the sections line up,
+        not that every gap on the page is the same number.
+      */}
+      <div className="grid gap-8 lg:grid-cols-5">
+        <section className="space-y-4 lg:col-span-3">
+          <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
               {t('arena.home.recentMatches')}
             </h2>
             <Link
               href="/history"
-              className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               {t('arena.common.viewAll')}
             </Link>
@@ -173,14 +184,14 @@ export default function Page() {
           ))}
         </section>
 
-        <section className="space-y-3 lg:col-span-2">
-          <div className="mb-1 flex items-center justify-between">
+        <section className="space-y-4 lg:col-span-2">
+          <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[11px] tracking-[0.25em] text-arena-200 uppercase">
               {t('arena.home.friendsOnline')}
             </h2>
             <Link
               href="/friends"
-              className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               {t('arena.home.allFriends')}
             </Link>
@@ -237,7 +248,7 @@ export default function Page() {
           </h2>
           <Link
             href="/achievements"
-            className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="text-xs tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.common.viewAll')}
           </Link>
