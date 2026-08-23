@@ -23,6 +23,12 @@ import {
   serverMessage,
   setMyBet,
 } from '@/app/redux/slicers/game_slice';
+import {
+  inviteReceived,
+  inviteRefused,
+  inviteSent,
+  inviteSessionReset,
+} from '@/app/redux/slicers/invite_slice';
 import { useT } from '@/app/lib/i18n';
 
 export interface GameActions {
@@ -52,6 +58,8 @@ export interface GameActions {
   kickPlayer: (target: string) => void;
   terminateLobby: () => void;
   sendChat: (text: string) => void;
+  /** ask a friend into this room; the server reads which room from the socket */
+  inviteFriend: (target: string) => void;
   playAgain: () => void;
   leaveRoom: () => void | Promise<void>;
 }
@@ -166,6 +174,52 @@ export default function GameProvider({
     dispatch(
       serverMessage({ message: lastJsonMessage, receivedAt: Date.now() })
     );
+    /*
+     * A room invite is not game state, so it goes to its own slice rather than
+     * through serverMessage: the game reducer is wiped by resetGame() on every
+     * leave, and an invite that arrives while you are walking out of a room
+     * must survive that walk.
+     *
+     * Handled here as well as in PresenceProvider because a player already in
+     * a lobby is under GameProvider and never sees the shell's socket.
+     */
+    const msg = lastJsonMessage as unknown as {
+      type?: string;
+      lobbyId?: string;
+      code?: number | null;
+      roomName?: string;
+      isPrivate?: boolean;
+      from?: string;
+      fromName?: string;
+      at?: number;
+    };
+    if (msg?.type === 'invite_sent') {
+      dispatch(inviteSent(String((msg as { target?: string }).target ?? '')));
+      return;
+    }
+    if (msg?.type === 'invite_failed') {
+      const f = msg as { reason?: string; target?: string | null };
+      dispatch(
+        inviteRefused({
+          reason: String(f.reason ?? 'generic'),
+          target: String(f.target ?? ''),
+        })
+      );
+      return;
+    }
+    if (msg?.type === 'room_invite' && msg.lobbyId) {
+      dispatch(
+        inviteReceived({
+          lobbyId: String(msg.lobbyId),
+          code: msg.code ?? null,
+          roomName: msg.roomName ?? '',
+          isPrivate: Boolean(msg.isPrivate),
+          from: String(msg.from ?? ''),
+          fromName: msg.fromName || String(msg.from ?? ''),
+          at: msg.at ?? Date.now(),
+        })
+      );
+    }
   }, [lastJsonMessage, dispatch]);
 
   /*
@@ -187,6 +241,7 @@ export default function GameProvider({
   useEffect(() => {
     return () => {
       dispatch(resetGame());
+      dispatch(inviteSessionReset());
     };
   }, [dispatch]);
 
@@ -312,6 +367,20 @@ export default function GameProvider({
     [sendJsonMessage]
   );
 
+  /**
+   * Ask a friend into this room.
+   *
+   * The message carries the target and NOTHING else — the server reads which
+   * room from this socket's own Connections row, so there is no lobbyId here
+   * to get wrong or to forge.
+   */
+  const inviteFriend = useCallback(
+    (target: string) => {
+      if (target) sendJsonMessage({ type: 'invite_friend', target });
+    },
+    [sendJsonMessage]
+  );
+
   const playAgain = useCallback(() => {
     sendJsonMessage({ type: 'play_again' });
   }, [sendJsonMessage]);
@@ -361,6 +430,7 @@ export default function GameProvider({
       kickPlayer,
       terminateLobby,
       sendChat,
+      inviteFriend,
       playAgain,
       leaveRoom,
     }),
@@ -378,6 +448,7 @@ export default function GameProvider({
       kickPlayer,
       terminateLobby,
       sendChat,
+      inviteFriend,
       playAgain,
       leaveRoom,
     ]

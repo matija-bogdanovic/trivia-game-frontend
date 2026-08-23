@@ -6,12 +6,14 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
+import InviteFriends from './invite_friends';
 import {
   CheckIcon,
   FlameIcon,
   GlobeIcon,
   LockIcon,
   PaperPlaneIcon,
+  UserPlusIcon,
   XIcon,
 } from '@/app/(arena)/_components/icons';
 
@@ -38,6 +40,30 @@ export default function ArenaLobby() {
     sendChat,
     leaveRoom,
   } = useGame();
+  const [inviting, setInviting] = useState(false);
+  const inviteSentTo = useSelector((st: RootState) => st.invite.sent);
+  const inviteResult = useSelector((st: RootState) => st.invite.result);
+  /*
+   * The server answers a refusal with a code and a target; this turns the pair
+   * into the sentence the sender reads. Naming the person is the point — "X
+   * trenutno nije onlajn" is actionable where "invite failed" is not.
+   */
+  const inviteNotice = (() => {
+    if (!inviteResult?.reason) return null;
+    const name = inviteResult.target;
+    switch (inviteResult.reason) {
+      case 'offline':
+        return t('arena.invite.err.offline', { name });
+      case 'already-here':
+        return t('arena.invite.err.alreadyHere', { name });
+      case 'not-friend':
+        return t('arena.invite.err.notFriend');
+      case 'room-gone':
+        return t('arena.invite.err.roomGone');
+      default:
+        return t('arena.invite.err.generic');
+    }
+  })();
   const {
     roomName,
     code,
@@ -199,9 +225,28 @@ export default function ArenaLobby() {
       <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row">
         {/* Player grid */}
         <div className="flex-1 overflow-y-auto">
-          <h2 className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
-            {t('arena.lobby.players')}
-          </h2>
+          {/*
+            Invite sits with the roster, not with the room controls: it is a
+            way of filling those empty seats, and it is the seats you are
+            looking at when you notice they are empty.
+
+            Not host-only. Anyone waiting can pull a friend in — the server
+            checks that the sender is in the room and that the target is
+            actually their friend, which are the only two limits that matter.
+          */}
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
+              {t('arena.lobby.players')}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setInviting(true)}
+              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 border border-gold/40 px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              <UserPlusIcon className="h-3.5 w-3.5 shrink-0" />
+              {t('arena.invite.open')}
+            </button>
+          </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {seated.map((player) => {
               const isMe = player.username === username;
@@ -506,6 +551,14 @@ export default function ArenaLobby() {
           </div>
         </div>
       )}
+
+      <InviteFriends
+        open={inviting}
+        onClose={() => setInviting(false)}
+        inRoom={players.map((p) => p.username)}
+        sent={inviteSentTo}
+        notice={inviteNotice}
+      />
     </div>
   );
 }

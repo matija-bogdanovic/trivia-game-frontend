@@ -1,4 +1,5 @@
 import GameProvider from '../components/hooks/game/context/game_context';
+import InviteBanner from '../(arena)/_components/invite_banner';
 
 /**
  * The in-room experience: one socket, one route, phase-switched inside.
@@ -12,7 +13,16 @@ export default function GameLayout({
 }>) {
   return (
     <GameProvider>
-      <div className="arena-root h-screen overflow-hidden">{children}</div>
+      <div className="arena-root h-screen overflow-hidden">
+        {children}
+        {/*
+          An invite can land while you are already in a lobby — a second friend
+          asking you somewhere else — and the answer is the same one the shell
+          offers. No PresenceProvider here: GameProvider already holds the
+          socket, and it dispatches room_invite into the same slice.
+        */}
+        <InviteBanner />
+      </div>
     </GameProvider>
   );
 }
