@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import PressButton from '@/app/(arena)/_components/press_button';
 import { useT } from '@/app/lib/i18n';
-import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PlayerPreview, {
   type PlayerCard,
@@ -17,7 +16,13 @@ import {
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
-import { EyeIcon, FlameIcon } from '@/app/(arena)/_components/icons';
+import {
+  CalendarXIcon,
+  EyeIcon,
+  FlameIcon,
+} from '@/app/(arena)/_components/icons';
+import { money } from '@/app/(arena)/_lib/money';
+import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
 import { useEffect, useState } from 'react';
 
 /**
@@ -59,8 +64,19 @@ const PRESENCE: Record<
 };
 
 export default function Page() {
-  const { t } = useT();
-  const { wallet, loading } = useWallet();
+  const { t, lang } = useT();
+  const { wallet, loading, signedIn } = useWallet();
+
+  /*
+   * The four most recent matches, from the player's own record.
+   *
+   * wallet.matchHistory is the capped window the game engine writes when a
+   * match ends — newest first, twenty deep — and it is the same array /history
+   * draws its rows from, so the two screens cannot disagree about a match.
+   * Nothing extra is fetched: the wallet is already loaded for the stat tiles
+   * above, so this rail costs no request at all.
+   */
+  const recentMatches = (wallet?.matchHistory ?? []).slice(0, 4);
 
   /*
    * The rail ran on _mock/players — three invented names, a square initials
@@ -235,32 +251,66 @@ export default function Page() {
             </Link>
           </div>
 
-          {homeRecentMatches.map((match) => (
+          {!loading && signedIn && recentMatches.length === 0 && (
+            <div className="border border-white/[0.07] bg-arena-800 px-4 py-10 text-center">
+              <div className="mb-3 flex justify-center" aria-hidden="true">
+                <CalendarXIcon className="h-8 w-8 text-arena-500" />
+              </div>
+              <div className="text-[11px] tracking-wider text-arena-300 uppercase">
+                {t('arena.history.empty')}
+              </div>
+              <p className="mt-1.5 text-[11px] text-arena-300">
+                {t('arena.history.emptyHint')}
+              </p>
+            </div>
+          )}
+
+          {/*
+            Built from the same fields, helpers and strings as a /history row —
+            money(), playedAtLabel(), arena.history.* — so one match reads the
+            same on both screens rather than being described twice.
+
+            The row that stood here listed three opponents by name. The summary
+            the server keeps does not carry them: it holds the room, the
+            result, the placement, the money and the winner, and everyone
+            ELSE at the table is only in POST /matches/detail, one request per
+            match. So the name shown is the winner's, which is a real opponent
+            whenever the reader was not the one who won.
+          */}
+          {recentMatches.map((match) => (
             <Link
-              key={match.id}
+              key={match.matchId}
               href="/history"
               className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               <span
-                className={`h-12 w-2 shrink-0 ${match.result === 'WIN' ? 'bg-gold' : 'bg-arena-400'}`}
+                className={`h-12 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
                 aria-hidden="true"
               />
               <span className="min-w-0 flex-1">
-                <span className="mb-0.5 block truncate text-sm font-bold text-white">
-                  {match.players.join(' · ')}
+                <span className="mb-0.5 flex items-center gap-2">
+                  <span className="truncate text-sm font-bold text-white">
+                    {match.roomName}
+                  </span>
+                  <span className="shrink-0 border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
+                    {t('arena.history.players', { n: match.playerCount })}
+                  </span>
                 </span>
-                <span className="block text-[10px] tracking-wider text-arena-200 uppercase">
-                  {match.category} · {match.date}
+                <span className="block truncate text-[10px] tracking-wider text-arena-200">
+                  {playedAtLabel(match.playedAt, lang)}
+                  {!match.won && match.winnerName
+                    ? ` · ${t('arena.home.wonBy', { name: match.winnerName })}`
+                    : ` · ${t('arena.history.roundsPlayed', { n: match.roundsPlayed })}`}
                 </span>
               </span>
-              <span className="text-right">
+              <span className="shrink-0 text-right">
                 <span
-                  className={`block text-sm font-bold ${match.result === 'WIN' ? 'text-gold' : 'text-arena-300'}`}
+                  className={`block text-sm font-bold ${match.won ? 'text-gold' : 'text-arena-300'}`}
                 >
-                  {match.money}
+                  {money(match.money)}
                 </span>
                 <span className="block text-[10px] tracking-wider text-arena-200">
-                  #{match.placement}
+                  {t('arena.history.place', { n: match.placement })}
                 </span>
               </span>
             </Link>
