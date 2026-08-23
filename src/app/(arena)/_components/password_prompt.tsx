@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Modal from './modal';
+import { usePasswordReveal } from './password_reveal';
 import { useT } from '@/app/lib/i18n';
 
 /**
@@ -36,6 +37,7 @@ export default function PasswordPrompt({
 }) {
   const { t } = useT();
   const [password, setPassword] = useState('');
+  const reveal = usePasswordReveal('room-password-prompt');
 
   // a fresh prompt starts empty, including after a cancel and reopen
   useEffect(() => {
@@ -57,17 +59,21 @@ export default function PasswordPrompt({
           if (password && !submitting) onSubmit(password);
         }}
       >
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={t('arena.join.password')}
-          aria-label={t('arena.join.password')}
-          aria-invalid={Boolean(error)}
-          autoComplete="off"
-          disabled={submitting}
-          className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
-        />
+        <div className="relative">
+          <input
+            id="room-password-prompt"
+            type={reveal.type}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={t('arena.join.password')}
+            aria-label={t('arena.join.password')}
+            aria-invalid={Boolean(error)}
+            autoComplete="off"
+            disabled={submitting}
+            className="w-full border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+          />
+          {!submitting && reveal.button}
+        </div>
 
         {error && (
           <p

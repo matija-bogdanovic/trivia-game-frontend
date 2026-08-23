@@ -12,6 +12,7 @@ import {
   GlobeIcon,
   LockIcon,
   PaperPlaneIcon,
+  XIcon,
 } from '@/app/(arena)/_components/icons';
 
 /**
@@ -294,7 +295,7 @@ export default function ArenaLobby() {
                       title={t('arena.lobby.removeNamed', { name: shown })}
                       className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                     >
-                      <span aria-hidden="true">✕</span>
+                      <XIcon className="h-3 w-3 shrink-0" />
                       {t('arena.lobby.remove')}
                     </button>
                   )}

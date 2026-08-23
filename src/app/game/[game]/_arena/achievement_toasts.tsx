@@ -7,7 +7,7 @@ import type { AchievementNotice } from '@/app/redux/slicers/game_slice';
 import type { AppDispatch, RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
-import { StarIcon } from '@/app/(arena)/_components/icons';
+import { StarIcon, XIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Unlocked-achievement toasts, bottom-right of the game.
@@ -197,9 +197,9 @@ function Toast({
         type="button"
         onClick={leave}
         aria-label={t('arena.ach.dismiss')}
-        className="absolute top-2 right-2 cursor-pointer px-1.5 py-0.5 text-sm leading-none text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        className="absolute top-2 right-2 cursor-pointer p-1 leading-none text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
       >
-        ✕
+        <XIcon className="h-3.5 w-3.5" />
       </button>
     </div>
   );

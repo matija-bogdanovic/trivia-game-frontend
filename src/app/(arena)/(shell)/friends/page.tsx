@@ -18,8 +18,13 @@ import {
   SkeletonAvatar,
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
-import { EyeIcon, FlameIcon } from '@/app/(arena)/_components/icons';
-import { SmileyIcon } from '@/app/(arena)/_components/icons';
+import {
+  CheckIcon,
+  EyeIcon,
+  FlameIcon,
+  SmileyIcon,
+  XIcon,
+} from '@/app/(arena)/_components/icons';
 
 /**
  * Whole days until a denied person may be asked again, or null when the wait
@@ -396,7 +401,7 @@ export default function Page() {
                         name: request.displayName,
                       })}
                     >
-                      ✓
+                      <CheckIcon className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
@@ -406,7 +411,7 @@ export default function Page() {
                         name: request.displayName,
                       })}
                     >
-                      ✗
+                      <XIcon className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ))}
@@ -483,7 +488,7 @@ export default function Page() {
                           name: entry.displayName,
                         })}
                       >
-                        ✗
+                        <XIcon className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>

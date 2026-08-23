@@ -39,7 +39,6 @@ export interface PerformanceStat {
   value: string;
 }
 
-const MARKS = ['①', '②', '③', '④'];
 const gained = (change: string) => change.startsWith('+');
 
 export default function ArenaResults({
@@ -117,11 +116,22 @@ export default function ArenaResults({
                   : 'border-white/[0.07] bg-arena-800'
               }`}
             >
+              {/*
+                The place as a plain figure, matching the leaderboard podium.
+
+                It was ① ② ③ ④ — enclosed numerals, and only four of them, so
+                a room of five to eight (createRoom allows eight) rendered
+                nothing at all for fifth place downward: MARKS[i] was simply
+                undefined. A numeral has no such ceiling.
+
+                NOT aria-hidden: the number is the information here, where a
+                decorative symbol was not, and the row has nothing else that
+                says which place it is.
+              */}
               <span
-                className={`w-8 text-center text-xl font-bold ${i === 0 ? 'text-gold' : 'text-arena-400'}`}
-                aria-hidden="true"
+                className={`w-8 text-center text-xl font-bold tabular-nums ${i === 0 ? 'text-gold' : 'text-arena-400'}`}
               >
-                {MARKS[i]}
+                {i + 1}
               </span>
               <Avatar initial={row.initial} size="md" accent={i === 0} />
               <span className="min-w-0 flex-1">

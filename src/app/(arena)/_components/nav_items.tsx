@@ -28,11 +28,9 @@ export interface NavItem {
   /** i18n key — the sidebar resolves it through useT */
   labelKey: string;
   /**
-   * A typed character for most entries, or a real icon component.
-   *
-   * ReactNode rather than string so the two can coexist: converting all ten
-   * glyphs at once is a design pass, not a side effect of adding one icon, and
-   * the sidebar renders either without caring which it got.
+   * A drawn icon component. ReactNode is the remnant of a migration in which
+   * typed characters and real icons had to coexist; every entry is an icon
+   * now, and nothing here should go back to a glyph.
    */
   icon: ReactNode;
 }

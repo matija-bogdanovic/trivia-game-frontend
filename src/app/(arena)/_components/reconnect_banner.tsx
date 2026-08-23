@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getIdentity } from '@/app/helpers/token_operations';
 import { apiFetch } from '@/app/helpers/api';
+import { HourglassIcon } from './icons';
 import { useT } from '@/app/lib/i18n';
 
 interface DroppedGame {
@@ -62,8 +63,9 @@ function ReconnectBanner() {
       className="fixed bottom-4 left-1/2 z-30 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 border border-gold/30 bg-arena-800 px-4 py-3 sm:bottom-6"
       role="status"
     >
-      <span className="text-[12px] text-arena-100">
-        ⏳ {t('reconnect.text', { name: room.roomName })}
+      <span className="flex items-center gap-2 text-[12px] text-arena-100">
+        <HourglassIcon className="h-4 w-4 shrink-0 text-gold" />
+        {t('reconnect.text', { name: room.roomName })}
       </span>
       <button
         type="button"

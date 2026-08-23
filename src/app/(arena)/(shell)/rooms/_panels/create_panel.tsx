@@ -13,10 +13,14 @@ import { apiFetch } from '@/app/helpers/api';
 import { getUsername } from '@/app/helpers/token_operations';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
+import { usePasswordReveal } from '@/app/(arena)/_components/password_reveal';
 import {
   CheckIcon,
+  CoinsIcon,
   GlobeIcon,
   LockIcon,
+  TrendUpIcon,
+  UsersIcon,
 } from '@/app/(arena)/_components/icons';
 
 amplifyConfigure();
@@ -117,6 +121,7 @@ export default function CreatePanel() {
   const [error, setError] = useState('');
   const [created, setCreated] = useState<Created | null>(null);
   const [copied, setCopied] = useState(false);
+  const roomPassword = usePasswordReveal('room-password');
 
   useEffect(() => {
     getUsername().then(async (name) => {
@@ -332,14 +337,19 @@ export default function CreatePanel() {
           })}
         </div>
         {visibility === 'private' && (
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder={t('arena.create.passwordPlaceholder')}
-            className="mt-4 bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 w-full outline-none focus:border-gold/40 placeholder:text-arena-400"
-            disabled={creating}
-          />
+          <div className="relative mt-4">
+            <input
+              id="room-password"
+              type={roomPassword.type}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t('arena.create.passwordPlaceholder')}
+              aria-label={t('arena.create.passwordPlaceholder')}
+              className="w-full border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+              disabled={creating}
+            />
+            {!creating && roomPassword.button}
+          </div>
         )}
       </Section>
 
@@ -508,14 +518,18 @@ export default function CreatePanel() {
           <Recap
             label={t('arena.common.startingMoney')}
             value={money(startingMoney)}
+            Icon={CoinsIcon}
           />
           <Recap
             label={t('arena.create.seats')}
             value={t('arena.create.seatsValue', { n: maxPlayers })}
+            Icon={UsersIcon}
           />
+          {/* the difficulty is not a number but a slope — it climbs with the chain */}
           <Recap
             label={t('arena.common.difficulty')}
             value={t('arena.create.difficultyValue')}
+            Icon={TrendUpIcon}
           />
         </div>
       </Section>
@@ -586,10 +600,32 @@ function Section({
   );
 }
 
-function Recap({ label, value }: { label: string; value: string }) {
+/**
+ * One figure in a recap grid, with the icon that says which figure it is.
+ *
+ * The icon sits with the LABEL, not the value, and in the label's muted
+ * arena-300 rather than gold. These rows are a summary of settings already
+ * chosen elsewhere on the form — an icon in the accent colour would pull the
+ * eye to a read-only recap and away from the controls that still need a
+ * decision. Muted, it does what it is for: telling the three columns apart at
+ * a glance when they are stacked on a phone.
+ *
+ * `Icon` is optional because the recap on the created-room screen sits under
+ * its own heading and does not need them.
+ */
+function Recap({
+  label,
+  value,
+  Icon,
+}: {
+  label: string;
+  value: string;
+  Icon?: (props: { className?: string }) => React.ReactElement;
+}) {
   return (
     <div>
-      <div className="mb-1 text-[10px] tracking-wider text-arena-300 uppercase">
+      <div className="mb-1 flex items-center justify-center gap-1.5 text-[10px] tracking-wider text-arena-300 uppercase">
+        {Icon && <Icon className="h-3.5 w-3.5 shrink-0" />}
         {label}
       </div>
       <div className="font-bold text-white">{value}</div>

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
 import GoogleBadge from './google_mark';
-import { FlameIcon, SnowflakeIcon } from './icons';
+import { FlameIcon, SignOutIcon, SnowflakeIcon } from './icons';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
 import { useSelector } from 'react-redux';
@@ -116,9 +116,8 @@ export default function Sidebar() {
                 }`}
               >
                 {/*
-                  inline-flex, not text-center: the slot holds typed glyphs for
-                  most entries and a real SVG for others, and text-center only
-                  centres the first kind. Centring the box centres both, and
+                  inline-flex, not text-center: the slot holds a real SVG, and
+                  text-center does not centre one. Centring the box does, and
                   shrink-0 keeps a long label from squeezing the icon.
 
                   The colour lives here rather than on the icon, which is why
@@ -225,9 +224,7 @@ export default function Sidebar() {
             aria-label={t('arena.nav.signOut')}
             title={t('arena.nav.signOut')}
           >
-            <span className="text-sm" aria-hidden="true">
-              ⏻
-            </span>
+            <SignOutIcon className="h-4 w-4" />
           </button>
         </div>
       </aside>
@@ -266,9 +263,7 @@ export default function Sidebar() {
               className="cursor-pointer px-1 py-2 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               aria-label={t('arena.nav.signOut')}
             >
-              <span className="text-sm" aria-hidden="true">
-                ⏻
-              </span>
+              <SignOutIcon className="h-4 w-4" />
             </button>
           </div>
         </div>

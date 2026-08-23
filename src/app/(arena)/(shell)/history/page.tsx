@@ -12,7 +12,7 @@ import {
   type MatchRecord,
 } from '@/app/(arena)/_data/use_match_detail';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
-import { SmileyIcon } from '@/app/(arena)/_components/icons';
+import { CaretDownIcon, SmileyIcon } from '@/app/(arena)/_components/icons';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
@@ -224,12 +224,9 @@ export default function Page() {
                   {match.won ? t('arena.history.win') : t('arena.history.loss')}
                 </span>
 
-                <span
-                  className={`ml-2 text-[10px] text-arena-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
-                  aria-hidden="true"
-                >
-                  ▼
-                </span>
+                <CaretDownIcon
+                  className={`ml-2 h-3 w-3 shrink-0 text-arena-300 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {expanded && (

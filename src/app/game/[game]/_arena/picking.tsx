@@ -9,7 +9,7 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useCountdown } from '@/app/components/hooks/game/use_server_clock';
 import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useT } from '@/app/lib/i18n';
-import { FlameIcon } from '@/app/(arena)/_components/icons';
+import { FlameIcon, SwordIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Choosing who answers next, and how.
@@ -240,7 +240,10 @@ export default function ArenaPicking() {
               : 'cursor-not-allowed bg-arena-700 text-arena-400'
           }`}
         >
-          ⚔ {t('arena.pick.duel')}
+          <span className="inline-flex items-center justify-center gap-2">
+            <SwordIcon className="h-5 w-5 shrink-0" />
+            {t('arena.pick.duel')}
+          </span>
           {chosen && (
             <span className="mt-1 block text-[10px] font-normal tracking-normal normal-case opacity-80">
               {t('arena.pick.ante', { amount: money(chosen.duelAnte) })}
