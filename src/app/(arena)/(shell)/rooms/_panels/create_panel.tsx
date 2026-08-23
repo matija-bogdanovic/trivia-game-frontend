@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { apiFetch } from '@/app/helpers/api';
 import { getUsername } from '@/app/helpers/token_operations';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
 
 amplifyConfigure();
 
@@ -70,6 +71,12 @@ export default function CreatePanel() {
   const [categories, setCategories] = useState<string[]>(() =>
     QUESTION_CATEGORIES.map((c) => c.id)
   );
+  /*
+   * On by default, matching the server. Someone who never opens this section
+   * gets the behaviour the game already had; turning it off is a deliberate
+   * "this table is closed".
+   */
+  const [spectateEnabled, setSpectateEnabled] = useState(true);
   /**
    * Is every category in play?
    *
@@ -123,6 +130,7 @@ export default function CreatePanel() {
           isPrivate: visibility === 'private',
           password: visibility === 'private' ? password : undefined,
           categories: categoriesToSend(categories),
+          spectateEnabled,
           maxPlayers,
           // clamped again on the way out: the slider is bounded, but a stale
           // value from a restored form should not reach the server unchecked
@@ -390,6 +398,23 @@ export default function CreatePanel() {
             {t('arena.create.noneMeansAll')}
           </p>
         )}
+      </Section>
+
+      <Section label={t('arena.create.spectating')} id="spectate-label">
+        {/*
+          The same switch the settings screen uses, so a preference looks like
+          a preference wherever it appears. Gating lives on the server — a
+          room with this off refuses a mid-match joiner outright rather than
+          seating them silently — so this checkbox is the whole feature, not a
+          hint the engine may ignore.
+        */}
+        <ToggleSwitch
+          label={t('arena.create.spectatingLabel')}
+          description={t('arena.create.spectatingDesc')}
+          labelId="spectate-label"
+          checked={spectateEnabled}
+          onToggle={() => setSpectateEnabled((v) => !v)}
+        />
       </Section>
 
       <Section label={t('arena.create.startingMoney')} htmlFor="starting-money">

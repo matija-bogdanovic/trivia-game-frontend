@@ -8,9 +8,13 @@ import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
 import { useT } from '@/app/lib/i18n';
-import { PlusCircleIcon, UserPlusIcon } from '@/app/(arena)/_components/icons';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
-import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
+import {
+  CircleDashedIcon,
+  EyeIcon,
+  PlusCircleIcon,
+  UserPlusIcon,
+} from '@/app/(arena)/_components/icons';
 
 type RoomSort = 'players' | 'newest';
 
@@ -43,6 +47,15 @@ interface Lobby {
    * type because the endpoint still sends it.
    */
   isLive: boolean;
+  /**
+   * What the room is doing, from the engine's own GameState rather than
+   * inferred: "waiting" is joinable, "playing" started without you.
+   * Optional because a server that predates it sends nothing, and an unknown
+   * status is shown as waiting — which is what the list assumed before.
+   */
+  status?: 'waiting' | 'playing';
+  /** whether latecomers may watch; absent means yes, as every old room was */
+  spectateEnabled?: boolean;
   createdAt: string | null;
 }
 
@@ -273,6 +286,43 @@ export default function BrowsePanel() {
                   {t('arena.rooms.code')}{' '}
                   <span className="text-gold tabular-nums">{room.code}</span>
                 </div>
+              </div>
+              {/*
+                A dot, then the words. Colour alone cannot carry this — it is
+                invisible to a screen reader and to anyone who cannot separate
+                green from yellow — so the label says which it is and the dot
+                is decoration on top.
+              */}
+              <div className="flex shrink-0 items-center gap-2">
+                <span
+                  className={`flex items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
+                    room.status === 'playing'
+                      ? 'border-amber-400/40 text-amber-300'
+                      : 'border-emerald-400/40 text-emerald-300'
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      room.status === 'playing'
+                        ? 'bg-amber-400'
+                        : 'bg-emerald-400'
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {room.status === 'playing'
+                    ? t('arena.rooms.statusPlaying')
+                    : t('arena.rooms.statusWaiting')}
+                </span>
+                {room.status === 'playing' &&
+                  room.spectateEnabled !== false && (
+                    <span
+                      className="flex items-center gap-1 border border-frost/40 px-2 py-1 text-[10px] tracking-wider text-frost uppercase"
+                      title={t('arena.rooms.spectateAllowed')}
+                    >
+                      <EyeIcon className="h-3 w-3 shrink-0" />
+                      {t('arena.rooms.spectateShort')}
+                    </span>
+                  )}
               </div>
               <div className="shrink-0 border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-300 uppercase">
                 {room.isPrivate

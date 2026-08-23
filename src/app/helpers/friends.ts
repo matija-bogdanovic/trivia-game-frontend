@@ -65,9 +65,18 @@ export type FriendAction =
   'request' | 'accept' | 'decline' | 'remove' | 'cancel';
 
 /** a row of `friends` — an accepted friendship, from their wallet */
+/** where a friend is right now, from Connections + GameState */
+export type PresenceStatus = 'offline' | 'online' | 'playing' | 'spectating';
+
 export interface FriendSummary {
   username: string;
   displayName: string;
+  /**
+   * Richer than `online`, which it supersedes. Absent from a server that
+   * predates it, in which case the boolean is all there is — hence the
+   * fallback in presenceOf().
+   */
+  status?: PresenceStatus;
   /**
    * Always false from the Lambda. It answers this from the live socket room
    * map on the Express server, and a Lambda cannot see that memory — so a
@@ -261,4 +270,17 @@ export async function friendAction(
   } catch {
     return { ok: false, reason: 'unreachable' };
   }
+}
+
+/**
+ * A friend's presence, tolerant of a server that only knows the boolean.
+ *
+ * `status` is what the current endpoint sends; `online` is what the previous
+ * one sent and is still returned alongside it. Reading both means the screen
+ * is right against either, and stays right during a deploy where the two are
+ * briefly mixed.
+ */
+export function presenceOf(friend: FriendSummary): PresenceStatus {
+  if (friend.status) return friend.status;
+  return friend.online ? 'online' : 'offline';
 }

@@ -8,6 +8,7 @@ import { getIdentity } from '@/app/helpers/token_operations';
 import {
   fetchFriends,
   friendAction,
+  presenceOf,
   type FriendActionError,
   type FriendRequestEntry,
   type FriendSummary,
@@ -17,7 +18,7 @@ import {
   SkeletonAvatar,
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
-import { FlameIcon } from '@/app/(arena)/_components/icons';
+import { EyeIcon, FlameIcon } from '@/app/(arena)/_components/icons';
 import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 
 /**
@@ -496,8 +497,44 @@ export default function Page() {
   );
 }
 
+/**
+ * What each presence state looks like.
+ *
+ * The DOT ALONE IS NOT THE MESSAGE. Colour is invisible to a screen reader and
+ * to anyone who does not separate green from amber, so every state also has a
+ * word beside it — "Gleda", "U igri", "Onlajn" — and the dot is emphasis on
+ * top of the label rather than a substitute for it.
+ */
+const PRESENCE: Record<
+  string,
+  { dot: string; text: string; labelKey: string }
+> = {
+  playing: {
+    dot: 'bg-amber-400',
+    text: 'text-amber-300',
+    labelKey: 'arena.friends.statusPlaying',
+  },
+  spectating: {
+    dot: 'bg-frost',
+    text: 'text-frost',
+    labelKey: 'arena.friends.statusSpectating',
+  },
+  online: {
+    dot: 'bg-emerald-400',
+    text: 'text-emerald-300',
+    labelKey: 'arena.friends.statusOnline',
+  },
+  offline: {
+    dot: 'bg-arena-500',
+    text: 'text-arena-400',
+    labelKey: 'arena.friends.statusOffline',
+  },
+};
+
 function FriendRow({ friend }: { friend: FriendSummary }) {
   const { t } = useT();
+  const presence = presenceOf(friend);
+  const look = PRESENCE[presence] ?? PRESENCE.offline;
   return (
     <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
       <div className="relative">
@@ -510,7 +547,7 @@ function FriendRow({ friend }: { friend: FriendSummary }) {
           size="md"
         />
         <span
-          className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-arena-800 ${friend.online ? 'bg-arena-200' : 'bg-arena-500'}`}
+          className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-arena-800 ${look.dot}`}
           aria-hidden="true"
         />
       </div>
@@ -525,6 +562,14 @@ function FriendRow({ friend }: { friend: FriendSummary }) {
               {friend.currentStreak}
             </span>
           )}
+        </div>
+        <div
+          className={`flex items-center gap-1 text-[10px] tracking-wider uppercase ${look.text}`}
+        >
+          {presence === 'spectating' && (
+            <EyeIcon className="h-3 w-3 shrink-0" />
+          )}
+          {t(look.labelKey)}
         </div>
       </div>
       <div className="hidden text-[11px] text-arena-300 sm:block">
