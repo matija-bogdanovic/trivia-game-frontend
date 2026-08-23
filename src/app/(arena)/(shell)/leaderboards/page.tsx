@@ -12,7 +12,7 @@ import {
   HashIcon,
   SmileyIcon,
   ClockIcon,
-  TrophyIcon,
+  VeteranIcon,
   UserCircleIcon,
 } from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
@@ -33,8 +33,16 @@ const PODIUM_AVATAR: Record<number, 'lg' | 'md' | 'sm'> = {
   2: 'md',
   3: 'sm',
 };
-/** the trophy grows with the place it marks */
-const PODIUM_TROPHY: Record<number, string> = {
+/**
+ * The medal grows with the place it marks.
+ *
+ * It was a trophy; the medal reads better at these sizes — a trophy's cup and
+ * stem collapse into a blob by the time third place is down to 32px, where a
+ * medallion is a disc and stays legible. Same vendored component the Veteran
+ * achievement uses, imported rather than copied: one piece of art, one place
+ * to change it.
+ */
+const PODIUM_MEDAL: Record<number, string> = {
   1: 'h-11 w-11',
   2: 'h-9 w-9',
   3: 'h-8 w-8',
@@ -495,8 +503,8 @@ export default function Page() {
                   {t('arena.lb.openSpot')}
                 </div>
                 <div className="mb-2 flex justify-center text-arena-500">
-                  <TrophyIcon
-                    className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
+                  <VeteranIcon
+                    className={PODIUM_MEDAL[slot.place] ?? 'h-7 w-7'}
                   />
                 </div>
                 <div className="font-bold text-arena-500">—</div>
@@ -539,8 +547,8 @@ export default function Page() {
                 <div
                   className={`mb-2 flex justify-center font-bold ${rankColor(slot.place)}`}
                 >
-                  <TrophyIcon
-                    className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
+                  <VeteranIcon
+                    className={PODIUM_MEDAL[slot.place] ?? 'h-7 w-7'}
                   />
                   <span className="sr-only">
                     {t('arena.lb.rank', { n: slot.place })}
