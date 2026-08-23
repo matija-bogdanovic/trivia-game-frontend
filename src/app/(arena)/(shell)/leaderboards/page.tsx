@@ -11,7 +11,7 @@ import {
   FlameIcon,
   HashIcon,
   SmileyIcon,
-  SmileySadIcon,
+  ClockIcon,
   TrophyIcon,
 } from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
@@ -416,14 +416,17 @@ export default function Page() {
       {!loading && rows.length === 0 && (
         <div className="py-16 text-center text-arena-300">
           {/*
-            Two different nothings, two different faces. An empty leaderboard
-            is fine — nobody has played yet — so it gets the neutral smiley.
-            A period that does not exist is a shortfall, and the frown says so
-            without a sentence having to.
+            Two different nothings, and only one of them is a shortfall.
+
+            An empty leaderboard is fine — nobody has played yet — so it keeps
+            the neutral smiley. A weekly or monthly board is not empty, it is
+            NOT BUILT: there is no endpoint behind either tab. A frown made
+            that read as bad news about the standings; a clock says the right
+            thing, which is "not yet".
           */}
           <div className="mb-4 flex justify-center" aria-hidden="true">
             {tab === 'weekly' || tab === 'monthly' ? (
-              <SmileySadIcon className="h-10 w-10 text-arena-500" />
+              <ClockIcon className="h-10 w-10 text-arena-500" />
             ) : (
               <SmileyIcon className="h-10 w-10 text-arena-500" />
             )}

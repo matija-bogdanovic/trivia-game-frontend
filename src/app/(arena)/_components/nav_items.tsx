@@ -13,11 +13,11 @@
  */
 import type { ReactNode } from 'react';
 import {
-  BarChartIcon,
   CalendarIcon,
   DoorIcon,
   GearIcon,
   HouseIcon,
+  RankingIcon,
   StarIcon,
   UserCircleIcon,
   UsersIcon,
@@ -53,7 +53,7 @@ export const navItems: NavItem[] = [
   {
     href: '/leaderboards',
     labelKey: 'arena.nav.leaderboards',
-    icon: <BarChartIcon />,
+    icon: <RankingIcon />,
   },
   { href: '/friends', labelKey: 'arena.nav.friends', icon: <UsersIcon /> },
   { href: '/history', labelKey: 'arena.nav.history', icon: <CalendarIcon /> },
