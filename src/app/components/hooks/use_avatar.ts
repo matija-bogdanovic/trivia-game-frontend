@@ -28,8 +28,17 @@ export function useAvatarSource(
   const storedVersion = useSelector((state: RootState) =>
     username ? state.avatar.versions[username] : undefined
   );
+  /*
+   * The avatar string the store knows for this user, used when the caller did
+   * not pass one — which ten of the twenty <Avatar> call sites do not. They
+   * have a username and nothing else, and before this they could only ever
+   * render an upload, because the store held nothing but upload versions.
+   */
+  const storedAvatar = useSelector((state: RootState) =>
+    username ? state.avatar.avatars[username] : undefined
+  );
 
-  const info = decodeAvatar(fallbackAvatar);
+  const info = decodeAvatar(fallbackAvatar ?? storedAvatar);
 
   /*
    * A federated picture is a plain URL, so there is nothing to version and

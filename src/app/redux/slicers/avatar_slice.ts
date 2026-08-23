@@ -18,9 +18,23 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 export interface AvatarState {
   /** username → version; absent means "no uploaded picture known" */
   versions: Record<string, string>;
+  /**
+   * username → the whole avatar string, as the wallet stores it.
+   *
+   * `versions` only ever held uploads, because it was built when an upload was
+   * the only kind of picture and its whole job was cache-busting a URL. A
+   * federated picture has no version and needs no busting — it IS the URL — so
+   * it could not live there, and the ten <Avatar> call sites that pass a
+   * username without an avatar string had nothing to read.
+   *
+   * Keeping the raw string as well means one seeding call serves both: an
+   * upload still gets its version out of `versions`, and anything else is
+   * decoded from here.
+   */
+  avatars: Record<string, string>;
 }
 
-const initialState: AvatarState = { versions: {} };
+const initialState: AvatarState = { versions: {}, avatars: {} };
 
 /** pulls the version out of a wallet avatar string; null for emoji/initials */
 export function versionFromAvatar(
@@ -44,6 +58,9 @@ const avatarSlice = createSlice({
       const version = versionFromAvatar(avatar);
       if (version) state.versions[username] = version;
       else delete state.versions[username];
+      // the authoritative write for this user: an absent avatar clears it
+      if (avatar) state.avatars[username] = avatar;
+      else delete state.avatars[username];
     },
     /** seed several at once — a player list, a friends list */
     seedAvatarVersions: (
@@ -53,6 +70,8 @@ const avatarSlice = createSlice({
       for (const { username, avatar } of action.payload) {
         const version = versionFromAvatar(avatar);
         if (version) state.versions[username] = version;
+        // seeding is additive — a list that omits somebody must not erase them
+        if (avatar) state.avatars[username] = avatar;
       }
     },
   },
