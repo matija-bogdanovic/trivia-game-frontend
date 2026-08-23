@@ -11,6 +11,7 @@ import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
 import DeleteAccountDialog from '@/app/(arena)/_components/delete_account_dialog';
+import ChangePasswordDialog from '@/app/(arena)/_components/change_password_dialog';
 import { difficultyOptions } from '@/app/(arena)/_mock/progress';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
@@ -78,6 +79,7 @@ export default function Page() {
     'idle' | 'checking' | UsernameAvailability
   >('idle');
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   /** the picked file, waiting to be cropped */
@@ -508,12 +510,25 @@ export default function Page() {
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
               {t('arena.settings.password')}
             </div>
-            <button
-              type="button"
-              className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-            >
-              {t('arena.settings.changePassword')}
-            </button>
+            {/*
+              A Google account has no password in this pool — Cognito holds a
+              federated identity for it and ChangePassword would refuse. So the
+              button is replaced by the reason rather than left to fail: a
+              control that cannot work is worse than no control.
+            */}
+            {identity?.provider === 'google' ? (
+              <p className="text-[11px] leading-relaxed text-arena-300">
+                {t('arena.pw.google')}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setChangingPassword(true)}
+                className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.settings.changePassword')}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4 pt-2">
@@ -655,6 +670,11 @@ export default function Page() {
           </button>
         </div>
       </section>
+
+      <ChangePasswordDialog
+        open={changingPassword}
+        onClose={() => setChangingPassword(false)}
+      />
 
       <DeleteAccountDialog
         open={confirmingDelete}

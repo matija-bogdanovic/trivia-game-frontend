@@ -13,6 +13,7 @@ import {
   SmileyIcon,
   ClockIcon,
   TrophyIcon,
+  UserCircleIcon,
 } from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
@@ -315,11 +316,20 @@ export default function Page() {
    */
   const podium = useMemo(() => {
     const [first, second, third] = rows;
+    /*
+     * Three slots, ALWAYS — the filter that used to drop the unfilled ones is
+     * gone. A friends board with two people on it collapsed to two tiles in a
+     * three-column grid, so second place sat under the heading and first place
+     * wandered to the middle of a row with a hole beside it. A podium with a
+     * gap in it reads as a layout that broke, not as a place nobody has taken.
+     *
+     * `row` is null for a slot nobody holds and the tile renders a placeholder.
+     */
     return [
-      { row: second, place: 2 },
-      { row: first, place: 1 },
-      { row: third, place: 3 },
-    ].filter((slot) => !!slot.row);
+      { row: second ?? null, place: 2 },
+      { row: first ?? null, place: 1 },
+      { row: third ?? null, place: 3 },
+    ];
   }, [rows]);
 
   const you = rows.find((r) => r.isYou) ?? null;
@@ -444,30 +454,80 @@ export default function Page() {
       {/* =========================================================== podium */}
       {rows.length > 0 && (
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
-          {podium.map((slot) => (
-            <div
-              key={slot.row.username}
-              className={`border bg-arena-800 p-6 text-center ${
-                PODIUM_BORDER[slot.place] ?? 'border-white/[0.07]'
-              }`}
-            >
-              <div className="mb-3 flex justify-center">
-                <Avatar
-                  initial={slot.row.initial}
-                  username={slot.row.username}
-                  alt={slot.row.name}
-                  size={PODIUM_AVATAR[slot.place] ?? 'sm'}
-                  accent={slot.place === 1}
-                />
-              </div>
+          {podium.map((slot) =>
+            slot.row === null ? (
+              /*
+                An unclaimed place.
+                
+                Dashed and muted so it reads as an outline waiting to be filled
+                rather than a player whose details failed to load — a solid
+                tile in the medal colour with a dash in it would look like the
+                third-place player's name had gone missing.
+                
+                It keeps the medal-sized trophy and the place number, because
+                those belong to the SLOT rather than to whoever is standing in
+                it, and dropping them would make the three tiles indistinguish-
+                able from each other.
+                
+                The screen reader gets a full sentence — "still nobody in third
+                place" — where the eye gets a dash. A lone "—" announced aloud
+                is not information.
+              */
               <div
-                className={`mb-1 font-bold ${
-                  slot.place === 1 ? 'text-lg' : ''
-                } ${slot.place <= 3 ? rankColor(slot.place) : 'text-white'}`}
+                key={`empty-${slot.place}`}
+                className="border border-dashed border-arena-500 p-6 text-center"
               >
-                {slot.row.name}
+                <div className="mb-3 flex justify-center">
+                  <span
+                    className={`flex shrink-0 items-center justify-center rounded-full border border-dashed border-arena-500 text-arena-500 ${
+                      slot.place === 1 ? 'h-12 w-12' : 'h-10 w-10'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    <UserCircleIcon
+                      className={slot.place === 1 ? 'h-7 w-7' : 'h-6 w-6'}
+                    />
+                  </span>
+                </div>
+                <div
+                  className={`mb-1 font-bold text-arena-400 ${slot.place === 1 ? 'text-lg' : ''}`}
+                >
+                  {t('arena.lb.openSpot')}
+                </div>
+                <div className="mb-2 flex justify-center text-arena-500">
+                  <TrophyIcon
+                    className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
+                  />
+                </div>
+                <div className="font-bold text-arena-500">—</div>
+                <span className="sr-only">
+                  {t('arena.lb.openSpotSr', { n: slot.place })}
+                </span>
               </div>
-              {/*
+            ) : (
+              <div
+                key={slot.row.username}
+                className={`border bg-arena-800 p-6 text-center ${
+                  PODIUM_BORDER[slot.place] ?? 'border-white/[0.07]'
+                }`}
+              >
+                <div className="mb-3 flex justify-center">
+                  <Avatar
+                    initial={slot.row.initial}
+                    username={slot.row.username}
+                    alt={slot.row.name}
+                    size={PODIUM_AVATAR[slot.place] ?? 'sm'}
+                    accent={slot.place === 1}
+                  />
+                </div>
+                <div
+                  className={`mb-1 font-bold ${
+                    slot.place === 1 ? 'text-lg' : ''
+                  } ${slot.place <= 3 ? rankColor(slot.place) : 'text-white'}`}
+                >
+                  {slot.row.name}
+                </div>
+                {/*
                 The place as a figure, in its medal colour. It was ★ ◆ ▲, all
                 three in gold — so the tiles were told apart by size alone and
                 second and third were the same colour as first.
@@ -476,21 +536,21 @@ export default function Page() {
                 decorative symbol was not, and the tile has nothing else that
                 says which place it is.
               */}
-              <div
-                className={`mb-2 flex justify-center font-bold ${rankColor(slot.place)}`}
-              >
-                <TrophyIcon
-                  className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
-                />
-                <span className="sr-only">
-                  {t('arena.lb.rank', { n: slot.place })}
-                </span>
-              </div>
-              {/* points first: it is what put them on this tile */}
-              <div className="font-bold text-white tabular-nums">
-                {t('arena.lb.pointsCount', { n: slot.row.points })}
-              </div>
-              {/*
+                <div
+                  className={`mb-2 flex justify-center font-bold ${rankColor(slot.place)}`}
+                >
+                  <TrophyIcon
+                    className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
+                  />
+                  <span className="sr-only">
+                    {t('arena.lb.rank', { n: slot.place })}
+                  </span>
+                </div>
+                {/* points first: it is what put them on this tile */}
+                <div className="font-bold text-white tabular-nums">
+                  {t('arena.lb.pointsCount', { n: slot.row.points })}
+                </div>
+                {/*
                 A streak of nought is not a streak, and "niz 0" was printing on
                 every tile whose player simply has not won twice in a row —
                 a flame, in the streak colour, next to the number saying there
@@ -499,20 +559,21 @@ export default function Page() {
                 The separator goes with it. It only exists to divide two facts,
                 so leaving it behind would hang a stray dot after the wins.
               */}
-              <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-arena-200">
-                <span>{t('arena.lb.winsCount', { n: slot.row.wins })}</span>
-                {slot.row.streak > 0 && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <FlameIcon className="h-3 w-3 shrink-0 text-flame" />
-                    <span className="text-flame">
-                      {t('arena.lb.streakCount', { n: slot.row.streak })}
-                    </span>
-                  </>
-                )}
+                <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-arena-200">
+                  <span>{t('arena.lb.winsCount', { n: slot.row.wins })}</span>
+                  {slot.row.streak > 0 && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <FlameIcon className="h-3 w-3 shrink-0 text-flame" />
+                      <span className="text-flame">
+                        {t('arena.lb.streakCount', { n: slot.row.streak })}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          )}
         </div>
       )}
 
