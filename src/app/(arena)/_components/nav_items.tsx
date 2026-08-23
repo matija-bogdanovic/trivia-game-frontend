@@ -9,7 +9,7 @@
  * lives in game/[game]/_deferred/results.tsx.
  */
 import type { ReactNode } from 'react';
-import { PlusCircleIcon } from './icons';
+import { BarChartIcon, PlusCircleIcon, UserPlusIcon, UsersIcon } from './icons';
 
 export interface NavItem {
   href: string;
@@ -28,14 +28,18 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { href: '/home', labelKey: 'arena.nav.home', icon: 'H' },
   { href: '/rooms', labelKey: 'arena.nav.rooms', icon: 'F' },
-  { href: '/rooms/create', labelKey: 'arena.nav.create', icon: '+' },
   {
-    href: '/rooms/join',
-    labelKey: 'arena.nav.join',
+    href: '/rooms/create',
+    labelKey: 'arena.nav.create',
     icon: <PlusCircleIcon />,
   },
-  { href: '/leaderboards', labelKey: 'arena.nav.leaderboards', icon: '▲' },
-  { href: '/friends', labelKey: 'arena.nav.friends', icon: '◆' },
+  { href: '/rooms/join', labelKey: 'arena.nav.join', icon: <UserPlusIcon /> },
+  {
+    href: '/leaderboards',
+    labelKey: 'arena.nav.leaderboards',
+    icon: <BarChartIcon />,
+  },
+  { href: '/friends', labelKey: 'arena.nav.friends', icon: <UsersIcon /> },
   { href: '/history', labelKey: 'arena.nav.history', icon: '◷' },
   { href: '/achievements', labelKey: 'arena.nav.achievements', icon: '★' },
   { href: '/profile', labelKey: 'arena.nav.profile', icon: '◎' },
