@@ -87,6 +87,8 @@ export default function Page() {
   const [outgoingSupported, setOutgoingSupported] = useState(false);
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState(false);
+  /** my own username, for the two things that need to know it — see below */
+  const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +101,10 @@ export default function Page() {
         }
         return;
       }
-      if (!cancelled) setSignedIn(true);
+      if (!cancelled) {
+        setSignedIn(true);
+        setMe(id.username ?? null);
+      }
       const snapshot = await fetchFriends();
       if (!cancelled) {
         if (snapshot) {
@@ -144,7 +149,17 @@ export default function Page() {
     : friends;
   const online = matching.filter((f) => f.online);
   const offline = matching.filter((f) => !f.online);
-  const canSendRequest = addName.trim().length > 0;
+  /*
+   * Sending to yourself is refused HERE as well as on the server. The server
+   * answers "That's you" and always has, but a round trip to be told what the
+   * screen already knows is a slower way of saying the same thing — and the
+   * button being dead is the clearer statement.
+   *
+   * Compared case-insensitively, because Cognito usernames are case-sensitive
+   * but nobody typing their own name thinks so.
+   */
+  const isMyself = !!me && addName.trim().toLowerCase() === me.toLowerCase();
+  const canSendRequest = addName.trim().length > 0 && !isMyself;
 
   /**
    * Send a friend request by exact username.
@@ -430,6 +445,22 @@ export default function Page() {
                       <div className="truncate text-xs font-bold text-white">
                         {request.displayName}
                       </div>
+                      {/*
+                        The handle, under the name.
+
+                        A display name is not unique — Cognito issues a
+                        separate user per identity provider, so one person
+                        signing in with a password and with Google has two
+                        accounts, and both can carry "Matija Bogdanovic". A
+                        request from one to the other then reads as a request
+                        from yourself, which is alarming and unanswerable.
+                        The username is the thing that differs, so it is shown.
+                      */}
+                      {request.username !== request.displayName && (
+                        <div className="truncate text-[10px] text-arena-400">
+                          {request.username}
+                        </div>
+                      )}
                       <div className="text-[10px] tracking-wider text-arena-300 uppercase">
                         {t('arena.friends.statusPending')}
                       </div>
