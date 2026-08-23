@@ -12,7 +12,11 @@ import {
   type MatchRecord,
 } from '@/app/(arena)/_data/use_match_detail';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
-import { CaretDownIcon, SmileyIcon } from '@/app/(arena)/_components/icons';
+import {
+  CalendarXIcon,
+  CaretDownIcon,
+  SmileyIcon,
+} from '@/app/(arena)/_components/icons';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
@@ -149,8 +153,19 @@ export default function Page() {
 
       {!loading && signedIn && wallet && history.length === 0 && (
         <div className="py-16 text-center text-arena-300">
+          {/*
+            A crossed-out calendar, not the neutral smiley: this is the one
+            nothing on the page that is ABOUT matches — a record with no
+            entries in it — and an icon that says so beats a face that could
+            head any empty state anywhere.
+
+            The sign-in prompt above keeps the smiley on purpose. It is not a
+            history that is empty, it is a page that cannot look yet, and the
+            same icon in both places would flatten the difference between
+            "nothing has happened" and "sign in first".
+          */}
           <div className="mb-4 flex justify-center" aria-hidden="true">
-            <SmileyIcon className="h-10 w-10 text-arena-500" />
+            <CalendarXIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {t('arena.history.empty')}
