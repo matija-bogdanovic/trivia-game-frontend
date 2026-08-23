@@ -799,8 +799,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.cat.gadgets': 'Gadgets',
     'arena.cat.anime': 'Anime & Manga',
     'arena.cat.cartoons': 'Cartoons & Animation',
-    'arena.create.selectAll': 'Select all',
-    'arena.create.clearAll': 'Clear',
+    'arena.create.allCategoriesToggle': 'All',
     'arena.create.allCategories': 'All categories',
     'arena.create.categoriesChosen': '{n} chosen',
     'arena.create.noneMeansAll':
@@ -1571,8 +1570,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.cat.gadgets': 'Gedžeti',
     'arena.cat.anime': 'Anime i manga',
     'arena.cat.cartoons': 'Crtani filmovi',
-    'arena.create.selectAll': 'Izaberi sve',
-    'arena.create.clearAll': 'Poništi',
+    'arena.create.allCategoriesToggle': 'Sve',
     'arena.create.allCategories': 'Sve kategorije',
     'arena.create.categoriesChosen': 'Izabrano: {n}',
     'arena.create.noneMeansAll':

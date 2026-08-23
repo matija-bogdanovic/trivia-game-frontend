@@ -71,7 +71,17 @@ export default function Page() {
   const [categories, setCategories] = useState<string[]>(() =>
     QUESTION_CATEGORIES.map((c) => c.id)
   );
-  const allSelected = categories.length === QUESTION_CATEGORIES.length;
+  /**
+   * Is every category in play?
+   *
+   * True for BOTH "all 24 ticked" and "none ticked" — the server reads an
+   * empty list as every category, so the two are the same room. The All chip
+   * is pressed for either, because a control that looked off while the room
+   * was in fact drawing from everything would be telling the host something
+   * untrue.
+   */
+  const everyCategory =
+    categories.length === 0 || categories.length === QUESTION_CATEGORIES.length;
   const [maxPlayers, setMaxPlayers] = useState<number>(DEFAULT_CAPACITY);
   const [startingMoney, setStartingMoney] = useState<number>(DEFAULT_MONEY);
   const [credits, setCredits] = useState<number | null>(null);
@@ -222,7 +232,7 @@ export default function Page() {
   }
 
   return (
-    <div className="max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <PageHeader
           eyebrow={t('arena.common.multiplayer')}
@@ -304,38 +314,12 @@ export default function Page() {
       </Section>
 
       <Section label={t('arena.create.categories')} id="categories-label">
-        {/*
-          All / none, because 24 toggles is a lot of tapping to say "just
-          history". Selecting all is the same room as selecting none — both
-          send [] — so the two buttons are shortcuts, not distinct states.
-        */}
-        <div className="mb-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              setCategories(QUESTION_CATEGORIES.map((category) => category.id))
-            }
-            disabled={creating || allSelected}
-            className="cursor-pointer text-[10px] tracking-wider text-gold uppercase transition-colors hover:text-gold-light disabled:cursor-default disabled:text-arena-500 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          >
-            {t('arena.create.selectAll')}
-          </button>
-          <span className="text-arena-500" aria-hidden="true">
-            ·
-          </span>
-          <button
-            type="button"
-            onClick={() => setCategories([])}
-            disabled={creating || categories.length === 0}
-            className="cursor-pointer text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:text-white disabled:cursor-default disabled:text-arena-500 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          >
-            {t('arena.create.clearAll')}
-          </button>
+        <div className="mb-3 flex items-center">
           <span
             className="ml-auto text-[10px] tracking-wider text-arena-300 uppercase"
             aria-live="polite"
           >
-            {allSelected
+            {everyCategory
               ? t('arena.create.allCategories')
               : t('arena.create.categoriesChosen', { n: categories.length })}
           </span>
@@ -346,6 +330,35 @@ export default function Page() {
           role="group"
           aria-labelledby="categories-label"
         >
+          {/*
+            "Sve" sits with the categories rather than above them, because it
+            is the same kind of choice — which questions this room draws — and
+            a player scanning the row should meet it before the 24.
+
+            It is PRESSED whenever every category is in play, and that is true
+            for two different selections: all 24 ticked, and none ticked. The
+            server reads an empty list as "every category", so both really are
+            the same room — reflecting one state for both is what stops the
+            control lying about what will happen.
+
+            Pressing it clears the individual ticks rather than setting all 24.
+            Same room either way, and it is the selection that keeps working if
+            the question bank ever gains a category.
+          */}
+          <button
+            type="button"
+            onClick={() => setCategories([])}
+            aria-pressed={everyCategory}
+            disabled={creating}
+            className={`cursor-pointer border px-3 py-2 text-[11px] font-bold tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              everyCategory
+                ? 'border-gold bg-gold text-arena-950'
+                : 'border-gold/40 text-gold hover:bg-gold/10'
+            }`}
+          >
+            {t('arena.create.allCategoriesToggle')}
+          </button>
+
           {QUESTION_CATEGORIES.map((category) => {
             const selected = categories.includes(category.id);
             return (
@@ -373,9 +386,9 @@ export default function Page() {
           })}
         </div>
         {/*
-          Not an error. Clearing every category is how you say "any question",
-          and it is the same room as ticking all 24 — the old screen refused to
-          submit here, which made the clear button a trap.
+          Not an error — clearing is how you say "any question", and the All
+          chip above is lit to say so. This just spells it out the first time
+          somebody lands here having cleared everything.
         */}
         {categories.length === 0 && (
           <p className="mt-3 text-[11px] text-arena-300" aria-live="polite">

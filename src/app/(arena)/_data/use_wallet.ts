@@ -49,6 +49,13 @@ export interface Wallet {
   points: number;
   currentStreak: number;
   bestStreak: number;
+  /**
+   * The mirror of the win streak, written by the same match-end pass. Present
+   * on the response and typed here so a screen can use it; nothing renders it
+   * yet — see the note on /profile.
+   */
+  currentLosingStreak?: number;
+  longestLosingStreak?: number;
   matchHistory?: MatchHistoryEntry[];
   achievements?: string[];
   /**
