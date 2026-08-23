@@ -1,6 +1,7 @@
 import InviteBanner from '../_components/invite_banner';
 import PresenceProvider from '../_components/presence_provider';
 import ReconnectBanner from '../_components/reconnect_banner';
+import UnreadIndicator from '../_components/unread_indicator';
 import Sidebar from '../_components/sidebar';
 
 /**
@@ -25,6 +26,7 @@ export default function ShellLayout({
         <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
         <ReconnectBanner />
         <InviteBanner />
+        <UnreadIndicator />
       </div>
     </PresenceProvider>
   );

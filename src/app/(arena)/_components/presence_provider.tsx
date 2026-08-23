@@ -6,6 +6,7 @@ import useWebSocket from 'react-use-websocket';
 import { getAccessToken } from '@/app/helpers/api';
 import { getSocketUrl } from '@/app/helpers/port';
 import { inviteReceived } from '@/app/redux/slicers/invite_slice';
+import { notificationArrived } from '@/app/redux/slicers/notification_slice';
 import type { AppDispatch } from '@/app/redux/store';
 
 /**
@@ -69,6 +70,29 @@ export default function PresenceProvider({
 
   useEffect(() => {
     const msg = lastJsonMessage as { type?: string } | null;
+    /*
+     * A bell row and a banner are two different messages for one event, and
+     * both arrive here: `notification` is the durable row echoed live, and
+     * `room_invite` is the prompt that wants an answer now.
+     */
+    if (msg?.type === 'notification') {
+      const n = msg as unknown as {
+        id: string;
+        kind: string;
+        at: number;
+        data: Record<string, unknown>;
+      };
+      dispatch(
+        notificationArrived({
+          id: String(n.id),
+          kind: String(n.kind),
+          at: Number(n.at ?? Date.now()),
+          read: false,
+          data: n.data ?? {},
+        })
+      );
+      return;
+    }
     if (msg?.type !== 'room_invite') return;
     const m = msg as unknown as {
       lobbyId: string;

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
 import GoogleBadge from './google_mark';
+import NotificationBell from './notification_bell';
 import { FlameIcon, SignOutIcon, SnowflakeIcon } from './icons';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
@@ -238,6 +239,7 @@ export default function Sidebar() {
             </span>
           </Link>
 
+          <NotificationBell />
           {langButton('mr-1')}
           <button
             type="button"
@@ -278,6 +280,7 @@ export default function Sidebar() {
                 accent
               />
             </Link>
+            <NotificationBell />
             {langButton('')}
             <button
               type="button"

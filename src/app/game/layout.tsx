@@ -1,5 +1,6 @@
 import GameProvider from '../components/hooks/game/context/game_context';
 import InviteBanner from '../(arena)/_components/invite_banner';
+import UnreadIndicator from '../(arena)/_components/unread_indicator';
 
 /**
  * The in-room experience: one socket, one route, phase-switched inside.
@@ -22,6 +23,8 @@ export default function GameLayout({
           socket, and it dispatches room_invite into the same slice.
         */}
         <InviteBanner />
+        {/* the tab keeps counting while you are in a match */}
+        <UnreadIndicator />
       </div>
     </GameProvider>
   );
