@@ -34,7 +34,7 @@ export default function ToggleSwitch({
         aria-checked={checked}
         aria-labelledby={labelId}
         onClick={onToggle}
-        className={`relative h-6 w-11 shrink-0 cursor-pointer transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
+        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
           checked ? 'bg-gold' : 'bg-arena-600'
         }`}
       >
@@ -50,7 +50,7 @@ export default function ToggleSwitch({
           the far edge: 4px, and 44 - 16 - 4 = 24px.
         */}
         <span
-          className={`absolute top-1 left-0 h-4 w-4 bg-white transition-transform ${
+          className={`absolute top-1 left-0 h-4 w-4 rounded-full bg-white transition-transform ${
             checked ? 'translate-x-6' : 'translate-x-1'
           }`}
         />
