@@ -94,8 +94,18 @@ export default function Sidebar() {
                     : 'text-arena-200 hover:bg-arena-700 hover:text-white'
                 }`}
               >
+                {/*
+                  inline-flex, not text-center: the slot holds typed glyphs for
+                  most entries and a real SVG for others, and text-center only
+                  centres the first kind. Centring the box centres both, and
+                  shrink-0 keeps a long label from squeezing the icon.
+
+                  The colour lives here rather than on the icon, which is why
+                  icons.tsx paints with currentColor — the active state has one
+                  owner and everything in the slot follows it.
+                */}
                 <span
-                  className={`w-4 text-center text-xs font-bold ${active ? 'text-gold' : 'text-arena-300'}`}
+                  className={`inline-flex w-4 shrink-0 items-center justify-center text-xs font-bold ${active ? 'text-gold' : 'text-arena-300'}`}
                   aria-hidden="true"
                 >
                   {item.icon}

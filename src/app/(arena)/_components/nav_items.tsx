@@ -8,18 +8,32 @@
  * end of a match, not a destination, so it is not routed at all — the design
  * lives in game/[game]/_deferred/results.tsx.
  */
+import type { ReactNode } from 'react';
+import { PlusCircleIcon } from './icons';
+
 export interface NavItem {
   href: string;
   /** i18n key — the sidebar resolves it through useT */
   labelKey: string;
-  icon: string;
+  /**
+   * A typed character for most entries, or a real icon component.
+   *
+   * ReactNode rather than string so the two can coexist: converting all ten
+   * glyphs at once is a design pass, not a side effect of adding one icon, and
+   * the sidebar renders either without caring which it got.
+   */
+  icon: ReactNode;
 }
 
 export const navItems: NavItem[] = [
   { href: '/home', labelKey: 'arena.nav.home', icon: 'H' },
   { href: '/rooms', labelKey: 'arena.nav.rooms', icon: 'F' },
   { href: '/rooms/create', labelKey: 'arena.nav.create', icon: '+' },
-  { href: '/rooms/join', labelKey: 'arena.nav.join', icon: '→' },
+  {
+    href: '/rooms/join',
+    labelKey: 'arena.nav.join',
+    icon: <PlusCircleIcon />,
+  },
   { href: '/leaderboards', labelKey: 'arena.nav.leaderboards', icon: '▲' },
   { href: '/friends', labelKey: 'arena.nav.friends', icon: '◆' },
   { href: '/history', labelKey: 'arena.nav.history', icon: '◷' },
