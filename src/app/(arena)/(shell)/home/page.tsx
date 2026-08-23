@@ -277,9 +277,27 @@ export default function Page() {
               <p className="mt-1.5 text-[11px] text-arena-300">
                 {t('arena.history.emptyHint')}
               </p>
-              <PressButton href="/rooms" className="mt-5 px-6 py-3">
+              {/*
+                The sidebar's Igraj-odmah treatment, not the hero's pressable
+                one: flat gold, small bold uppercase, colour-only hover.
+
+                The tactile button is the HERO's, and it earns the ledge by
+                being the one thing that screen is built around. A second
+                pressable button inside a panel puts two of them on one page
+                competing to be the main action, and the smaller one loses
+                anyway. Flat is what a secondary CTA looks like here.
+
+                Inline with px-6 rather than the sidebar's block w-full — same
+                treatment, but the rail is 224px wide and this panel is not, so
+                a full-width gold bar would be the same button at three times
+                the size.
+              */}
+              <Link
+                href="/rooms"
+                className="mt-5 inline-block bg-gold px-6 py-3 text-center text-[11px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-950 focus-visible:outline-none"
+              >
                 {t('arena.home.playMatch')}
-              </PressButton>
+              </Link>
             </div>
           )}
 

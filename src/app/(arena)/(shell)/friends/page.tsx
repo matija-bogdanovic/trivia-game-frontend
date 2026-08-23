@@ -24,6 +24,7 @@ import {
 import {
   CheckIcon,
   EyeIcon,
+  MagnifyingGlassIcon,
   FlameIcon,
   SmileyIcon,
   UsersThreeIcon,
@@ -238,14 +239,26 @@ export default function Page() {
             <label className="sr-only" htmlFor="friend-search">
               {t('arena.friends.searchLabel')}
             </label>
-            <input
-              id="friend-search"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('arena.friends.searchPlaceholder')}
-              className="w-full border border-white/10 bg-arena-800 px-4 py-3 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
-            />
+            {/*
+              Same treatment as the room search: the glass inside the field, so
+              the box reads as a search box before anybody types — and still
+              does once the placeholder that used to say so has been replaced
+              by a query.
+
+              pointer-events-none, or a click on the glyph would fail to focus
+              the input under it.
+            */}
+            <div className="relative">
+              <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-arena-300" />
+              <input
+                id="friend-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('arena.friends.searchPlaceholder')}
+                className="w-full border border-white/10 bg-arena-800 py-3 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+              />
+            </div>
           </div>
 
           {/* friend rows, avatar and name and the action on the right */}

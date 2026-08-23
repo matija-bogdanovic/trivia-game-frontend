@@ -6,7 +6,11 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import GoogleBadge from '@/app/(arena)/_components/google_mark';
-import { FlameIcon, SnowflakeIcon } from '@/app/(arena)/_components/icons';
+import {
+  CalendarXIcon,
+  FlameIcon,
+  SnowflakeIcon,
+} from '@/app/(arena)/_components/icons';
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
@@ -295,10 +299,23 @@ export default function Page() {
               {t('arena.common.signInPrompt')}
             </p>
           )}
+          {/*
+            The crossed-out calendar /history and /home both put over an empty
+            match list. Three screens, one absence — an icon that changed
+            between them would read as three different conditions.
+
+            The sign-in prompt just above keeps its bare text on purpose: that
+            is not a history that is empty, it is a page that cannot look yet.
+          */}
           {!loading && signedIn && recent.length === 0 && (
-            <p className="text-[11px] text-arena-300">
-              {t('arena.profile.noMatches')}
-            </p>
+            <div className="py-6 text-center">
+              <div className="mb-3 flex justify-center" aria-hidden="true">
+                <CalendarXIcon className="h-8 w-8 text-arena-500" />
+              </div>
+              <p className="text-[11px] text-arena-300">
+                {t('arena.profile.noMatches')}
+              </p>
+            </div>
           )}
 
           <div className="space-y-3">
