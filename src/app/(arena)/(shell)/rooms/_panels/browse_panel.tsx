@@ -304,40 +304,24 @@ export default function BrowsePanel() {
                 </div>
               </div>
               {/*
-                A dot, then the words. Colour alone cannot carry this — it is
-                invisible to a screen reader and to anyone who cannot separate
-                green from yellow — so the label says which it is and the dot
-                is decoration on top.
+                The status chip used to sit here, crowded against the
+                visibility badge. It reads as a FACT ABOUT THE ROOM, like the
+                player count, so it moved down into the stats row where the
+                facts live and where it gets a heading of its own.
+
+                Spectating stays in the header: it is a property of the room
+                the way public/private is, not a changing state, and the two
+                belong together.
               */}
-              <div className="flex shrink-0 items-center gap-2">
+              {room.status === 'playing' && room.spectateEnabled !== false && (
                 <span
-                  className={`flex items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
-                    room.status === 'playing'
-                      ? 'border-live/40 text-live'
-                      : 'border-ready/40 text-ready'
-                  }`}
+                  className="flex shrink-0 items-center gap-1 border border-frost/40 px-2 py-1 text-[10px] tracking-wider text-frost uppercase"
+                  title={t('arena.rooms.spectateAllowed')}
                 >
-                  <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${
-                      room.status === 'playing' ? 'bg-live' : 'bg-ready'
-                    }`}
-                    aria-hidden="true"
-                  />
-                  {room.status === 'playing'
-                    ? t('arena.rooms.statusPlaying')
-                    : t('arena.rooms.statusWaiting')}
+                  <EyeIcon className="h-3 w-3 shrink-0" />
+                  {t('arena.rooms.spectateShort')}
                 </span>
-                {room.status === 'playing' &&
-                  room.spectateEnabled !== false && (
-                    <span
-                      className="flex items-center gap-1 border border-frost/40 px-2 py-1 text-[10px] tracking-wider text-frost uppercase"
-                      title={t('arena.rooms.spectateAllowed')}
-                    >
-                      <EyeIcon className="h-3 w-3 shrink-0" />
-                      {t('arena.rooms.spectateShort')}
-                    </span>
-                  )}
-              </div>
+              )}
               {/*
                 Public reads in frost, private in gold. Both are already the
                 app's own accents, so the pair sits in the palette rather than
@@ -373,15 +357,47 @@ export default function BrowsePanel() {
                     : room.playerCount}
                 </div>
               </div>
+              {/*
+                Status, under a heading, beside the player count.
+
+                This cell used to print "Čeka se" under a heading that also
+                said "Čeka se" — the label and the value were the same string
+                whenever a room was not counting down, so it filled half the
+                stats row with one word said twice.
+
+                A dot, then the words. Colour alone cannot carry this — it is
+                invisible to a screen reader and to anyone who cannot separate
+                green from amber — so the label says which it is and the dot is
+                decoration on top.
+
+                Three readings, two colours: a room counting down is still not
+                playing, so it keeps the ready dot and only its wording
+                changes. That nuance was the one thing the old cell did carry,
+                and it comes along rather than being dropped.
+              */}
               <div>
                 <div className="mb-0.5 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
-                  {t('arena.join.waiting')}
+                  {t('arena.rooms.statusLabel')}
                 </div>
-                <div className="text-sm font-bold text-white">
-                  {room.phase === 'countdown'
-                    ? t('arena.join.starting')
-                    : t('arena.join.waiting')}
-                </div>
+                <span
+                  className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
+                    room.status === 'playing'
+                      ? 'border-live/40 text-live'
+                      : 'border-ready/40 text-ready'
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      room.status === 'playing' ? 'bg-live' : 'bg-ready'
+                    }`}
+                    aria-hidden="true"
+                  />
+                  {room.status === 'playing'
+                    ? t('arena.rooms.statusPlaying')
+                    : room.phase === 'countdown'
+                      ? t('arena.join.starting')
+                      : t('arena.rooms.statusWaiting')}
+                </span>
               </div>
             </div>
 
