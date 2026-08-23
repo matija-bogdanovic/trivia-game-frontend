@@ -92,6 +92,28 @@ export default function SignUp() {
     router.push(`/confirm?u=${encodeURIComponent(username.trim())}`);
   };
 
+  /**
+   * Same as login's: signInWithRedirect returns a promise, and calling it bare
+   * from onPress leaves a rejection unhandled — the button then does nothing
+   * at all, which is indistinguishable from Google sign-in being broken. See
+   * the note on the login page.
+   */
+  async function continueWithGoogle() {
+    setError('');
+    try {
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (err) {
+      if (
+        (err as { name?: string })?.name === 'UserAlreadyAuthenticatedException'
+      ) {
+        router.push('/home');
+        return;
+      }
+      console.error('Google sign-in error:', err);
+      setError(t('authError.googleFailed'));
+    }
+  }
+
   return (
     <>
       <h1 className="mb-1 text-2xl font-bold tracking-wide">
@@ -182,7 +204,7 @@ export default function SignUp() {
         <GoogleButton
           label={t('auth.google')}
           disabled={busy}
-          onPress={() => signInWithRedirect({ provider: 'Google' })}
+          onPress={continueWithGoogle}
         />
       )}
 

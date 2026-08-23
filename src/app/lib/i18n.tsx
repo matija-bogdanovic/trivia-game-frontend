@@ -268,6 +268,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'authError.codeWrong': "That code isn't right. Check and try again.",
     'authError.codeExpired': 'That code expired — request a new one.',
     'authError.tooMany': 'Too many attempts. Wait a bit and try again.',
+    'authError.googleFailed':
+      'Could not start Google sign-in. Try again, or use your password.',
     'authError.generic': 'Something went wrong. Please try again.',
     'confirm.title': 'Enter verification code',
     'confirm.sub': 'We sent a 6-digit code to your email',
@@ -1139,6 +1141,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'authError.codeWrong': 'Kod nije tačan. Proveri i pokušaj ponovo.',
     'authError.codeExpired': 'Kod je istekao — zatraži novi.',
     'authError.tooMany': 'Previše pokušaja. Sačekaj malo pa pokušaj ponovo.',
+    'authError.googleFailed':
+      'Prijava preko Google-a nije mogla da počne. Probaj ponovo ili unesi lozinku.',
     'authError.generic': 'Nešto je pošlo naopako. Pokušaj ponovo.',
     'confirm.title': 'Unesi verifikacioni kod',
     'confirm.sub': 'Poslali smo šestocifreni kod na tvoj mejl',

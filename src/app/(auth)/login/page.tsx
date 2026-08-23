@@ -76,6 +76,40 @@ function Page() {
     }
   }
 
+  /**
+   * Start the Google round trip.
+   *
+   * signInWithRedirect returns a PROMISE, and the button used to call it bare:
+   * `onPress={() => signInWithRedirect({ provider: 'Google' })}`. A rejection
+   * there is unhandled — nothing catches it, nothing renders it, and the
+   * button simply does nothing when pressed. Which is exactly what "Google
+   * sign-in doesn't work" looks like from the outside, on localhost or
+   * anywhere else, with every server-side piece configured correctly.
+   *
+   * The commonest rejection is UserAlreadyAuthenticatedException: Amplify
+   * refuses to start a second sign-in while a session exists, including a
+   * stale one left in cookies from a previous run. The password path has
+   * handled that case since it was written — same exception, three lines
+   * above — and the Google button never got the same treatment.
+   *
+   * So: already signed in means go where you were going, and anything else is
+   * shown rather than swallowed.
+   */
+  async function continueWithGoogle() {
+    setError('');
+    try {
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name === 'UserAlreadyAuthenticatedException') {
+        router.push(destination());
+        return;
+      }
+      console.error('Google sign-in error:', err);
+      setError(t('authError.googleFailed'));
+    }
+  }
+
   return (
     <>
       <h1 className="mb-1 text-2xl font-bold tracking-wide">
@@ -133,7 +167,7 @@ function Page() {
         <GoogleButton
           label={t('auth.google')}
           disabled={busy}
-          onPress={() => signInWithRedirect({ provider: 'Google' })}
+          onPress={continueWithGoogle}
         />
       )}
 
