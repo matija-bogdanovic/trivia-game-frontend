@@ -110,26 +110,35 @@ const byStanding = (a: LeaderboardApiRow, b: LeaderboardApiRow) =>
   b.wins - a.wins ||
   a.username.localeCompare(b.username);
 
-/** Two players are level when both sort keys match — the username is only a
- *  tiebreak for display order and must not separate their ranks. */
-const level = (a: LeaderboardApiRow, b: LeaderboardApiRow) =>
-  a.points === b.points && a.wins === b.wins;
-
 /**
  * Rank and format the standings.
  *
- * Standard competition ranking: players who are level share a place and the
- * next one skips it — 1, 2, 2, 4. Numbering by array position, as this did
- * before, handed three players tied on 25 points the places 2, 3 and 4 and
- * made an arbitrary scan order look like a result.
+ * ── ONE PLACE PER PLAYER ───────────────────────────────────────────────────
+ * Position in the sorted list, so the column counts 1, 2, 3, 4 with no
+ * repeats and no holes.
+ *
+ * This replaces standard competition ranking (1, 2, 2, 4), which was correct
+ * by the book and wrong on the screen: the live table has two players on 25
+ * points with one win each and two more on nothing at all, so it printed two
+ * thirds and two fifths while fourth and sixth simply never appeared. A
+ * reader does not see "these two are level", they see a table that lost count.
+ *
+ * What makes positional numbering safe here is that byStanding is TOTAL —
+ * points, then wins, then username. Level players are still ordered the same
+ * way on every load, so the row that shows 3rd today shows 3rd tomorrow. The
+ * original objection to numbering by position was that it dressed up
+ * DynamoDB's scan order as a result; with the username breaking the last tie,
+ * there is no arbitrary order left to dress up.
+ *
+ * The cost, stated plainly: two players who are genuinely level now get
+ * different numbers, and only the points and wins columns beside them reveal
+ * that the gap between those numbers is nothing.
  */
 const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] => {
   const sorted = [...api].sort(byStanding);
-  let rank = 0;
   return sorted.map((r, i) => {
-    if (i === 0 || !level(r, sorted[i - 1])) rank = i + 1;
     return {
-      rank,
+      rank: i + 1,
       username: r.username,
       name: r.displayName || r.username,
       initial: (r.displayName || r.username).charAt(0).toUpperCase(),
@@ -265,18 +274,19 @@ export default function Page() {
   }, [tab, api, me, friendStandings]);
 
   /**
-   * Second, first, third — the order a podium is read in.
+   * Second, first, third — the order a podium is read in, with the winner
+   * raised in the middle.
    *
-   * By rank rather than by row, so a tie for first puts both players on a
-   * first-place tile instead of demoting one of them to second.
+   * A row's rank IS its position now, so a tile's place is simply the rank of
+   * the row on it; the reordering here is presentation, not arithmetic.
    */
   const podium = useMemo(() => {
     const [first, second, third] = rows;
     return [
-      { row: second, place: second?.rank ?? 2 },
-      { row: first, place: first?.rank ?? 1 },
-      { row: third, place: third?.rank ?? 3 },
-    ].filter((slot) => !!slot.row && slot.place <= 3);
+      { row: second, place: 2 },
+      { row: first, place: 1 },
+      { row: third, place: 3 },
+    ].filter((slot) => !!slot.row);
   }, [rows]);
 
   const you = rows.find((r) => r.isYou) ?? null;
@@ -285,10 +295,10 @@ export default function Page() {
    *
    * This subtracted *wins* while the standings run on points, so someone fifth
    * with more wins than the player in third got "0", which the callout then
-   * read as "on the podium". The gap is measured against the last player
-   * actually holding a top-three place, which with a tie is not row three.
+   * read as "on the podium". The gap is measured in points, against whoever
+   * holds the last podium place.
    */
-  const podiumLast = [...rows].reverse().find((r) => r.rank <= 3) ?? null;
+  const podiumLast = rows[2] ?? rows[rows.length - 1] ?? null;
   const onPodium = !!you && you.rank <= 3;
   const pointsFromPodium =
     !you || !podiumLast || onPodium
@@ -496,25 +506,19 @@ export default function Page() {
                 }`}
               >
                 {/*
-                  A trophy for the podium, the figure for everyone else.
-                  The three medal colours already said which place it was, so
-                  the number was carrying nothing the colour did not — and it
-                  sat badly in a 40px cell. The trophy is labelled for screen
-                  readers, which the bare colour never was.
+                  The number, always — a table is a place to count, and a
+                  trophy in the first cell of a row broke the run of figures
+                  that the eye follows down the column.
+
+                  The medal colour stays on the top three: it marks them
+                  without costing the reader the number, which the trophy did.
+                  The trophy keeps its job on the podium tiles above, where
+                  there is one per showcase rather than one per row.
                 */}
                 <div
                   className={`font-bold tabular-nums ${rankColor(row.rank)}`}
                 >
-                  {row.rank <= 3 ? (
-                    <>
-                      <TrophyIcon className="h-5 w-5" />
-                      <span className="sr-only">
-                        {t('arena.lb.rank', { n: row.rank })}
-                      </span>
-                    </>
-                  ) : (
-                    row.rank
-                  )}
+                  {row.rank}
                 </div>
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar
