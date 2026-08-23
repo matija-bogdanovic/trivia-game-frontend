@@ -6,7 +6,11 @@ import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
 import { setDisplayName } from '@/app/redux/slicers/profile_slice';
 import type { AppDispatch } from '@/app/redux/store';
 import { apiFetch } from '@/app/helpers/api';
-import { getIdentity, type Identity } from '@/app/helpers/token_operations';
+import {
+  resolveProfilePicture,
+  getIdentity,
+  type Identity,
+} from '@/app/helpers/token_operations';
 
 /**
  * One finished match as the wallet keeps it: the player's own slice of the
@@ -116,6 +120,16 @@ export function useWallet(): WalletState {
          * normalised username when it is null. Syncing it here is what makes
          * those screens show the casing the player actually chose.
          */
+        /*
+         * Resolved rather than read off the token: the claim is the fast path
+         * and Cognito's GetUser is the reliable one, and only accounts missing
+         * the claim pay for the second. See resolveProfilePicture.
+         *
+         * Failure here must not cost the wallet — a picture is a nicety and
+         * the wallet is the screen — so it is caught into null.
+         */
+        const picture = await resolveProfilePicture(identity).catch(() => null);
+
         const res = await apiFetch('/wallet', {
           /*
            * The Google picture rides along with the rename that already
@@ -133,7 +147,7 @@ export function useWallet(): WalletState {
            */
           body: {
             displayName: identity.displayName,
-            ...(identity.picture ? { googlePicture: identity.picture } : {}),
+            ...(picture ? { googlePicture: picture } : {}),
           },
         });
         const wallet = res.ok ? ((await res.json()) as Wallet) : null;

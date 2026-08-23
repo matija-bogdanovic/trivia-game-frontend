@@ -1,6 +1,6 @@
 'use client';
 
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession, fetchUserAttributes } from 'aws-amplify/auth';
 
 export interface Identity {
   /** unique account id (Cognito username) — the identity key everywhere */
@@ -65,10 +65,14 @@ export async function getIdentity(): Promise<Identity | null> {
       const name = payload?.['name'];
       const email = payload?.['email'];
       /*
-       * The federated account's picture, mapped from Google's `picture` claim
-       * by the pool's Google IdP. Absent for password accounts, and absent for
-       * anyone who last signed in before that mapping existed — they get it on
-       * their next sign-in and nothing has to migrate.
+       * The picture, IF the ID token happens to carry it.
+       *
+       * It is a `profile`-scope claim, so it should — but whether a mapped
+       * attribute reaches the token depends on the scopes granted and on the
+       * app client's readable attributes, and neither is something this
+       * function can check. So this is the cheap path, not the reliable one:
+       * see resolveProfilePicture below, which asks Cognito directly when the
+       * claim is missing.
        */
       const picture = payload?.['picture'];
       return {
@@ -96,4 +100,59 @@ export async function getIdentity(): Promise<Identity | null> {
 
 export async function getUsername(): Promise<string | null> {
   return (await getIdentity())?.username ?? null;
+}
+
+/**
+ * The account's profile picture, asked for properly.
+ *
+ * ── WHY NOT JUST THE ID-TOKEN CLAIM ────────────────────────────────────────
+ * Reading `picture` off the token is one line and works only when Cognito
+ * chose to put it there. Whether it does depends on the granted scopes and on
+ * the app client's ReadAttributes, and a mapped attribute that is populated on
+ * the user can still be absent from the token. Trusting the claim alone means
+ * a picture that exists in the pool never reaches the app, silently.
+ *
+ * fetchUserAttributes() calls Cognito's GetUser and returns what the user
+ * record actually holds, which is the thing being asked about.
+ *
+ * ── WHY THE CLAIM IS STILL TRIED FIRST ─────────────────────────────────────
+ * It costs nothing. getIdentity() already has the decoded token in hand, so
+ * when the claim is there the network call is skipped entirely; the request
+ * only happens for the accounts where it would otherwise have failed.
+ *
+ * Returns null for a password account, for a federated account whose provider
+ * sent no picture, and for anyone who last signed in before the pool mapped
+ * the attribute — that last group gets one on their next sign-in, since
+ * Cognito writes mapped attributes at federated sign-in and does not backfill.
+ */
+export async function resolveProfilePicture(
+  identity: Identity | null
+): Promise<string | null> {
+  if (!identity) return null;
+  if (identity.picture) return identity.picture;
+
+  try {
+    const attributes = await fetchUserAttributes();
+    const picture = attributes.picture;
+    const usable =
+      typeof picture === 'string' && picture.startsWith('https://')
+        ? picture
+        : null;
+    if (process.env.NODE_ENV !== 'production') {
+      // the one thing worth seeing while this is being wired up: whether the
+      // pool holds a picture at all, as distinct from the app failing to use it
+      console.info(
+        '[avatar] picture from user attributes:',
+        usable ??
+          `(none — pool has ${picture === undefined ? 'no attribute' : 'an unusable value'})`
+      );
+    }
+    return usable;
+  } catch (err) {
+    // not signed in, or the attribute is not readable by this client
+    if (process.env.NODE_ENV !== 'production') {
+      console.info('[avatar] could not read user attributes:', err);
+    }
+    return null;
+  }
 }
