@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import { onlineFriends } from '@/app/(arena)/_mock/players';
-import { homeStats } from '@/app/(arena)/_mock/progress';
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import { FlameIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Dashboard, translated from the Angular app's home.html. Static there and
@@ -16,6 +16,34 @@ import { useWallet } from '@/app/(arena)/_data/use_wallet';
 export default function Page() {
   const { t } = useT();
   const { wallet, loading } = useWallet();
+
+  /** the four numbers this screen leads with, from the player's own record */
+  const homeStats = [
+    {
+      labelKey: 'arena.stat.winningStreak',
+      value: String(wallet?.currentStreak ?? 0),
+      tone: 'text-flame',
+      Icon: FlameIcon,
+    },
+    {
+      labelKey: 'arena.stat.totalWins',
+      value: String(wallet?.wins ?? 0),
+      tone: 'text-white',
+      Icon: null,
+    },
+    {
+      labelKey: 'arena.stat.gamesPlayed',
+      value: String(wallet?.gamesPlayed ?? 0),
+      tone: 'text-white',
+      Icon: null,
+    },
+    {
+      labelKey: 'arena.stat.balance',
+      value: `$${wallet?.coins ?? 0}`,
+      tone: 'text-gold',
+      Icon: null,
+    },
+  ];
   /** The teaser row links through to the full achievements screen. */
   const teasers = buildAchievements(
     wallet?.achievementCatalog,
@@ -25,19 +53,27 @@ export default function Page() {
   return (
     <div className="space-y-8 p-4 sm:p-6 lg:p-8">
       {/* ============================================================ stats */}
+      {/*
+        The player's OWN numbers. This row rendered homeStats from
+        _mock/progress — a fixture — so every visitor was shown the same
+        invented 7 / 143 / 201 / $8,340, with the streak's fire as a text
+        suffix on the value. It reads the wallet now, and the streak carries
+        the drawn flame in the streak colour like everywhere else.
+      */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {homeStats.map((stat) => (
           <div
-            key={t(stat.labelKey)}
+            key={stat.labelKey}
             className="border border-white/[0.07] bg-arena-800 p-5"
           >
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
               {t(stat.labelKey)}
             </div>
             <div
-              className={`text-2xl font-bold sm:text-3xl ${stat.accent ? 'text-gold' : 'text-white'}`}
+              className={`flex items-center gap-2 text-2xl font-bold sm:text-3xl ${stat.tone}`}
             >
-              {stat.value} {stat.suffix}
+              {stat.Icon && <stat.Icon className="h-6 w-6 shrink-0" />}
+              {stat.value}
             </div>
           </div>
         ))}
@@ -176,8 +212,9 @@ export default function Page() {
                 </span>
               </span>
               {friend.streak > 0 && (
-                <span className="text-[10px] font-bold text-gold">
-                  🔥 {friend.streak}
+                <span className="flex items-center gap-1 text-[10px] font-bold text-flame">
+                  <FlameIcon className="h-3 w-3 shrink-0" />
+                  {friend.streak}
                 </span>
               )}
               <button

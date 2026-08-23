@@ -9,6 +9,7 @@ import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
+import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 
 amplifyConfigure();
 
@@ -331,11 +332,8 @@ export default function JoinPanel() {
 
             {lobbiesLoaded && lobbies.length === 0 && (
               <div className="border border-white/[0.07] bg-arena-800 p-8 text-center">
-                <div
-                  className="mb-3 text-4xl text-arena-500"
-                  aria-hidden="true"
-                >
-                  ◎
+                <div className="mb-3 flex justify-center" aria-hidden="true">
+                  <CircleDashedIcon className="h-9 w-9 text-arena-500" />
                 </div>
                 <div className="text-[11px] tracking-wider text-arena-300 uppercase">
                   {t('arena.join.none')}

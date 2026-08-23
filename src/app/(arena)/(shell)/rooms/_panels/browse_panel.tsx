@@ -8,10 +8,9 @@ import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
 import { useT } from '@/app/lib/i18n';
-import {
-  Skeleton,
-  SkeletonRegion,
-} from '@/app/(arena)/_components/skeleton';
+import { PlusCircleIcon, UserPlusIcon } from '@/app/(arena)/_components/icons';
+import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
+import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 
 type RoomSort = 'players' | 'newest';
 
@@ -165,14 +164,16 @@ export default function BrowsePanel() {
       <div className="mb-8 flex flex-wrap gap-3 sm:gap-4">
         <Link
           href="/rooms/create"
-          className="bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="inline-flex items-center gap-2 bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
+          <PlusCircleIcon className="h-4 w-4" />
           {t('arena.rooms.createRoom')}
         </Link>
         <Link
           href="/rooms/join"
-          className="border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="inline-flex items-center gap-2 border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
+          <UserPlusIcon className="h-4 w-4" />
           {t('arena.rooms.joinWithCode')}
         </Link>
       </div>
@@ -330,8 +331,8 @@ export default function BrowsePanel() {
 
       {!loading && visible.length === 0 && (
         <div className="py-20 text-center text-arena-300">
-          <div className="mb-4 text-4xl" aria-hidden="true">
-            ◎
+          <div className="mb-4 flex justify-center" aria-hidden="true">
+            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {failed ? t('arena.rooms.failed') : t('arena.rooms.noneOpen')}

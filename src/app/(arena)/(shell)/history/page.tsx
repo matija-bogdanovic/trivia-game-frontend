@@ -12,6 +12,7 @@ import {
   type MatchRecord,
 } from '@/app/(arena)/_data/use_match_detail';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
+import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
 
@@ -131,8 +132,8 @@ export default function Page() {
       */}
       {!loading && !signedIn && (
         <div className="py-16 text-center text-arena-300">
-          <div className="mb-4 text-4xl" aria-hidden="true">
-            ◎
+          <div className="mb-4 flex justify-center" aria-hidden="true">
+            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {t('arena.common.signInPrompt')}
@@ -148,8 +149,8 @@ export default function Page() {
 
       {!loading && signedIn && wallet && history.length === 0 && (
         <div className="py-16 text-center text-arena-300">
-          <div className="mb-4 text-4xl" aria-hidden="true">
-            ◎
+          <div className="mb-4 flex justify-center" aria-hidden="true">
+            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {t('arena.history.empty')}

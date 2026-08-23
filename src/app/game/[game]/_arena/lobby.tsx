@@ -6,6 +6,7 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
+import { FlameIcon, PaperPlaneIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * The arena Lobby design, driven by the real lobby_state the game server
@@ -225,8 +226,9 @@ export default function ArenaLobby() {
                       <div className="text-white font-bold truncate">
                         {shown}
                       </div>
-                      <div className="text-gold text-[11px]">
-                        🔥 {player.streak} streak
+                      <div className="text-flame text-[11px] flex items-center gap-1">
+                        <FlameIcon className="h-3 w-3 shrink-0" />
+                        {player.streak} streak
                       </div>
                     </div>
                   </div>
@@ -406,7 +408,7 @@ export default function ArenaLobby() {
               className="bg-arena-600 text-white px-3 py-2 text-xs hover:bg-arena-500 transition-colors"
               aria-label={t('arena.lobby.send')}
             >
-              →
+              <PaperPlaneIcon className="h-4 w-4" />
             </button>
           </div>
         </div>

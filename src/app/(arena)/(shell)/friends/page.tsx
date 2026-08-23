@@ -17,6 +17,8 @@ import {
   SkeletonAvatar,
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
+import { FlameIcon } from '@/app/(arena)/_components/icons';
+import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Whole days until a denied person may be asked again, or null when the wait
@@ -267,8 +269,8 @@ export default function Page() {
 
           {!loading && friends.length > 0 && matching.length === 0 && (
             <div className="py-16 text-center text-arena-300">
-              <div className="mb-4 text-4xl" aria-hidden="true">
-                ◎
+              <div className="mb-4 flex justify-center" aria-hidden="true">
+                <CircleDashedIcon className="h-10 w-10 text-arena-500" />
               </div>
               <div className="text-sm tracking-wider uppercase">
                 {t('arena.friends.noMatches')}
@@ -518,8 +520,9 @@ function FriendRow({ friend }: { friend: FriendSummary }) {
             {friend.displayName || friend.username}
           </span>
           {friend.currentStreak > 0 && (
-            <span className="text-[10px] text-gold">
-              🔥 {friend.currentStreak}
+            <span className="flex items-center gap-1 text-[10px] text-flame">
+              <FlameIcon className="h-3 w-3 shrink-0" />
+              {friend.currentStreak}
             </span>
           )}
         </div>

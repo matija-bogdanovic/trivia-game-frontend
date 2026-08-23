@@ -9,6 +9,7 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useCountdown } from '@/app/components/hooks/game/use_server_clock';
 import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useT } from '@/app/lib/i18n';
+import { FlameIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Choosing who answers next, and how.
@@ -119,7 +120,10 @@ export default function ArenaPicking() {
                 {p?.displayName ?? u}
               </div>
               {(p?.streak ?? 0) > 0 && (
-                <div className="mb-1 text-sm text-gold">🔥 {p?.streak}</div>
+                <div className="mb-1 flex items-center justify-center gap-1 text-sm text-flame">
+                  <FlameIcon className="h-3.5 w-3.5 shrink-0" />
+                  {p?.streak}
+                </div>
               )}
               <div className="text-[11px] text-arena-200 tabular-nums">
                 {money(p?.money ?? 0)}

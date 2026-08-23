@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
-import { FlameIcon } from '@/app/(arena)/_components/icons';
+import { FlameIcon, HashIcon } from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
+import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 import {
   Skeleton,
   SkeletonAvatar,
@@ -365,8 +366,8 @@ export default function Page() {
 
       {!loading && rows.length === 0 && (
         <div className="py-16 text-center text-arena-300">
-          <div className="mb-4 text-4xl" aria-hidden="true">
-            ◎
+          <div className="mb-4 flex justify-center" aria-hidden="true">
+            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {tab === 'weekly' || tab === 'monthly'
@@ -440,7 +441,10 @@ export default function Page() {
         <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
           <div className="min-w-[42rem]">
             <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 border-b border-white/[0.07] px-5 py-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              <span>#</span>
+              <span className="flex items-center" title="#">
+                <HashIcon className="h-3.5 w-3.5" />
+                <span className="sr-only">#</span>
+              </span>
               <span>{t('arena.lb.player')}</span>
               <span>{t('arena.lb.streak')}</span>
               <span>{t('arena.lb.wins')}</span>

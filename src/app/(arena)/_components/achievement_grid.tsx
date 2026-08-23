@@ -2,6 +2,7 @@
 
 import type { AchievementView } from '@/app/(arena)/_lib/achievements';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
+import { StarIcon } from '@/app/(arena)/_components/icons';
 import { useT } from '@/app/lib/i18n';
 
 /**
@@ -76,7 +77,7 @@ export default function AchievementGrid({
             className={`text-lg ${a.unlocked ? 'text-gold' : 'text-arena-500'}`}
             aria-hidden="true"
           >
-            {a.unlocked ? '★' : '☆'}
+            <StarIcon className="h-5 w-5" />
           </div>
           <div
             className={`text-[11px] font-bold tracking-wider ${a.unlocked ? 'text-gold' : 'text-arena-300'}`}

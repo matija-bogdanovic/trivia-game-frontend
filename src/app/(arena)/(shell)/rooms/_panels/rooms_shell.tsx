@@ -2,7 +2,11 @@
 
 import Link from 'next/link';
 import PageHeader from '@/app/(arena)/_components/page_header';
-import { PlusCircleIcon, UserPlusIcon } from '@/app/(arena)/_components/icons';
+import {
+  MagnifyingGlassIcon,
+  PlusCircleIcon,
+  UserPlusIcon,
+} from '@/app/(arena)/_components/icons';
 import { useT } from '@/app/lib/i18n';
 import BrowsePanel from './browse_panel';
 import CreatePanel from './create_panel';
@@ -42,10 +46,8 @@ export type RoomsTab = 'find' | 'create' | 'join';
  * this page follow the actions here: a plus in a circle opens a room, a plus
  * beside a person enters one.
  *
- * Pronađi is text only, and that is a choice rather than an omission — there
- * is no search glyph in the set, and inventing one to fill the slot would put
- * a shape on screen that nobody drew. Two labelled icons and one plain label
- * reads as deliberate; a made-up magnifier would not.
+ * All three carry one now: Pronađi waited only until there was a real
+ * magnifying glass to give it rather than a shape nobody drew.
  */
 const TABS: {
   tab: RoomsTab;
@@ -59,7 +61,12 @@ const TABS: {
     labelKey: 'arena.rooms.tabCreate',
     Icon: PlusCircleIcon,
   },
-  { tab: 'find', href: '/rooms', labelKey: 'arena.rooms.tabFind' },
+  {
+    tab: 'find',
+    href: '/rooms',
+    labelKey: 'arena.rooms.tabFind',
+    Icon: MagnifyingGlassIcon,
+  },
   {
     tab: 'join',
     href: '/rooms/join',

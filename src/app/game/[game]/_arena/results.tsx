@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { money } from '@/app/(arena)/_lib/money';
+import { FlameIcon, StarIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * The end-of-match screen. Not a route — it is what a finished game looks
@@ -62,7 +63,7 @@ export default function ArenaResults({
           className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-5"
           aria-hidden="true"
         >
-          <div className="text-[300px] leading-none font-bold text-gold">★</div>
+          <StarIcon className="h-[300px] w-[300px] text-gold" />
         </div>
         <div className="relative">
           <div className="mb-4 text-[11px] tracking-[0.4em] text-gold uppercase">
@@ -92,8 +93,9 @@ export default function ArenaResults({
               <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
                 {t('arena.results.newStreak')}
               </div>
-              <div className="text-2xl font-bold text-white sm:text-3xl">
-                🔥 {winner.streak}
+              <div className="flex items-center justify-center gap-2 text-2xl font-bold text-flame sm:text-3xl">
+                <FlameIcon className="h-6 w-6 shrink-0" />
+                {winner.streak}
               </div>
             </div>
           </div>

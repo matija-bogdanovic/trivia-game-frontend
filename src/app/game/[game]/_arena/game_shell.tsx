@@ -7,6 +7,7 @@ import LogoPlaceholder from '@/app/(arena)/_components/logo_placeholder';
 import { money } from '@/app/(arena)/_lib/money';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { FlameIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * The frame every play phase sits in: top bar, players rail, bottom HUD.
@@ -146,8 +147,9 @@ export default function GameShell({
                         {isMe ? t('arena.common.you') : p.displayName}
                       </div>
                       {p.streak > 0 && (
-                        <div className="text-[9px] text-gold">
-                          🔥 {p.streak}
+                        <div className="flex items-center gap-1 text-[9px] text-flame">
+                          <FlameIcon className="h-3 w-3 shrink-0" />
+                          {p.streak}
                         </div>
                       )}
                     </div>

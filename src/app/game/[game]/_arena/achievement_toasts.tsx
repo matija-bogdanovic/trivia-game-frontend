@@ -7,6 +7,7 @@ import type { AchievementNotice } from '@/app/redux/slicers/game_slice';
 import type { AppDispatch, RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
+import { StarIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Unlocked-achievement toasts, bottom-right of the game.
@@ -176,9 +177,7 @@ function Toast({
       <div className="h-0.5 bg-gold" aria-hidden="true" />
 
       <div className="flex items-start gap-3 p-3.5 pr-9">
-        <div className="text-2xl leading-none text-gold" aria-hidden="true">
-          ★
-        </div>
+        <StarIcon className="h-6 w-6 shrink-0 text-gold" />
         <div className="min-w-0">
           <div className="mb-1 text-[9px] tracking-[0.25em] text-gold uppercase">
             {t('arena.ach.unlockedToast')}
