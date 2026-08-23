@@ -13,6 +13,11 @@ import { apiFetch } from '@/app/helpers/api';
 import { getUsername } from '@/app/helpers/token_operations';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
+import {
+  CheckIcon,
+  GlobeIcon,
+  LockIcon,
+} from '@/app/(arena)/_components/icons';
 
 amplifyConfigure();
 
@@ -193,8 +198,9 @@ export default function CreatePanel() {
           <div className="flex flex-wrap justify-center gap-3">
             <button
               onClick={copyCode}
-              className="border border-gold/40 text-gold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold/10 transition-colors"
+              className="inline-flex items-center gap-2 border border-gold/40 text-gold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold/10 transition-colors"
             >
+              {copied && <CheckIcon className="h-3.5 w-3.5 shrink-0" />}
               {copied ? t('arena.create.copied') : t('arena.create.copyCode')}
             </button>
           </div>
@@ -277,32 +283,36 @@ export default function CreatePanel() {
           role="group"
           aria-labelledby="visibility-label"
         >
-          {(['public', 'private'] as const).map((v) => (
-            <button
-              key={v}
-              onClick={() => setVisibility(v)}
-              disabled={creating}
-              aria-pressed={visibility === v}
-              className={`p-5 border text-left transition-colors ${
-                visibility === v
-                  ? 'border-gold/40 bg-gold/10'
-                  : 'border-white/10 bg-arena-750 hover:bg-arena-700'
-              } focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none`}
-            >
-              <div
-                className={`font-bold tracking-widest text-sm mb-1 ${visibility === v ? 'text-gold' : 'text-white'}`}
+          {(['public', 'private'] as const).map((v) => {
+            const Icon = v === 'public' ? GlobeIcon : LockIcon;
+            return (
+              <button
+                key={v}
+                onClick={() => setVisibility(v)}
+                disabled={creating}
+                aria-pressed={visibility === v}
+                className={`p-5 border text-left transition-colors ${
+                  visibility === v
+                    ? 'border-gold/40 bg-gold/10'
+                    : 'border-white/10 bg-arena-750 hover:bg-arena-700'
+                } focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none`}
               >
-                {v === 'public'
-                  ? t('arena.create.publicLabel')
-                  : t('arena.create.privateLabel')}
-              </div>
-              <div className="text-arena-200 text-[11px] leading-relaxed">
-                {v === 'public'
-                  ? t('arena.create.publicDesc')
-                  : t('arena.create.privateDesc')}
-              </div>
-            </button>
-          ))}
+                <div
+                  className={`mb-1 flex items-center gap-2 text-sm font-bold tracking-widest ${visibility === v ? 'text-gold' : 'text-white'}`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {v === 'public'
+                    ? t('arena.create.publicLabel')
+                    : t('arena.create.privateLabel')}
+                </div>
+                <div className="text-arena-200 text-[11px] leading-relaxed">
+                  {v === 'public'
+                    ? t('arena.create.publicDesc')
+                    : t('arena.create.privateDesc')}
+                </div>
+              </button>
+            );
+          })}
         </div>
         {visibility === 'private' && (
           <input

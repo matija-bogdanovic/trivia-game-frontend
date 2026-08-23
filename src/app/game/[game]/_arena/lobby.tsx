@@ -7,6 +7,7 @@ import { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import {
+  CheckIcon,
   FlameIcon,
   GlobeIcon,
   LockIcon,
@@ -143,7 +144,8 @@ export default function ArenaLobby() {
           >
             {code === null ? '······' : String(code)}
           </button>
-          <div className="text-arena-300 text-[10px] tracking-wider uppercase mt-1">
+          <div className="text-arena-300 mt-1 flex items-center justify-center gap-1.5 text-[10px] tracking-wider uppercase">
+            {copied && <CheckIcon className="h-3 w-3 shrink-0" />}
             {copied ? t('arena.lobby.copied') : t('arena.lobby.clickToCopy')}
           </div>
         </div>
@@ -257,12 +259,15 @@ export default function ArenaLobby() {
                       {t('arena.lobby.bank')}
                     </div>
                     <div
-                      className={`text-[10px] tracking-widest font-bold uppercase px-3 py-1 border ${
+                      className={`inline-flex items-center gap-1.5 border px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${
                         player.connected
                           ? 'border-gold/40 text-gold'
                           : 'border-arena-400 text-arena-300'
                       }`}
                     >
+                      {player.connected && (
+                        <CheckIcon className="h-3 w-3 shrink-0" />
+                      )}
                       {player.connected
                         ? t('arena.lobby.inRoom')
                         : t('arena.lobby.away')}

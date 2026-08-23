@@ -22,6 +22,7 @@ import {
   walletRejectedName,
   type UsernameAvailability,
 } from '@/app/helpers/username';
+import { CheckIcon } from '@/app/(arena)/_components/icons';
 import { useT } from '@/app/lib/i18n';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
 import {
@@ -528,7 +529,13 @@ export default function Page() {
             >
               {saving ? t('arena.settings.saving') : t('arena.settings.save')}
             </button>
-            <p className="text-[11px] text-gold" aria-live="polite">
+            <p
+              className="flex items-center gap-1.5 text-[11px] text-gold"
+              aria-live="polite"
+            >
+              {!saveError && saved && (
+                <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+              )}
               {saveError || (saved && t('arena.settings.saved'))}
             </p>
           </div>

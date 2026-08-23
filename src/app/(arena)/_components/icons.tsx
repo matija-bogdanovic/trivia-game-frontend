@@ -368,3 +368,19 @@ export function LockIcon({ className = 'h-4 w-4' }: IconProps) {
     </svg>
   );
 }
+
+/** A tick — done, copied, saved, present. (Phosphor `Check`, regular) */
+export function CheckIcon({ className = 'h-4 w-4' }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 256 256"
+      className={className}
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z" />
+    </svg>
+  );
+}
