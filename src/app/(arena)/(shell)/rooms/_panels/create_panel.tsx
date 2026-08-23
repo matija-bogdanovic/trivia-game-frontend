@@ -107,10 +107,13 @@ export default function CreatePanel() {
    * Is every category in play?
    *
    * True for BOTH "all 24 ticked" and "none ticked" — the server reads an
-   * empty list as every category, so the two are the same room. The All chip
-   * is pressed for either, because a control that looked off while the room
-   * was in fact drawing from everything would be telling the host something
-   * untrue.
+   * empty list as every category, so the two are the same room.
+   *
+   * Everything downstream reads this one flag: the All chip is pressed, the
+   * count line says "all categories", and EVERY category chip is lit. That
+   * last one is the point — a control that looked off while the room was in
+   * fact drawing from everything was telling the host something untrue, and
+   * the 24 chips were doing exactly that while the All chip alone was gold.
    */
   const everyCategory =
     categories.length === 0 || categories.length === QUESTION_CATEGORIES.length;
@@ -268,19 +271,6 @@ export default function CreatePanel() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        {credits !== null && (
-          <div className="mb-6 text-right">
-            <div className="text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              {t('arena.create.credits')}
-            </div>
-            <div className="text-2xl font-bold text-gold tabular-nums">
-              {credits}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Room Name */}
       <Section label={t('arena.create.roomName')} htmlFor="room-name">
         <input
@@ -383,7 +373,9 @@ export default function CreatePanel() {
 
             Pressing it clears the individual ticks rather than setting all 24.
             Same room either way, and it is the selection that keeps working if
-            the question bank ever gains a category.
+            the question bank ever gains a category — the chips are lit from
+            everyCategory, not from list membership, so clearing still shows
+            all 24 as on.
           */}
           <button
             type="button"
@@ -400,16 +392,35 @@ export default function CreatePanel() {
           </button>
 
           {QUESTION_CATEGORIES.map((category) => {
-            const selected = categories.includes(category.id);
+            /*
+              Lit whenever the room is drawing from everything, INCLUDING the
+              empty selection. An empty list is the server's way of saying
+              "every category", so a row of unlit chips was describing the
+              opposite of the room being made — it read as "nothing is in
+              play" when in fact all 24 were.
+            */
+            const selected = everyCategory || categories.includes(category.id);
             return (
               <button
                 key={category.id}
                 type="button"
                 onClick={() =>
                   setCategories((current) =>
-                    current.includes(category.id)
-                      ? current.filter((c) => c !== category.id)
-                      : [...current, category.id]
+                    /*
+                      Clicking a lit chip in the all-state means "all but this
+                      one". The chips are showing every category as included,
+                      so removing the one pressed is the only reading a click
+                      can have — where the old code, seeing an empty list,
+                      would have ADDED it and narrowed the room to that single
+                      category.
+                    */
+                    current.length === 0
+                      ? QUESTION_CATEGORIES.filter(
+                          (c) => c.id !== category.id
+                        ).map((c) => c.id)
+                      : current.includes(category.id)
+                        ? current.filter((c) => c !== category.id)
+                        : [...current, category.id]
                   )
                 }
                 aria-pressed={selected}
@@ -426,15 +437,12 @@ export default function CreatePanel() {
           })}
         </div>
         {/*
-          Not an error — clearing is how you say "any question", and the All
-          chip above is lit to say so. This just spells it out the first time
-          somebody lands here having cleared everything.
+          The "nothing selected means every category" note that used to sit
+          here is gone. It existed to talk a host out of what the picker was
+          showing them — 24 dark chips under a lit All — and the chips now say
+          it themselves. A sentence explaining the UI is a patch on the UI;
+          once the display is honest, the patch is noise.
         */}
-        {categories.length === 0 && (
-          <p className="mt-3 text-[11px] text-arena-300" aria-live="polite">
-            {t('arena.create.noneMeansAll')}
-          </p>
-        )}
       </Section>
 
       <Section label={t('arena.create.spectating')} id="spectate-label">

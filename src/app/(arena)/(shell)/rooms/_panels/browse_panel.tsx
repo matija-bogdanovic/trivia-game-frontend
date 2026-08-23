@@ -175,21 +175,35 @@ export default function BrowsePanel() {
 
   return (
     <div>
-      {/* =================================================== quick actions */}
+      {/*
+        =================================================== quick actions
+
+        Entering a room leads, creating one follows.
+
+        This is the BROWSE tab: everyone here is already looking at a list of
+        rooms other people opened, so "get me into one" is the likelier next
+        move and it takes the gold. Creating keeps its place beside it in the
+        outlined style — demoted, not removed, because losing it would leave
+        the tab strip as the only way to open a room from this screen.
+
+        The label carried a typed "+" AND a PlusCircle beside it, so the
+        button read "⊕ + Napravi sobu" with the plus said twice. The icon
+        keeps it; the string no longer does.
+      */}
       <div className="mb-8 flex flex-wrap gap-3 sm:gap-4">
         <Link
-          href="/rooms/create"
+          href="/rooms/join"
           className="inline-flex items-center gap-2 bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        >
+          <UserPlusIcon className="h-4 w-4" />
+          {t('arena.rooms.enterRoom')}
+        </Link>
+        <Link
+          href="/rooms/create"
+          className="inline-flex items-center gap-2 border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           <PlusCircleIcon className="h-4 w-4" />
           {t('arena.rooms.createRoom')}
-        </Link>
-        <Link
-          href="/rooms/join"
-          className="inline-flex items-center gap-2 border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-        >
-          <UserPlusIcon className="h-4 w-4" />
-          {t('arena.rooms.joinWithCode')}
         </Link>
       </div>
 
