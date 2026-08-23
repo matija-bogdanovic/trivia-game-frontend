@@ -194,6 +194,19 @@ export default function GameProvider({
       fromName?: string;
       at?: number;
     };
+    /*
+     * The room is gone — reloading a lobby you left, or one whose host closed
+     * it. This used to render "Room not found" as a dismissible banner and
+     * leave the reader parked on a dead URL with nothing to do.
+     */
+    if (
+      msg?.type === 'join_denied' &&
+      (msg as { reason?: string }).reason === 'room-gone'
+    ) {
+      dispatch(resetGame());
+      router.replace('/rooms?gone=1');
+      return;
+    }
     if (msg?.type === 'notification') {
       const n = msg as unknown as {
         id: string;
@@ -239,7 +252,7 @@ export default function GameProvider({
         })
       );
     }
-  }, [lastJsonMessage, dispatch]);
+  }, [lastJsonMessage, dispatch, router]);
 
   /*
    * A REFRESH IS A RECONNECT, NEVER A DEPARTURE.
@@ -422,7 +435,22 @@ export default function GameProvider({
    */
   const leaveRoom = useCallback(async () => {
     sendJsonMessage({ type: 'leave' });
-    // the URL carries the lobby id; the REST cleanup wants the numeric code
+    /*
+     * The WS `leave` is now the one that frees the seat — it edits the Lobbies
+     * roster before it broadcasts, so the other players see the seat empty in
+     * the same message that tells them you went.
+     *
+     * This REST call is the belt to that braces: it is what still works when
+     * the socket has already died, and it is idempotent, so running after the
+     * WS handler has already removed the name changes nothing.
+     *
+     * It is no longer SKIPPED when roomCode is null, which is the bug it used
+     * to be. The code arrives with lobby_state; a client that had not received
+     * one yet — a slow join, a reconnect, the eventually-consistent index —
+     * quietly did no durable cleanup at all, and the seat stayed occupied.
+     * The route takes a code, so it is still only called when there is one,
+     * but the WS half no longer depends on it.
+     */
     if (username && roomCode !== null) {
       await apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(
         () => {}

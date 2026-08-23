@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
@@ -135,6 +135,18 @@ export default function BrowsePanel() {
   const { t } = useT();
   const router = useRouter();
   const [rooms, setRooms] = useState<Lobby[]>([]);
+  /**
+   * Set by the game screen when it bounced you off a room that is gone.
+   *
+   * Read from location in an effect rather than through useSearchParams,
+   * which opts the whole route out of static prerendering unless it is wrapped
+   * in Suspense — a lot of machinery for one optional query flag on a page
+   * that is otherwise perfectly static.
+   */
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    setGone(new URLSearchParams(window.location.search).get('gone') === '1');
+  }, []);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [search, setSearch] = useState('');
@@ -145,26 +157,57 @@ export default function BrowsePanel() {
   const [locked, setLocked] = useState<Lobby | null>(null);
   const [lockError, setLockError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`${getPort()}/lobbies`)
-      .then((res) => {
-        if (!res.ok) throw new Error(String(res.status));
-        return res.json();
-      })
-      .then((data) => {
-        if (!cancelled) setRooms(data.lobbies ?? []);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+  /**
+   * Read the open rooms.
+   *
+   * This used to run once, on mount, and never again — so the list was a
+   * photograph, and a wrong photograph stayed wrong. Landing here straight
+   * after leaving a room is exactly when it is most likely to be wrong: the
+   * leave is still settling, GET /lobbies scans a table the delete may not
+   * have reached, and "Trenutno dostupno soba: 0" would then persist until the
+   * reader navigated somewhere else and back.
+   *
+   * `quiet` reloads without dropping the list into skeletons — a background
+   * refresh that blanks the screen reads as a bug, not as a refresh.
+   */
+  const load = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true);
+    try {
+      const res = await fetch(`${getPort()}/lobbies`);
+      if (!res.ok) throw new Error(String(res.status));
+      const data = await res.json();
+      setRooms(data.lobbies ?? []);
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  /*
+   * Refresh when the tab comes back.
+   *
+   * A rooms list is stale the moment somebody else opens or closes one, and
+   * the reader who has been away is the one most likely to be looking at a
+   * list that has moved on. Cheap, and it only fires on a real return rather
+   * than on a timer nobody asked for.
+   */
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void load(true);
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
+  }, [load]);
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -268,6 +311,20 @@ export default function BrowsePanel() {
         </Link>
       </div>
 
+      {/*
+        Arriving from a room that no longer exists. The game screen redirects
+        here with ?gone=1 rather than leaving the reader on a dead URL, and
+        this is the sentence that explains why the page changed under them.
+      */}
+      {gone && (
+        <div
+          className="mb-6 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] text-gold"
+          role="status"
+        >
+          {t('arena.rooms.gone')}
+        </div>
+      )}
+
       {/* ========================================================== filters */}
       <div className="mb-6 flex flex-col gap-4 border border-white/[0.07] bg-arena-800 p-4 xl:flex-row xl:flex-wrap xl:items-center">
         <label className="sr-only" htmlFor="room-search">
@@ -294,6 +351,14 @@ export default function BrowsePanel() {
             className="w-full border border-white/10 bg-arena-750 py-2 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40"
           />
         </div>
+
+        <button
+          type="button"
+          onClick={() => void load(true)}
+          className="cursor-pointer border border-white/10 px-3 py-2 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        >
+          {t('arena.rooms.refresh')}
+        </button>
 
         <label className="sr-only" htmlFor="room-sort">
           {t('arena.rooms.sortLabel')}

@@ -56,6 +56,8 @@ export default function ArenaLobby() {
         return t('arena.invite.err.offline', { name });
       case 'already-here':
         return t('arena.invite.err.alreadyHere', { name });
+      case 'room-full':
+        return t('arena.invite.err.roomFull');
       case 'not-friend':
         return t('arena.invite.err.notFriend');
       case 'room-gone':
@@ -99,6 +101,20 @@ export default function ArenaLobby() {
   const seated = players.filter((p) => !p.isSpectator);
   const spectators = players.filter((p) => p.isSpectator);
   const connectedCount = seated.filter((p) => p.connected).length;
+
+  /*
+   * A full room has nowhere to put a friend.
+   *
+   * Counted from the SEATED players against the room's own maxPlayers, not a
+   * constant: rooms are created with two to eight seats, and a four-seat room
+   * is full at four. Spectators are excluded — they are not in a seat, so they
+   * do not fill one.
+   *
+   * maxPlayers can be null on a room written before the field existed; that
+   * reads as "no known cap", and a cap nobody knows is not one to enforce in
+   * the UI. The server refuses on its own either way.
+   */
+  const roomFull = maxPlayers !== null && seated.length >= maxPlayers;
   /*
    * Capacity is the server's to state. Until lobby_state arrives both limits
    * are null, and everything derived from them is withheld rather than
@@ -241,10 +257,16 @@ export default function ArenaLobby() {
             <button
               type="button"
               onClick={() => setInviting(true)}
-              className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 border border-gold/40 px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              disabled={roomFull}
+              title={roomFull ? t('arena.invite.full') : undefined}
+              className={`inline-flex shrink-0 items-center gap-1.5 border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                roomFull
+                  ? 'cursor-not-allowed border-arena-500 text-arena-500'
+                  : 'cursor-pointer border-gold/40 text-gold hover:bg-gold/10'
+              }`}
             >
               <UserPlusIcon className="h-3.5 w-3.5 shrink-0" />
-              {t('arena.invite.open')}
+              {roomFull ? t('arena.invite.full') : t('arena.invite.open')}
             </button>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">

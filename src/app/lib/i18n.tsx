@@ -472,6 +472,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.home.playMatch': 'Play a match',
     'arena.common.cancel': 'Cancel',
     'arena.common.close': 'Close',
+    'arena.rooms.gone': 'That room no longer exists.',
+    'arena.rooms.refresh': 'Refresh',
+    'arena.invite.full': 'The room is full',
+    'arena.invite.err.roomFull':
+      'The room is full — no seat to invite anyone into.',
     'arena.notif.title': 'Notifications',
     'arena.notif.open': 'Notifications ({n} unread)',
     'arena.notif.openNone': 'Notifications',
@@ -1328,6 +1333,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.home.playMatch': 'Igraj partiju',
     'arena.common.cancel': 'Otkaži',
     'arena.common.close': 'Zatvori',
+    'arena.rooms.gone': 'Soba više ne postoji.',
+    'arena.rooms.refresh': 'Osveži',
+    'arena.invite.full': 'Soba je puna',
+    'arena.invite.err.roomFull':
+      'Soba je puna — nema slobodnog mesta za poziv.',
     'arena.notif.title': 'Obaveštenja',
     'arena.notif.open': 'Obaveštenja ({n} nepročitanih)',
     'arena.notif.openNone': 'Obaveštenja',
