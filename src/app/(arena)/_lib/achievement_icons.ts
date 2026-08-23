@@ -1,4 +1,11 @@
-import { DropIcon, FlameIcon, StarIcon } from '@/app/(arena)/_components/icons';
+import {
+  DropIcon,
+  FlameIcon,
+  PokerChipIcon,
+  StarIcon,
+  UnstoppableIcon,
+  VeteranIcon,
+} from '@/app/(arena)/_components/icons';
 
 /**
  * The face each achievement wears.
@@ -35,6 +42,21 @@ export const ACHIEVEMENT_FACES: Record<string, AchievementFace> = {
   first_win: { Icon: DropIcon, tone: 'text-blood' },
   // "On Fire — win 10 games in a row"; the name is the icon
   streak_10: { Icon: FlameIcon, tone: 'text-flame' },
+  /*
+   * "Unstoppable — win 50 games in a row" keeps On Fire's colour rather than
+   * taking one of its own. It is the same run, further along: a different hue
+   * would make the pair read as two unrelated badges instead of a ladder.
+   */
+  streak_50: { Icon: UnstoppableIcon, tone: 'text-flame' },
+  // "Gambler — win money on a bet"
+  first_bet_win: { Icon: PokerChipIcon, tone: 'text-frost' },
+  /*
+   * "Veteran — play 50 games" in bronze, which is the palette's colour for
+   * having been here rather than for having won. Gold belongs to first place
+   * and the app spends it everywhere already; a longevity badge wearing it
+   * would outrank the achievements that are actually hard.
+   */
+  games_50: { Icon: VeteranIcon, tone: 'text-bronze' },
 };
 
 export const DEFAULT_FACE: AchievementFace = {

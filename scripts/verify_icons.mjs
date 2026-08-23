@@ -19,6 +19,13 @@
  * "(Phosphor `Trophy`, regular)" line — so a new icon is checked automatically
  * as long as it is documented like its neighbours.
  *
+ * ── SUPPLIED ART ───────────────────────────────────────────────────────────
+ * Not every icon comes from the package. A few were handed over directly, and
+ * those carry a `@icon-source: supplied` marker. There is no upstream to
+ * compare them against, so they are LISTED rather than checked — silently
+ * skipping them would let a genuinely undocumented icon hide among them, and
+ * failing on them would make this script cry wolf on every run.
+ *
  * Needs network. Exits non-zero on any mismatch.
  * ===========================================================================
  */
@@ -38,11 +45,22 @@ const assetName = (phosphor) =>
   phosphor.replace(/(?<!^)(?=[A-Z])/g, '-').toLowerCase();
 
 const documented = [
-  ...source.matchAll(/\(Phosphor `(\w+)`, regular\)\s*\*\/\s*export function (\w+)\(/g),
+  ...source.matchAll(/\(Phosphor `(\w+)`, regular\)[\s\S]{0,4000}?export function (\w+)\(/g),
 ].map(([, phosphor, component]) => ({ phosphor, component }));
 
+/** icons that were handed over rather than taken from the package */
+const supplied = [
+  ...source.matchAll(/@icon-source: supplied\s*\*\/\s*export function (\w+)\(/g),
+].map(([, component]) => component);
+
 const names = [...source.matchAll(/export function (\w+)\(/g)].map((m) => m[1]);
-const paths = [...source.matchAll(/<path d="([^"]+)"/g)].map((m) => m[1]);
+/*
+ * `<path` and its `d=` are not always on the same line — prettier wraps the
+ * element once it carries a second attribute, which the supplied icons do
+ * (fill="currentColor"). Matching across the gap is what stops this script
+ * reporting a path count lower than the component count and refusing to run.
+ */
+const paths = [...source.matchAll(/<path\s+d="([^"]+)"/g)].map((m) => m[1]);
 if (names.length !== paths.length) {
   console.error(`icons.tsx has ${names.length} components but ${paths.length} paths`);
   process.exit(1);
@@ -50,7 +68,7 @@ if (names.length !== paths.length) {
 const vendored = new Map(names.map((n, i) => [n, paths[i]]));
 
 const undocumented = names.filter(
-  (n) => !documented.some((d) => d.component === n)
+  (n) => !documented.some((d) => d.component === n) && !supplied.includes(n)
 );
 if (undocumented.length) {
   console.error(`  not documented, so not checkable: ${undocumented.join(', ')}`);
@@ -85,6 +103,10 @@ for (const { phosphor, component } of documented) {
 }
 
 console.log(`\n  identical to @phosphor-icons/core@${VERSION} regular: ${ok}/${documented.length}`);
+if (supplied.length) {
+  console.log(`  supplied art, not checkable: ${supplied.join(', ')}`);
+}
+console.log(`  total icons in the file: ${names.length}`);
 for (const [component, asset, why] of bad) {
   console.log(`  MISMATCH  ${component} (${asset}): ${why}`);
 }
