@@ -444,13 +444,26 @@ export default function Page() {
               <div className="font-bold text-white tabular-nums">
                 {t('arena.lb.pointsCount', { n: slot.row.points })}
               </div>
+              {/*
+                A streak of nought is not a streak, and "niz 0" was printing on
+                every tile whose player simply has not won twice in a row —
+                a flame, in the streak colour, next to the number saying there
+                is nothing burning.
+
+                The separator goes with it. It only exists to divide two facts,
+                so leaving it behind would hang a stray dot after the wins.
+              */}
               <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-arena-200">
                 <span>{t('arena.lb.winsCount', { n: slot.row.wins })}</span>
-                <span aria-hidden="true">·</span>
-                <FlameIcon className="h-3 w-3 shrink-0 text-flame" />
-                <span className="text-flame">
-                  {t('arena.lb.streakCount', { n: slot.row.streak })}
-                </span>
+                {slot.row.streak > 0 && (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <FlameIcon className="h-3 w-3 shrink-0 text-flame" />
+                    <span className="text-flame">
+                      {t('arena.lb.streakCount', { n: slot.row.streak })}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -527,10 +540,28 @@ export default function Page() {
                   It was a gold emoji, which put it in the same colour as the
                   points column and left its size to whatever font rendered
                   it.
+
+                  Nought gets a dash rather than a lit flame beside a 0. Unlike
+                  the podium tile this cell CANNOT simply vanish — it sits in a
+                  grid under a "niz" heading, and an empty cell in a column of
+                  numbers reads as data that failed to load rather than as a
+                  player with no run going. The dash is a typographic
+                  placeholder holding the column's shape, muted so a table of
+                  mostly-streakless players is not a wall of flames.
                 */}
-                <div className="flex items-center gap-1.5 text-sm font-bold text-flame">
-                  <FlameIcon className="h-4 w-4 shrink-0" />
-                  <span className="tabular-nums">{row.streak}</span>
+                <div className="flex items-center gap-1.5 text-sm font-bold">
+                  {row.streak > 0 ? (
+                    <>
+                      <FlameIcon className="h-4 w-4 shrink-0 text-flame" />
+                      <span className="tabular-nums text-flame">
+                        {row.streak}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-arena-400" aria-label="0">
+                      —
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm font-bold text-white tabular-nums">
                   {row.wins}
