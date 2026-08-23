@@ -26,6 +26,7 @@ import {
   EyeIcon,
   FlameIcon,
   SmileyIcon,
+  UsersThreeIcon,
   XIcon,
 } from '@/app/(arena)/_components/icons';
 
@@ -272,9 +273,23 @@ export default function Page() {
             </div>
           )}
 
+          {/*
+            The same three figures /home puts over its empty rail. One absence,
+            two screens — an icon that changed between them would make it read
+            as two different conditions.
+
+            No Add button here, unlike /home: the form that adds a friend is a
+            few centimetres to the right on this very page, and a button whose
+            job is to bring you to a screen you are already on is furniture.
+          */}
           {!loading && signedIn && friends.length === 0 && (
-            <div className="py-8 text-center text-[11px] text-arena-300">
-              {t('arena.friends.empty')}
+            <div className="py-8 text-center">
+              <div className="mb-3 flex justify-center" aria-hidden="true">
+                <UsersThreeIcon className="h-8 w-8 text-arena-500" />
+              </div>
+              <div className="text-[11px] text-arena-300">
+                {t('arena.friends.empty')}
+              </div>
             </div>
           )}
 

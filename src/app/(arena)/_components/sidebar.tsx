@@ -109,10 +109,32 @@ export default function Sidebar() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex w-full items-center gap-3 rounded-sm px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                /*
+                  border-l-2 is on EVERY row, active or not, and the inactive
+                  one is transparent.
+
+                  It used to appear only on the active row, which meant the
+                  left border went from width 0 to width 2 the instant a row
+                  was clicked — and width is not something transition-colors
+                  animates, so it snapped. Meanwhile border-COLOR did animate,
+                  starting from Tailwind's preflight default: `border: 0 solid`
+                  leaves border-color at its initial value, currentColor, which
+                  on an inactive row is arena-200. The row's text was heading
+                  for white in the same frame, so that 2px strip painted
+                  through the pale end of the ramp on its way to gold. That is
+                  the flash.
+
+                  Carrying the border at all times fixes both halves: the width
+                  never changes, and the colour interpolates transparent → gold
+                  without passing through anything. It also stops a 2px jog —
+                  the active row's content box used to be two pixels narrower
+                  than its neighbours, so the icon and label shifted every time
+                  you changed page.
+                */
+                className={`flex w-full items-center gap-3 rounded-sm border-l-2 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   active
-                    ? 'border-l-2 border-gold bg-arena-600 text-white'
-                    : 'text-arena-200 hover:bg-arena-700 hover:text-white'
+                    ? 'border-gold bg-arena-600 text-white'
+                    : 'border-transparent text-arena-200 hover:bg-arena-700 hover:text-white'
                 }`}
               >
                 {/*
