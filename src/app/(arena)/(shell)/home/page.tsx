@@ -20,6 +20,8 @@ import {
   CalendarXIcon,
   EyeIcon,
   FlameIcon,
+  UserPlusIcon,
+  UsersThreeIcon,
 } from '@/app/(arena)/_components/icons';
 import { money } from '@/app/(arena)/_lib/money';
 import { playedAtLabel } from '@/app/(arena)/_lib/match_time';
@@ -148,7 +150,7 @@ export default function Page() {
         {homeStats.map((stat) => (
           <div
             key={stat.labelKey}
-            className="border border-white/[0.07] bg-arena-800 p-5"
+            className="border border-white/[0.07] bg-black p-5"
           >
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
               {t(stat.labelKey)}
@@ -164,30 +166,30 @@ export default function Page() {
       </div>
 
       {/* ============================================================= hero */}
-      <section
-        className="relative overflow-hidden border border-white/[0.07] p-6 sm:p-10"
-        style={{
-          background:
-            'linear-gradient(135deg, #0c1c0d 0%, #122513 60%, #162a18 100%)',
-        }}
-      >
+      {/*
+        Black behind the content, where a green gradient used to run
+        (#0c1c0d → #162a18, which was arena-800 climbing to arena-650).
+
+        Pure black rather than arena-950: the darkest token is #060f07, still
+        a green, and next to a black panel rail it would read as the one thing
+        on the page that could not decide. The border and the gold are what
+        carry the arena here now.
+      */}
+      <section className="relative overflow-hidden border border-white/[0.07] bg-black p-6 sm:p-10">
         <div
           className="pointer-events-none absolute top-0 right-0 bottom-0 hidden w-64 items-center justify-center opacity-5 sm:flex"
           aria-hidden="true"
         >
           {/*
-            The hero's watermark, black rather than gold.
+            Gold again, now that what is behind it is black.
 
-            At 5% over #0c1c0d a gold glyph does not read as gold — it reads as
-            a warm olive smudge in the corner, which looks like a rendering
-            fault rather than a mark. Black at the same opacity darkens instead
-            of tinting, so the green stays green and the "?" is a shadow in it.
-
-            The background gradient is untouched.
+            Turning this black was the wrong reading of "make it black" — the
+            request was about the background. On the old dark-green it was a
+            warm olive smudge, but black is the one ground gold has nothing to
+            fight: at 5% it is a faint brass ghost rather than a tint, and
+            black on black would be no mark at all.
           */}
-          <div className="text-[200px] leading-none font-bold text-black">
-            ?
-          </div>
+          <div className="text-[200px] leading-none font-bold text-gold">?</div>
         </div>
         <div className="relative">
           <div className="mb-3 text-xs tracking-[0.3em] text-arena-200 uppercase">
@@ -252,7 +254,7 @@ export default function Page() {
           </div>
 
           {!loading && signedIn && recentMatches.length === 0 && (
-            <div className="border border-white/[0.07] bg-arena-800 px-4 py-10 text-center">
+            <div className="border border-white/[0.07] bg-black px-4 py-10 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
                 <CalendarXIcon className="h-8 w-8 text-arena-500" />
               </div>
@@ -281,7 +283,7 @@ export default function Page() {
             <Link
               key={match.matchId}
               href="/history"
-              className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="flex items-center gap-4 border border-white/[0.07] bg-black p-4 transition-colors hover:bg-arena-900 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               <span
                 className={`h-12 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
@@ -330,9 +332,36 @@ export default function Page() {
             </Link>
           </div>
 
+          {/*
+            Two different nothings, and the difference is the whole point of
+            the panel: a player with no friends AT ALL needs somewhere to go,
+            and a player whose friends are simply asleep does not. Both get the
+            same icon and the same frame; only the sentence changes, and the
+            Add button appears for the first.
+
+            The button lands on /friends#add-friend, the id of the input that
+            takes a username, so the control that answers the message is the
+            one the page scrolls to.
+          */}
           {friends !== null && onlineFriends.length === 0 && (
-            <div className="border border-white/[0.07] bg-arena-800 p-4 text-center text-[11px] text-arena-300">
-              {t('arena.home.noFriendsOnline')}
+            <div className="border border-white/[0.07] bg-black px-4 py-8 text-center">
+              <div className="mb-3 flex justify-center" aria-hidden="true">
+                <UsersThreeIcon className="h-8 w-8 text-arena-500" />
+              </div>
+              <div className="text-[11px] tracking-wider text-arena-300 uppercase">
+                {friends.length === 0
+                  ? t('arena.home.noFriendsYet')
+                  : t('arena.home.noFriendsOnline')}
+              </div>
+              {friends.length === 0 && (
+                <Link
+                  href="/friends#add-friend"
+                  className="mt-4 inline-flex items-center gap-2 border border-gold/40 px-4 py-2 text-[10px] font-bold tracking-[0.2em] text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                >
+                  <UserPlusIcon className="h-3.5 w-3.5 shrink-0" />
+                  {t('arena.home.addFriend')}
+                </Link>
+              )}
             </div>
           )}
 
@@ -343,7 +372,7 @@ export default function Page() {
             return (
               <div
                 key={friend.username}
-                className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
+                className="flex items-center gap-3 border border-white/[0.07] bg-black p-3"
               >
                 {/*
                   Avatar and name are one target, as on the friends list, and
