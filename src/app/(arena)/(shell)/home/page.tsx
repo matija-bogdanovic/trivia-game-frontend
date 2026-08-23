@@ -253,6 +253,19 @@ export default function Page() {
             </Link>
           </div>
 
+          {/*
+            The empty panel is where the play CTA belongs, and only there.
+
+            A reader with four matches on this rail already passed "Igraj
+            odmah" in the hero a few centimetres above; a third button saying
+            the same thing would be the page repeating itself. A reader with
+            NOTHING on it is looking at a panel that describes an absence and
+            offers no way to end it, which is the one case where the button is
+            the answer rather than an echo.
+
+            It goes to /rooms, the same place the hero's primary CTA goes —
+            browse what is open, or open one.
+          */}
           {!loading && signedIn && recentMatches.length === 0 && (
             <div className="border border-white/[0.07] bg-black px-4 py-10 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
@@ -264,6 +277,9 @@ export default function Page() {
               <p className="mt-1.5 text-[11px] text-arena-300">
                 {t('arena.history.emptyHint')}
               </p>
+              <PressButton href="/rooms" className="mt-5 px-6 py-3">
+                {t('arena.home.playMatch')}
+              </PressButton>
             </div>
           )}
 

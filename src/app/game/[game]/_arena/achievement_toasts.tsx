@@ -7,7 +7,8 @@ import type { AchievementNotice } from '@/app/redux/slicers/game_slice';
 import type { AppDispatch, RootState } from '@/app/redux/store';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
-import { StarIcon, XIcon } from '@/app/(arena)/_components/icons';
+import { XIcon } from '@/app/(arena)/_components/icons';
+import { faceFor } from '@/app/(arena)/_lib/achievement_icons';
 
 /**
  * Unlocked-achievement toasts, bottom-right of the game.
@@ -75,6 +76,12 @@ function Toast({
 }) {
   const { t } = useT();
   const { title, condition } = splitName(notice.name);
+  /*
+   * The same face the grid gives this badge. A toast that announced First
+   * Blood with a gold star and a tile that showed a red drop would be two
+   * different badges as far as the reader is concerned.
+   */
+  const face = faceFor(notice.id);
 
   /** false for one frame so the entrance transition has somewhere to come from */
   const [shown, setShown] = useState(false);
@@ -177,7 +184,7 @@ function Toast({
       <div className="h-0.5 bg-gold" aria-hidden="true" />
 
       <div className="flex items-start gap-3 p-3.5 pr-9">
-        <StarIcon className="h-6 w-6 shrink-0 text-gold" />
+        <face.Icon className={`h-6 w-6 shrink-0 ${face.tone}`} />
         <div className="min-w-0">
           <div className="mb-1 text-[9px] tracking-[0.25em] text-gold uppercase">
             {t('arena.ach.unlockedToast')}

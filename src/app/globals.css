@@ -75,6 +75,22 @@
   --color-frost: #6ab5dd;
 
   /*
+   * Blood — First Blood, and whatever else earns a red.
+   *
+   * The palette had no red at all, deliberately: on a dark green, red reads as
+   * an error state, which is why --color-flame stops at orange. An achievement
+   * is the one place that does not apply — a badge is a thing you WON, and
+   * nothing else on these screens is red to be confused with it.
+   *
+   * Picked at 357deg, just past the wrap, so it is unmistakably red rather
+   * than a deeper flame — flame sits at 19deg and the two must not read as
+   * the same colour on the same tile grid. Held down to 55% lightness so it
+   * carries on arena-800 without vibrating against it the way a pure #f00
+   * would.
+   */
+  --color-blood: #c2333a;
+
+  /*
    * The podium. Gold already exists and is the app's accent, so second and
    * third borrow its role rather than inventing one: a cool light grey and a
    * warm brown, both light enough to read on arena-800.
