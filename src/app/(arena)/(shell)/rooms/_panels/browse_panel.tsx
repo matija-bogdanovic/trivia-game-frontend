@@ -10,9 +10,11 @@ import { getUsername } from '@/app/helpers/token_operations';
 import { useT } from '@/app/lib/i18n';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
 import {
-  CircleDashedIcon,
   EyeIcon,
+  GlobeIcon,
+  LockIcon,
   PlusCircleIcon,
+  SmileyIcon,
   UserPlusIcon,
 } from '@/app/(arena)/_components/icons';
 
@@ -324,7 +326,24 @@ export default function BrowsePanel() {
                     </span>
                   )}
               </div>
-              <div className="shrink-0 border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-300 uppercase">
+              {/*
+                Public reads in frost, private in gold. Both are already the
+                app's own accents, so the pair sits in the palette rather than
+                beside it — and they carry opposite temperatures, which is the
+                distinction: open to anyone, or shut behind a password.
+              */}
+              <div
+                className={`flex shrink-0 items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
+                  room.isPrivate
+                    ? 'border-gold/40 text-gold'
+                    : 'border-frost/40 text-frost'
+                }`}
+              >
+                {room.isPrivate ? (
+                  <LockIcon className="h-3 w-3 shrink-0" />
+                ) : (
+                  <GlobeIcon className="h-3 w-3 shrink-0" />
+                )}
                 {room.isPrivate
                   ? t('arena.common.private')
                   : t('arena.common.public')}
@@ -382,7 +401,7 @@ export default function BrowsePanel() {
       {!loading && visible.length === 0 && (
         <div className="py-20 text-center text-arena-300">
           <div className="mb-4 flex justify-center" aria-hidden="true">
-            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
+            <SmileyIcon className="h-10 w-10 text-arena-500" />
           </div>
           <div className="text-sm tracking-wider uppercase">
             {failed ? t('arena.rooms.failed') : t('arena.rooms.noneOpen')}

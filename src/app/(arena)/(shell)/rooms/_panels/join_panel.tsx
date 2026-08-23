@@ -9,7 +9,11 @@ import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { getUsername } from '@/app/helpers/token_operations';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
-import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
+import {
+  GlobeIcon,
+  LockIcon,
+  SmileyIcon,
+} from '@/app/(arena)/_components/icons';
 
 amplifyConfigure();
 
@@ -290,7 +294,18 @@ export default function JoinPanel() {
                     <h3 className="truncate font-bold tracking-wide text-white">
                       {room.roomName}
                     </h3>
-                    <span className="border border-arena-400 px-2 py-0.5 text-[9px] tracking-widest text-arena-300">
+                    <span
+                      className={`flex items-center gap-1 border px-2 py-0.5 text-[9px] tracking-widest ${
+                        room.isPrivate
+                          ? 'border-gold/40 text-gold'
+                          : 'border-frost/40 text-frost'
+                      }`}
+                    >
+                      {room.isPrivate ? (
+                        <LockIcon className="h-2.5 w-2.5 shrink-0" />
+                      ) : (
+                        <GlobeIcon className="h-2.5 w-2.5 shrink-0" />
+                      )}
                       {room.isPrivate
                         ? t('arena.common.private')
                         : t('arena.common.public')}
@@ -333,7 +348,7 @@ export default function JoinPanel() {
             {lobbiesLoaded && lobbies.length === 0 && (
               <div className="border border-white/[0.07] bg-arena-800 p-8 text-center">
                 <div className="mb-3 flex justify-center" aria-hidden="true">
-                  <CircleDashedIcon className="h-9 w-9 text-arena-500" />
+                  <SmileyIcon className="h-9 w-9 text-arena-500" />
                 </div>
                 <div className="text-[11px] tracking-wider text-arena-300 uppercase">
                   {t('arena.join.none')}

@@ -465,6 +465,7 @@ const dict: Record<Lang, Record<string, string>> = {
     // --- arena screens ---
     'arena.common.viewAll': 'View all',
     'arena.common.all': 'All',
+    'arena.home.allFriends': 'All friends',
     'arena.common.cancel': 'Cancel',
     'arena.common.you': 'YOU',
     'arena.common.multiplayer': 'Multiplayer',
@@ -496,7 +497,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.nav.switchLanguage': 'Switch language',
     'arena.nav.profileOf': '{name} profile',
     'arena.nav.notSignedIn': 'Not signed in',
-    'arena.nav.streak': '{n} streak',
+    'arena.nav.streak': '{n} win streak',
+    'arena.nav.coldStreak': '{n} loss streak',
     'arena.nav.dismiss': 'Dismiss',
     'arena.home.readyToCompete': 'Ready to compete?',
     // the app's name — a proper noun, so it is not translated
@@ -1262,6 +1264,7 @@ const dict: Record<Lang, Record<string, string>> = {
     // --- arena screens ---
     'arena.common.viewAll': 'Prikaži sve',
     'arena.common.all': 'Sve',
+    'arena.home.allFriends': 'Svi prijatelji',
     'arena.common.cancel': 'Otkaži',
     'arena.common.you': 'TI',
     'arena.common.multiplayer': 'Više igrača',
@@ -1293,7 +1296,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.nav.switchLanguage': 'Promeni jezik',
     'arena.nav.profileOf': 'Profil korisnika {name}',
     'arena.nav.notSignedIn': 'Nisi prijavljen/a',
-    'arena.nav.streak': 'niz {n}',
+    'arena.nav.streak': 'niz pobeda: {n}',
+    'arena.nav.coldStreak': 'niz poraza: {n}',
     'arena.nav.dismiss': 'Zatvori',
     'arena.home.readyToCompete': 'Spreman/na za nadmetanje?',
     'arena.home.title': 'Ipak se okreće',

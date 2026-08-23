@@ -70,6 +70,8 @@ export default function Page() {
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
   /** the name the server already has for this player — never "taken" by them */
   const [savedName, setSavedName] = useState('');
+  /** the email as loaded, which is the other half of the dirty check */
+  const [savedEmail, setSavedEmail] = useState('');
   /** where the availability check for the typed name has got to */
   const [nameStatus, setNameStatus] = useState<
     'idle' | 'checking' | UsernameAvailability
@@ -101,6 +103,7 @@ export default function Page() {
       (current) => current || storedName || identity?.displayName || ''
     );
     setEmail((current) => current || identity?.email || '');
+    setSavedEmail((current) => current || identity?.email || '');
     setCurrentAvatar(wallet?.avatar ?? null);
   }, [loading, identity, wallet, storedName]);
 
@@ -143,8 +146,28 @@ export default function Page() {
   }, [username, savedName]);
 
   const nameTaken = nameStatus === 'taken';
+
+  /**
+   * Has anything actually changed?
+   *
+   * Save was enabled from the moment the form was valid, so the button
+   * invited a write that would have set every field to the value it already
+   * held — a request, a token refresh and a "Saved" flash for doing nothing.
+   *
+   * Compared against what was LOADED, not against the last keystroke, so
+   * typing a change and undoing it disables the button again. The name is
+   * compared without case, matching sameName(): re-saving your own name in
+   * different casing is not a change the server would record either.
+   */
+  const dirty =
+    !sameName(username, savedName) || email.trim() !== savedEmail.trim();
+
   const canSave =
-    usernameValid && emailValid && !nameTaken && nameStatus !== 'checking';
+    dirty &&
+    usernameValid &&
+    emailValid &&
+    !nameTaken &&
+    nameStatus !== 'checking';
 
   /**
    * Save the display name.
@@ -194,6 +217,7 @@ export default function Page() {
       await updateUserAttributes({ userAttributes: { name } });
       dispatch(setDisplayName(name));
       setSavedName(name);
+      setSavedEmail(email.trim());
       setNameStatus('idle');
 
       setSaved(true);

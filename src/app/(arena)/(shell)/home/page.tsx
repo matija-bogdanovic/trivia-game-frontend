@@ -108,7 +108,7 @@ export default function Page() {
               href="/rooms"
               className="bg-gold px-8 py-4 text-sm font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none sm:px-10"
             >
-              ▶ {t('arena.nav.playNow')}
+              {t('arena.nav.playNow')}
             </Link>
             <Link
               href="/rooms/create"
@@ -182,7 +182,7 @@ export default function Page() {
               href="/friends"
               className="text-[10px] tracking-wider text-gold uppercase hover:text-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              {t('arena.common.all')}
+              {t('arena.home.allFriends')}
             </Link>
           </div>
 

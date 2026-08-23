@@ -5,13 +5,22 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
 import GoogleBadge from './google_mark';
-import { FlameIcon } from './icons';
+import { FlameIcon, SnowflakeIcon } from './icons';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import LogoPlaceholder from './logo_placeholder';
 import { navItems } from './nav_items';
+
+/**
+ * A streak has to be worth mentioning before it takes space on the rail.
+ *
+ * Strictly greater, so 4 is the first run that shows anything. Below it the
+ * badge is absent rather than dimmed — a greyed-out flame is still clutter,
+ * and "no badge" is the honest rendering of "nothing remarkable happening".
+ */
+const STREAK_BADGE_MIN = 3;
 
 /**
  * Translated from the Angular app's shell/nav. Two separate trees, as there:
@@ -31,6 +40,8 @@ export default function Sidebar() {
    * render site reads.
    */
   const { identity, wallet } = useWallet();
+  const streak = wallet?.currentStreak ?? 0;
+  const losingStreak = wallet?.currentLosingStreak ?? 0;
 
   // the store wins so a rename in Settings shows here immediately; the token
   // value is the fallback until the store is seeded
@@ -133,7 +144,7 @@ export default function Sidebar() {
             href="/rooms"
             className="block w-full bg-gold py-3 text-center text-[11px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-950 focus-visible:outline-none"
           >
-            ▶ {t('arena.nav.playNow')}
+            {t('arena.nav.playNow')}
           </Link>
         </div>
 
@@ -163,14 +174,45 @@ export default function Sidebar() {
                 )}
               </span>
               {/*
-                The player's OWN streak. This printed ME.streak from
-                _mock/progress — a fixture — so every account, signed in or
-                not, was shown the same invented 7. Flame icon and streak
-                colour to match the profile and the leaderboard.
+                Badges, not a sentence. This printed "niz 1" next to every
+                name — a number that says nothing at 1 and clutters the rail
+                for the whole time it is not interesting.
+
+                A streak only earns space once it is worth remarking on, so
+                nothing renders at or below STREAK_BADGE_MIN and the row stays
+                clean for most players most of the time. Above it, the badge
+                is the flame alone and the COUNT IS ON HOVER — the shape says
+                "you are on a run", and the number is there for whoever wants
+                it without being there for everyone.
+
+                title= rather than a custom tooltip: it is the one hover hint
+                that also survives keyboard focus and screen readers, and the
+                sr-only text below carries the same fact for anyone who never
+                hovers at all.
               */}
-              <span className="flex items-center gap-1 text-[10px] tracking-wider text-flame">
-                <FlameIcon className="h-3 w-3 shrink-0" />
-                {t('arena.nav.streak', { n: wallet?.currentStreak ?? 0 })}
+              <span className="mt-0.5 flex items-center gap-1.5">
+                {streak > STREAK_BADGE_MIN && (
+                  <span
+                    className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-flame text-arena-950"
+                    title={t('arena.nav.streak', { n: streak })}
+                  >
+                    <FlameIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="sr-only">
+                      {t('arena.nav.streak', { n: streak })}
+                    </span>
+                  </span>
+                )}
+                {losingStreak > STREAK_BADGE_MIN && (
+                  <span
+                    className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-frost text-arena-950"
+                    title={t('arena.nav.coldStreak', { n: losingStreak })}
+                  >
+                    <SnowflakeIcon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="sr-only">
+                      {t('arena.nav.coldStreak', { n: losingStreak })}
+                    </span>
+                  </span>
+                )}
               </span>
             </span>
           </Link>
@@ -202,7 +244,7 @@ export default function Sidebar() {
               href="/rooms"
               className="bg-gold px-4 py-2 text-[10px] font-bold tracking-[0.15em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              ▶ {t('arena.nav.play')}
+              {t('arena.nav.play')}
             </Link>
             <Link
               href="/profile"

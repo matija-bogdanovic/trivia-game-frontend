@@ -4,11 +4,16 @@ import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
-import { FlameIcon, HashIcon } from '@/app/(arena)/_components/icons';
+import {
+  FlameIcon,
+  HashIcon,
+  SmileyIcon,
+  SmileySadIcon,
+  TrophyIcon,
+} from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
-import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
 import {
   Skeleton,
   SkeletonAvatar,
@@ -24,10 +29,11 @@ const PODIUM_AVATAR: Record<number, 'lg' | 'md' | 'sm'> = {
   2: 'md',
   3: 'sm',
 };
-const PODIUM_BADGE: Record<number, string> = {
-  1: 'text-4xl',
-  2: 'text-3xl',
-  3: 'text-2xl',
+/** the trophy grows with the place it marks */
+const PODIUM_TROPHY: Record<number, string> = {
+  1: 'h-11 w-11',
+  2: 'h-9 w-9',
+  3: 'h-8 w-8',
 };
 
 /**
@@ -366,8 +372,18 @@ export default function Page() {
 
       {!loading && rows.length === 0 && (
         <div className="py-16 text-center text-arena-300">
+          {/*
+            Two different nothings, two different faces. An empty leaderboard
+            is fine — nobody has played yet — so it gets the neutral smiley.
+            A period that does not exist is a shortfall, and the frown says so
+            without a sentence having to.
+          */}
           <div className="mb-4 flex justify-center" aria-hidden="true">
-            <CircleDashedIcon className="h-10 w-10 text-arena-500" />
+            {tab === 'weekly' || tab === 'monthly' ? (
+              <SmileySadIcon className="h-10 w-10 text-arena-500" />
+            ) : (
+              <SmileyIcon className="h-10 w-10 text-arena-500" />
+            )}
           </div>
           <div className="text-sm tracking-wider uppercase">
             {tab === 'weekly' || tab === 'monthly'
@@ -415,9 +431,14 @@ export default function Page() {
                 says which place it is.
               */}
               <div
-                className={`mb-2 font-bold tabular-nums ${PODIUM_BADGE[slot.place] ?? 'text-2xl'} ${rankColor(slot.place)}`}
+                className={`mb-2 flex justify-center font-bold ${rankColor(slot.place)}`}
               >
-                {slot.place}
+                <TrophyIcon
+                  className={PODIUM_TROPHY[slot.place] ?? 'h-7 w-7'}
+                />
+                <span className="sr-only">
+                  {t('arena.lb.rank', { n: slot.place })}
+                </span>
               </div>
               {/* points first: it is what put them on this tile */}
               <div className="font-bold text-white tabular-nums">
@@ -462,16 +483,25 @@ export default function Page() {
                 }`}
               >
                 {/*
-                  THE NUMBER, always. This cell used to run through
-                  badgeFor(), which swapped the first three ranks for ★ ◆ ▲ —
-                  so the column read "★ ◆ ▲ 4 5 6" and the top three had no
-                  number at all. Colour carries the medal now; the figure
-                  carries the position.
+                  A trophy for the podium, the figure for everyone else.
+                  The three medal colours already said which place it was, so
+                  the number was carrying nothing the colour did not — and it
+                  sat badly in a 40px cell. The trophy is labelled for screen
+                  readers, which the bare colour never was.
                 */}
                 <div
                   className={`font-bold tabular-nums ${rankColor(row.rank)}`}
                 >
-                  {row.rank}
+                  {row.rank <= 3 ? (
+                    <>
+                      <TrophyIcon className="h-5 w-5" />
+                      <span className="sr-only">
+                        {t('arena.lb.rank', { n: row.rank })}
+                      </span>
+                    </>
+                  ) : (
+                    row.rank
+                  )}
                 </div>
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar

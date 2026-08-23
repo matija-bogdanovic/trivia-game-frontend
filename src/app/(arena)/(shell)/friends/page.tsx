@@ -19,7 +19,7 @@ import {
   SkeletonRegion,
 } from '@/app/(arena)/_components/skeleton';
 import { EyeIcon, FlameIcon } from '@/app/(arena)/_components/icons';
-import { CircleDashedIcon } from '@/app/(arena)/_components/icons';
+import { SmileyIcon } from '@/app/(arena)/_components/icons';
 
 /**
  * Whole days until a denied person may be asked again, or null when the wait
@@ -271,7 +271,7 @@ export default function Page() {
           {!loading && friends.length > 0 && matching.length === 0 && (
             <div className="py-16 text-center text-arena-300">
               <div className="mb-4 flex justify-center" aria-hidden="true">
-                <CircleDashedIcon className="h-10 w-10 text-arena-500" />
+                <SmileyIcon className="h-10 w-10 text-arena-500" />
               </div>
               <div className="text-sm tracking-wider uppercase">
                 {t('arena.friends.noMatches')}

@@ -6,7 +6,12 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
-import { FlameIcon, PaperPlaneIcon } from '@/app/(arena)/_components/icons';
+import {
+  FlameIcon,
+  GlobeIcon,
+  LockIcon,
+  PaperPlaneIcon,
+} from '@/app/(arena)/_components/icons';
 
 /**
  * The arena Lobby design, driven by the real lobby_state the game server
@@ -111,7 +116,18 @@ export default function ArenaLobby() {
                     min: minPlayers,
                   })}
             </span>
-            <span className="border border-arena-400 px-2 py-0.5 text-[9px] tracking-widest uppercase">
+            <span
+              className={`flex items-center gap-1 border px-2 py-0.5 text-[9px] tracking-widest uppercase ${
+                isPrivate
+                  ? 'border-gold/40 text-gold'
+                  : 'border-frost/40 text-frost'
+              }`}
+            >
+              {isPrivate ? (
+                <LockIcon className="h-2.5 w-2.5 shrink-0" />
+              ) : (
+                <GlobeIcon className="h-2.5 w-2.5 shrink-0" />
+              )}
               {isPrivate ? t('arena.common.private') : t('arena.common.public')}
             </span>
           </div>
