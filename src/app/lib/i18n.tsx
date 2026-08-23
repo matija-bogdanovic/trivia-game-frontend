@@ -629,6 +629,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.profile.edit': 'Edit profile',
     'arena.profile.currentStreak': 'Current Streak',
     'arena.profile.streakWins': '{n} WINS',
+    'arena.profile.noStreak': 'No streak',
     'arena.profile.losingStreak': 'Cold Streak',
     'arena.profile.streakLosses': '{n} LOSSES',
     'arena.profile.memberSince': 'Member since {date}',
@@ -1430,6 +1431,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.profile.edit': 'Izmeni profil',
     'arena.profile.currentStreak': 'Trenutni niz',
     'arena.profile.streakWins': '{n} POBEDA',
+    'arena.profile.noStreak': 'Nema niza',
     'arena.profile.losingStreak': 'Ledeni niz',
     // as naive on plurals as the wins line above it — "1 PORAZA" is wrong the
     // same way "1 POBEDA" is, and matching the house style beats fixing one

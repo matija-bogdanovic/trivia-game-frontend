@@ -25,6 +25,13 @@ const RECENT_COUNT = 3;
 export default function Page() {
   const { t, lang } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
+  /*
+   * The two streaks, read once. They are mutually exclusive by construction —
+   * see the note beside the block that renders them — so at most one of these
+   * is ever above zero.
+   */
+  const winStreak = wallet?.currentStreak ?? 0;
+  const coldStreak = wallet?.currentLosingStreak ?? 0;
   const badges = buildAchievements(
     wallet?.achievementCatalog,
     wallet?.achievements
@@ -119,49 +126,47 @@ export default function Page() {
           </div>
           <div className="flex flex-wrap items-center gap-4 sm:gap-6">
             {/*
-              Hot and cold, side by side and built the same way. Neither is
-              gold: gold is this app's "this matters" accent, already spent on
-              money and every podium number, and a losing run wearing it would
-              read as an award. --color-flame and --color-frost exist for this
-              pair and nothing else.
+              ONE current streak, because there is only ever one.
+
+              The engine writes them as a pair of opposites — results.mjs sets
+              currentStreak to prev+1 on a win and 0 on a loss, and
+              currentLosingStreak the other way round — so after any finished
+              match exactly one of the two is non-zero. Showing both meant
+              always printing a zero beside the real number, and "3 POBEDA /
+              0 PORAZA" makes a reader work out which half to ignore.
+
+              So: whichever is running is the one on screen. Hot wins the test
+              only because something has to go first; they cannot both be
+              positive.
+
+              Neither is gold. Gold is this app's "this matters" accent,
+              already spent on money and every podium number, and a losing run
+              wearing it would read as an award. --color-flame and
+              --color-frost exist for this pair and nothing else.
+
+              Both zero is a real state and it means one thing only: no match
+              has finished yet. It keeps the slot rather than collapsing it, so
+              a first result does not shove the row sideways.
             */}
             <div>
               <div className="text-[10px] tracking-widest text-arena-300 uppercase">
                 {t('arena.profile.currentStreak')}
               </div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-flame">
-                <FlameIcon className="h-6 w-6" />
-                {t('arena.profile.streakWins', {
-                  n: wallet?.currentStreak ?? 0,
-                })}
-              </div>
-            </div>
-
-            {/*
-              The losing streak sits immediately beside the winning one,
-              because the pair is the point — a run of either kind is the same
-              fact about how the last few matches went, and reading one without
-              the other tells half of it.
-
-              Deliberately NOT gold. Gold is this app's "good news" colour and
-              is doing that job a centimetre to the left; a losing run rendered
-              in it would read as an achievement. arena-200 states it without
-              celebrating or scolding.
-            */}
-            <div
-              className="hidden h-10 w-px bg-white/10 sm:block"
-              aria-hidden="true"
-            />
-            <div>
-              <div className="text-[10px] tracking-widest text-arena-300 uppercase">
-                {t('arena.profile.losingStreak')}
-              </div>
-              <div className="flex items-center gap-2 text-2xl font-bold text-frost">
-                <SnowflakeIcon className="h-6 w-6" />
-                {t('arena.profile.streakLosses', {
-                  n: wallet?.currentLosingStreak ?? 0,
-                })}
-              </div>
+              {winStreak > 0 ? (
+                <div className="flex items-center gap-2 text-2xl font-bold text-flame">
+                  <FlameIcon className="h-6 w-6" />
+                  {t('arena.profile.streakWins', { n: winStreak })}
+                </div>
+              ) : coldStreak > 0 ? (
+                <div className="flex items-center gap-2 text-2xl font-bold text-frost">
+                  <SnowflakeIcon className="h-6 w-6" />
+                  {t('arena.profile.streakLosses', { n: coldStreak })}
+                </div>
+              ) : (
+                <div className="text-2xl font-bold text-arena-400">
+                  {t('arena.profile.noStreak')}
+                </div>
+              )}
             </div>
 
             <div
