@@ -511,6 +511,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.stat.gamesPlayed': 'Games Played',
     'arena.stat.balance': 'Balance',
     'arena.stat.winRate': 'Win Rate',
+    'arena.stat.bestStreak': 'Best Streak',
+    'arena.stat.longestLosingStreak': 'Longest Losing Streak',
     'arena.stat.duelsWon': 'Duels Won',
     'arena.stat.betsWon': 'Bets Won',
     'arena.stat.moneyWon': 'Money Won',
@@ -618,6 +620,10 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.profile.edit': 'Edit profile',
     'arena.profile.currentStreak': 'Current Streak',
     'arena.profile.streakWins': '🔥 {n} WINS',
+    'arena.profile.losingStreak': 'Losing Streak',
+    // ❄ against the win streak's 🔥 — the hot/cold pairing reads as opposites
+    // without needing the words, which is the whole job of the mark
+    'arena.profile.streakLosses': '❄ {n} LOSSES',
     'arena.profile.memberSince': 'Member since {date}',
     'arena.profile.categoryPerformance': 'Category Performance',
     'arena.profile.accuracy': '{name} accuracy',
@@ -1286,6 +1292,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.stat.gamesPlayed': 'Odigrano partija',
     'arena.stat.balance': 'Stanje',
     'arena.stat.winRate': 'Procenat pobeda',
+    'arena.stat.bestStreak': 'Najduži niz',
+    'arena.stat.longestLosingStreak': 'Najduži niz poraza',
     'arena.stat.duelsWon': 'Dobijeni dueli',
     'arena.stat.betsWon': 'Dobijene opklade',
     'arena.stat.moneyWon': 'Osvojen novac',
@@ -1392,6 +1400,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.profile.edit': 'Izmeni profil',
     'arena.profile.currentStreak': 'Trenutni niz',
     'arena.profile.streakWins': '🔥 {n} POBEDA',
+    'arena.profile.losingStreak': 'Niz poraza',
+    // as naive on plurals as the wins line above it — "1 PORAZA" is wrong the
+    // same way "1 POBEDA" is, and matching the house style beats fixing one
+    // string in isolation
+    'arena.profile.streakLosses': '❄ {n} PORAZA',
     'arena.profile.memberSince': 'Član od {date}',
     'arena.profile.categoryPerformance': 'Uspeh po kategorijama',
     'arena.profile.accuracy': 'Preciznost: {name}',

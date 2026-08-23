@@ -59,6 +59,20 @@ export default function Page() {
             : '—',
         },
         { labelKey: 'arena.stat.balance', value: `$${wallet.coins}` },
+        /*
+          The two "longest ever" figures, added together so the grid never
+          shows one without the other. The header carries what is happening
+          NOW; these are the records behind it, and the tile row was already
+          six wide with four in it.
+        */
+        {
+          labelKey: 'arena.stat.bestStreak',
+          value: String(wallet.bestStreak ?? 0),
+        },
+        {
+          labelKey: 'arena.stat.longestLosingStreak',
+          value: String(wallet.longestLosingStreak ?? 0),
+        },
       ]
     : [];
 
@@ -113,6 +127,33 @@ export default function Page() {
                 })}
               </div>
             </div>
+
+            {/*
+              The losing streak sits immediately beside the winning one,
+              because the pair is the point — a run of either kind is the same
+              fact about how the last few matches went, and reading one without
+              the other tells half of it.
+
+              Deliberately NOT gold. Gold is this app's "good news" colour and
+              is doing that job a centimetre to the left; a losing run rendered
+              in it would read as an achievement. arena-200 states it without
+              celebrating or scolding.
+            */}
+            <div
+              className="hidden h-10 w-px bg-white/10 sm:block"
+              aria-hidden="true"
+            />
+            <div>
+              <div className="text-[10px] tracking-widest text-arena-300 uppercase">
+                {t('arena.profile.losingStreak')}
+              </div>
+              <div className="text-2xl font-bold text-arena-200">
+                {t('arena.profile.streakLosses', {
+                  n: wallet?.currentLosingStreak ?? 0,
+                })}
+              </div>
+            </div>
+
             <div
               className="hidden h-10 w-px bg-white/10 sm:block"
               aria-hidden="true"
