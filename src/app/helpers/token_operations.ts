@@ -11,6 +11,8 @@ export interface Identity {
   email: string | null;
   /** how this account signs in — federated Google, or a pool password */
   provider: 'google' | 'cognito';
+  /** the federated account's picture, or null */
+  picture: string | null;
 }
 
 /**
@@ -62,11 +64,22 @@ export async function getIdentity(): Promise<Identity | null> {
     if (typeof username === 'string' && username.length > 0) {
       const name = payload?.['name'];
       const email = payload?.['email'];
+      /*
+       * The federated account's picture, mapped from Google's `picture` claim
+       * by the pool's Google IdP. Absent for password accounts, and absent for
+       * anyone who last signed in before that mapping existed — they get it on
+       * their next sign-in and nothing has to migrate.
+       */
+      const picture = payload?.['picture'];
       return {
         username,
         displayName:
           typeof name === 'string' && name.length > 0 ? name : username,
         email: typeof email === 'string' && email.length > 0 ? email : null,
+        picture:
+          typeof picture === 'string' && picture.startsWith('https://')
+            ? picture
+            : null,
         provider: providerOf(payload, username),
       };
     }

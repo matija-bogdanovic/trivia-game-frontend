@@ -31,6 +31,16 @@ export function useAvatarSource(
 
   const info = decodeAvatar(fallbackAvatar);
 
+  /*
+   * A federated picture is a plain URL, so there is nothing to version and
+   * nothing to cache-bust — but an UPLOAD still wins over it. Uploading is the
+   * act of choosing, and the store's version is how a just-finished upload
+   * reaches every render site before any wallet is re-fetched.
+   */
+  if (info?.kind === 'remote' && !storedVersion) {
+    return { imageUrl: info.url, emoji: null };
+  }
+
   if (info?.kind === 'emoji' && !storedVersion) {
     return { imageUrl: null, emoji: info };
   }

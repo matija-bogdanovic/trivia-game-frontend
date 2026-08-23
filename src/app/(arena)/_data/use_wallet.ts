@@ -117,7 +117,24 @@ export function useWallet(): WalletState {
          * those screens show the casing the player actually chose.
          */
         const res = await apiFetch('/wallet', {
-          body: { displayName: identity.displayName },
+          /*
+           * The Google picture rides along with the rename that already
+           * happens on every load — no extra request, and no separate moment
+           * that could be missed.
+           *
+           * The SERVER decides whether to take it: it is adopted only when the
+           * player has no avatar at all, so it can be sent on every load
+           * without ever overwriting an upload, an emoji, or a picture already
+           * stored. Sending it unconditionally is what makes it arrive for
+           * accounts that signed in before the pool mapped the claim — their
+           * next load carries it, and nothing has to be migrated.
+           *
+           * Null for password accounts, which simply send nothing.
+           */
+          body: {
+            displayName: identity.displayName,
+            ...(identity.picture ? { googlePicture: identity.picture } : {}),
+          },
         });
         const wallet = res.ok ? ((await res.json()) as Wallet) : null;
         if (cancelled) return;
