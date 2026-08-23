@@ -10,13 +10,74 @@ import { getUsername } from '@/app/helpers/token_operations';
 import { useT } from '@/app/lib/i18n';
 import { Skeleton, SkeletonRegion } from '@/app/(arena)/_components/skeleton';
 import {
+  CheckIcon,
+  CopyIcon,
   EyeIcon,
   GlobeIcon,
   LockIcon,
+  MagnifyingGlassIcon,
   PlusCircleIcon,
   SmileyIcon,
   UserPlusIcon,
 } from '@/app/(arena)/_components/icons';
+
+/**
+ * Copy a room code, and say so.
+ *
+ * Its own component because the confirmation is per ROOM: the browse grid
+ * renders one of these per card, and a single `copied` flag on the panel would
+ * tick every card in the list at once.
+ *
+ * The icon becomes a tick and the word appears beside it for two seconds, then
+ * it goes back. A button that changes nothing when pressed leaves the reader
+ * checking their clipboard to find out whether it worked.
+ *
+ * ── WHEN THE CLIPBOARD IS NOT THERE ────────────────────────────────────────
+ * navigator.clipboard is undefined outside a secure context and can reject on
+ * a denied permission, so the tick is shown only after the write RESOLVES.
+ * Claiming a copy that did not happen is worse than the silence.
+ */
+function CopyCode({ code }: { code: number }) {
+  const { t } = useT();
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        navigator.clipboard?.writeText(String(code)).then(
+          () => setCopied(true),
+          () => {}
+        )
+      }
+      aria-label={t('arena.create.copyCode')}
+      title={t('arena.create.copyCode')}
+      className="inline-flex cursor-pointer items-center gap-1 p-0.5 text-arena-300 transition-colors hover:text-gold focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+    >
+      {copied ? (
+        <CheckIcon className="h-3.5 w-3.5 shrink-0 text-ready" />
+      ) : (
+        <CopyIcon className="h-3.5 w-3.5 shrink-0" />
+      )}
+      {/*
+        aria-live rather than a re-announced label: a screen reader should hear
+        "Kopirano" once when it happens, not hear the button rename itself.
+      */}
+      <span
+        className={`text-[10px] tracking-wider text-ready uppercase ${copied ? '' : 'sr-only'}`}
+        aria-live="polite"
+      >
+        {copied ? t('arena.create.copied') : ''}
+      </span>
+    </button>
+  );
+}
 
 type RoomSort = 'players' | 'newest';
 
@@ -212,14 +273,27 @@ export default function BrowsePanel() {
         <label className="sr-only" htmlFor="room-search">
           {t('arena.rooms.searchLabel')}
         </label>
-        <input
-          id="room-search"
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('arena.rooms.searchPlaceholder')}
-          className="w-full border border-white/10 bg-arena-750 px-4 py-2 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40 xl:w-72"
-        />
+        {/*
+          The glass sits INSIDE the field, which is what makes a text box read
+          as a search box before anybody types in it. The placeholder said so
+          in words; a word is not a shape, and it disappears the moment there
+          is a query in the field, taking the only clue with it.
+
+          pointer-events-none on the icon: it is decoration over an input, and
+          a click landing on the glyph instead of focusing the field would be
+          the one thing worse than no icon at all.
+        */}
+        <div className="relative w-full xl:w-72">
+          <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-arena-300" />
+          <input
+            id="room-search"
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('arena.rooms.searchPlaceholder')}
+            className="w-full border border-white/10 bg-arena-750 py-2 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40"
+          />
+        </div>
 
         <label className="sr-only" htmlFor="room-sort">
           {t('arena.rooms.sortLabel')}
@@ -298,9 +372,12 @@ export default function BrowsePanel() {
                 <h2 className="mb-1 truncate font-bold tracking-wide text-white">
                   {room.roomName}
                 </h2>
-                <div className="text-[11px] tracking-wider text-arena-200">
-                  {t('arena.rooms.code')}{' '}
-                  <span className="text-gold tabular-nums">{room.code}</span>
+                <div className="flex items-center gap-1.5 text-[11px] tracking-wider text-arena-200">
+                  <span>
+                    {t('arena.rooms.code')}{' '}
+                    <span className="text-gold tabular-nums">{room.code}</span>
+                  </span>
+                  <CopyCode code={room.code} />
                 </div>
               </div>
               {/*
