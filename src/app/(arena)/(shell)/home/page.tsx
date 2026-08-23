@@ -167,27 +167,28 @@ export default function Page() {
 
       {/* ============================================================= hero */}
       {/*
-        Black behind the content, where a green gradient used to run
-        (#0c1c0d → #162a18, which was arena-800 climbing to arena-650).
+        The green gradient, restored. It went black for one commit and came
+        straight back — the rail panels below are the ones that wanted it.
 
-        Pure black rather than arena-950: the darkest token is #060f07, still
-        a green, and next to a black panel rail it would read as the one thing
-        on the page that could not decide. The border and the gold are what
-        carry the arena here now.
+        arena-800 climbing to arena-650, so the hero is the same greens as the
+        rest of the app rather than a hole in it, and the gold has something
+        warm to sit against.
       */}
-      <section className="relative overflow-hidden border border-white/[0.07] bg-black p-6 sm:p-10">
+      <section
+        className="relative overflow-hidden border border-white/[0.07] p-6 sm:p-10"
+        style={{
+          background:
+            'linear-gradient(135deg, #0c1c0d 0%, #122513 60%, #162a18 100%)',
+        }}
+      >
         <div
           className="pointer-events-none absolute top-0 right-0 bottom-0 hidden w-64 items-center justify-center opacity-5 sm:flex"
           aria-hidden="true"
         >
           {/*
-            Gold again, now that what is behind it is black.
-
-            Turning this black was the wrong reading of "make it black" — the
-            request was about the background. On the old dark-green it was a
-            warm olive smudge, but black is the one ground gold has nothing to
-            fight: at 5% it is a faint brass ghost rather than a tint, and
-            black on black would be no mark at all.
+            Gold, as it always was. It was turned black once on a misreading of
+            "make it black" — the request was about the background — and it has
+            been gold again ever since.
           */}
           <div className="text-[200px] leading-none font-bold text-gold">?</div>
         </div>
