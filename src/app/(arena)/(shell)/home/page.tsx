@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import PressButton from '@/app/(arena)/_components/press_button';
 import { useT } from '@/app/lib/i18n';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
 import { onlineFriends } from '@/app/(arena)/_mock/players';
@@ -103,19 +104,22 @@ export default function Page() {
           <p className="mb-8 max-w-md text-sm leading-relaxed text-arena-200">
             {t('arena.home.tagline')}
           </p>
-          <div className="flex flex-wrap gap-3 sm:gap-4">
-            <Link
-              href="/rooms"
-              className="bg-gold px-8 py-4 text-sm font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none sm:px-10"
-            >
+          {/*
+            gap-y is larger than gap-x because these buttons stand on a 6px
+            ledge — on a wrapped row the ledge would otherwise sit almost on
+            the next button's face.
+          */}
+          <div className="flex flex-wrap gap-x-3 gap-y-5 sm:gap-x-4">
+            <PressButton href="/rooms" className="px-8 py-4 sm:px-10">
               {t('arena.nav.playNow')}
-            </Link>
-            <Link
+            </PressButton>
+            <PressButton
               href="/rooms/create"
-              className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
+              variant="secondary"
+              className="px-6 py-4 sm:px-8"
             >
               {t('arena.home.createRoom')}
-            </Link>
+            </PressButton>
             <Link
               href="/rooms/join"
               className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"

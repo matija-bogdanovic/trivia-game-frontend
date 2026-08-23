@@ -299,15 +299,13 @@ export default function BrowsePanel() {
                 <span
                   className={`flex items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
                     room.status === 'playing'
-                      ? 'border-amber-400/40 text-amber-300'
-                      : 'border-emerald-400/40 text-emerald-300'
+                      ? 'border-live/40 text-live'
+                      : 'border-ready/40 text-ready'
                   }`}
                 >
                   <span
                     className={`h-2 w-2 shrink-0 rounded-full ${
-                      room.status === 'playing'
-                        ? 'bg-amber-400'
-                        : 'bg-emerald-400'
+                      room.status === 'playing' ? 'bg-live' : 'bg-ready'
                     }`}
                     aria-hidden="true"
                   />

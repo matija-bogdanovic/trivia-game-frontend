@@ -510,8 +510,8 @@ const PRESENCE: Record<
   { dot: string; text: string; labelKey: string }
 > = {
   playing: {
-    dot: 'bg-amber-400',
-    text: 'text-amber-300',
+    dot: 'bg-live',
+    text: 'text-live',
     labelKey: 'arena.friends.statusPlaying',
   },
   spectating: {
@@ -520,8 +520,8 @@ const PRESENCE: Record<
     labelKey: 'arena.friends.statusSpectating',
   },
   online: {
-    dot: 'bg-emerald-400',
-    text: 'text-emerald-300',
+    dot: 'bg-ready',
+    text: 'text-ready',
     labelKey: 'arena.friends.statusOnline',
   },
   offline: {
