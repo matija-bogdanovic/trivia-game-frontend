@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { fetchAuthSession } from 'aws-amplify/auth';
+import { fetchAuthSession, signInWithRedirect } from 'aws-amplify/auth';
 import { useT } from '@/app/lib/i18n';
 import { waitForSession } from '@/app/lib/wait_for_session';
+import {
+  clearStaleOAuthState,
+  forgetOAuthRestart,
+  mayRestartOAuth,
+  oauthExchangeIsPending,
+} from '@/app/lib/oauth_recovery';
 
 /**
  * Completes the hosted-UI round trip.
@@ -58,12 +64,56 @@ export default function OAuthReturn({ failed }: { failed: boolean }) {
       return Boolean(session.tokens?.idToken);
     };
 
-    void waitForSession({ hasSession, control }).then((signedIn) => {
+    /*
+     * Before waiting, ask whether waiting can possibly work.
+     *
+     * attemptCompleteOAuthFlow returns immediately and silently unless
+     * Amplify's `inflightOAuth` flag is set, and both its success path and its
+     * failure path clear that flag. So a second visit to this URL — a reload,
+     * a retry, a code that arrived before the completion listener existed —
+     * finds a perfectly good ?code=&state= and exchanges nothing at all.
+     *
+     * Polling through that is twenty seconds of spinner followed by "sign-in
+     * failed", which is both slow and untrue: nothing failed, nothing ran.
+     * Better to notice, wipe the half-finished state, and start a flow that
+     * will write the flag properly. Once per tab — see mayRestartOAuth.
+     */
+    void (async () => {
+      const alreadySignedIn = await hasSession().catch(() => false);
       if (control.cancelled) return;
-      // replace, so the spent code never sits in history
-      if (signedIn) router.replace('/home');
-      else setError(true);
-    });
+      if (alreadySignedIn) {
+        forgetOAuthRestart();
+        router.replace('/home');
+        return;
+      }
+
+      if (!oauthExchangeIsPending()) {
+        clearStaleOAuthState();
+        if (mayRestartOAuth()) {
+          try {
+            await signInWithRedirect({ provider: 'Google' });
+            return; // the browser is leaving
+          } catch (err) {
+            console.error('Could not restart Google sign-in:', err);
+          }
+        }
+        if (!control.cancelled) setError(true);
+        return;
+      }
+
+      const signedIn = await waitForSession({ hasSession, control });
+      if (control.cancelled) return;
+      if (signedIn) {
+        forgetOAuthRestart();
+        // replace, so the spent code never sits in history
+        router.replace('/home');
+      } else {
+        // it was in flight and still did not land: leave nothing behind for
+        // the next attempt to trip over
+        clearStaleOAuthState();
+        setError(true);
+      }
+    })();
 
     return () => {
       control.cancelled = true;
