@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useId, useRef } from 'react';
+import { XIcon } from './icons';
+import { useT } from '@/app/lib/i18n';
 
 /**
  * The arena modal.
@@ -22,13 +24,27 @@ export default function Modal({
   children,
   /** false for a prompt that must be answered by its own buttons */
   dismissible = true,
+  closeButton = false,
+  wide = false,
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   children: React.ReactNode;
   dismissible?: boolean;
+  /**
+   * Show a close button in the corner.
+   *
+   * Escape and the backdrop already dismiss, but neither is visible. A dialog
+   * opened to LOOK at something needs a way out that can be seen; a confirm
+   * dialog does not, because its buttons are the way out and an X beside them
+   * is a third answer nobody asked for.
+   */
+  closeButton?: boolean;
+  /** widen the card past the confirm-dialog default */
+  wide?: boolean;
 }) {
+  const { t } = useT();
   const titleId = useId();
   const card = useRef<HTMLDivElement>(null);
   const returnTo = useRef<Element | null>(null);
@@ -68,8 +84,20 @@ export default function Modal({
         aria-labelledby={titleId}
         // the card is not the backdrop; clicking inside it must not dismiss
         onClick={(e) => e.stopPropagation()}
-        className="flex w-full max-w-sm flex-col gap-4 border border-gold/30 bg-arena-800 p-8"
+        className={`relative flex w-full flex-col gap-4 border border-gold/30 bg-arena-800 p-8 ${
+          wide ? 'max-w-md' : 'max-w-sm'
+        }`}
       >
+        {closeButton && dismissible && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t('arena.common.close')}
+            className="absolute top-3 right-3 cursor-pointer p-1 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+        )}
         <div
           id={titleId}
           className="text-[11px] tracking-[0.3em] text-gold uppercase"

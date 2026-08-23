@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import PlayerPreview, {
+  type PlayerCard,
+} from '@/app/(arena)/_components/player_preview';
 import {
   FlameIcon,
   HashIcon,
@@ -85,6 +88,24 @@ interface FriendApiRow {
   wins: number;
 }
 
+/**
+ * A table row as the overlay wants it.
+ *
+ * gamesPlayed and bestStreak are passed ONLY when they are real. The friends
+ * tab fills both with 0 for anyone outside the global top 20, and "0 partija"
+ * is a different claim from "the endpoint never told us" — PlayerCard omits
+ * what it is not given, so leaving them off is how the card stays honest.
+ */
+const cardForRow = (row: Row): PlayerCard => ({
+  username: row.username,
+  displayName: row.name,
+  points: row.points,
+  wins: row.wins,
+  currentStreak: row.streak,
+  ...(row.gamesPlayed > 0 ? { gamesPlayed: row.gamesPlayed } : {}),
+  ...(row.bestStreak > 0 ? { bestStreak: row.bestStreak } : {}),
+});
+
 interface Row {
   rank: number;
   username: string;
@@ -95,6 +116,14 @@ interface Row {
   points: number;
   rate: string;
   isYou: boolean;
+  /*
+   * Carried for the player card rather than for the table, which shows the
+   * rate but not the count it came from, and no best streak at all. The
+   * endpoint already sends both; dropping them here only meant the overlay
+   * would have had to go without.
+   */
+  gamesPlayed: number;
+  bestStreak: number;
 }
 
 /**
@@ -149,6 +178,8 @@ const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] => {
         ? `${Math.round((r.wins / r.gamesPlayed) * 100)}%`
         : '—',
       isYou: me !== null && r.username === me,
+      gamesPlayed: r.gamesPlayed,
+      bestStreak: r.bestStreak ?? 0,
     };
   });
 };
@@ -164,6 +195,8 @@ const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] => {
 export default function Page() {
   const { t } = useT();
   const [tab, setTab] = useState<Tab>('global');
+  /** the player whose card is open; null is closed */
+  const [preview, setPreview] = useState<PlayerCard | null>(null);
   const [api, setApi] = useState<LeaderboardApiRow[]>([]);
   const [friends, setFriends] = useState<FriendApiRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -520,7 +553,17 @@ export default function Page() {
                 >
                   {row.rank}
                 </div>
-                <div className="flex min-w-0 items-center gap-3">
+                {/*
+                  Avatar and name are one button. Opening a player is a look,
+                  not a departure — a reader comparing four people down the
+                  table should not lose the table to read one of them.
+                */}
+                <button
+                  type="button"
+                  onClick={() => setPreview(cardForRow(row))}
+                  aria-label={t('arena.player.viewProfile', { name: row.name })}
+                  className="flex min-w-0 cursor-pointer items-center gap-3 text-left focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                >
                   <Avatar
                     initial={row.initial}
                     username={row.username}
@@ -538,7 +581,7 @@ export default function Page() {
                       </span>
                     )}
                   </div>
-                </div>
+                </button>
                 {/*
                   A drawn flame in the streak colour, matching the profile.
                   It was a gold emoji, which put it in the same colour as the
@@ -599,6 +642,8 @@ export default function Page() {
           </div>
         </div>
       )}
+
+      <PlayerPreview player={preview} onClose={() => setPreview(null)} />
     </div>
   );
 }

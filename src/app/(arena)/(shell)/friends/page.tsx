@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import PlayerPreview, {
+  type PlayerCard,
+} from '@/app/(arena)/_components/player_preview';
 import { useT } from '@/app/lib/i18n';
 import { getIdentity } from '@/app/helpers/token_operations';
 import {
@@ -110,6 +113,8 @@ export default function Page() {
       cancelled = true;
     };
   }, []);
+  /** the player whose card is open; null is closed */
+  const [preview, setPreview] = useState<PlayerCard | null>(null);
   const [search, setSearch] = useState('');
   const [addName, setAddName] = useState('');
   const [sending, setSending] = useState(false);
@@ -291,7 +296,11 @@ export default function Page() {
               </h2>
               <div className="space-y-2">
                 {online.map((friend) => (
-                  <FriendRow key={friend.username} friend={friend} />
+                  <FriendRow
+                    key={friend.username}
+                    friend={friend}
+                    onOpen={setPreview}
+                  />
                 ))}
               </div>
             </section>
@@ -304,7 +313,11 @@ export default function Page() {
               </h2>
               <div className="space-y-2">
                 {offline.map((friend) => (
-                  <FriendRow key={friend.username} friend={friend} />
+                  <FriendRow
+                    key={friend.username}
+                    friend={friend}
+                    onOpen={setPreview}
+                  />
                 ))}
               </div>
             </section>
@@ -498,6 +511,8 @@ export default function Page() {
           )}
         </div>
       </div>
+
+      <PlayerPreview player={preview} onClose={() => setPreview(null)} />
     </div>
   );
 }
@@ -536,47 +551,76 @@ const PRESENCE: Record<
   },
 };
 
-function FriendRow({ friend }: { friend: FriendSummary }) {
+/** everything the overlay can say about a friend, from the row's own data */
+const cardFor = (friend: FriendSummary): PlayerCard => ({
+  username: friend.username,
+  displayName: friend.displayName,
+  presence: presenceOf(friend),
+  points: friend.points,
+  wins: friend.wins,
+  currentStreak: friend.currentStreak,
+});
+
+function FriendRow({
+  friend,
+  onOpen,
+}: {
+  friend: FriendSummary;
+  onOpen: (player: PlayerCard) => void;
+}) {
   const { t } = useT();
   const presence = presenceOf(friend);
   const look = PRESENCE[presence] ?? PRESENCE.offline;
+  const name = friend.displayName || friend.username;
   return (
     <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
-      <div className="relative">
-        <Avatar
-          initial={(friend.displayName || friend.username)
-            .charAt(0)
-            .toUpperCase()}
-          username={friend.username}
-          alt={friend.displayName || friend.username}
-          size="md"
-        />
-        <span
-          className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-arena-800 ${look.dot}`}
-          aria-hidden="true"
-        />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-bold text-white">
-            {friend.displayName || friend.username}
-          </span>
-          {friend.currentStreak > 0 && (
-            <span className="flex items-center gap-1 text-[10px] text-flame">
-              <FlameIcon className="h-3 w-3 shrink-0" />
-              {friend.currentStreak}
+      {/*
+        The avatar and the name are ONE button, not two. They are a single
+        target as far as a reader is concerned — the person — and splitting
+        them puts two tab stops and two identical announcements on one row.
+      */}
+      <button
+        type="button"
+        onClick={() => onOpen(cardFor(friend))}
+        aria-label={t('arena.player.viewProfile', { name })}
+        className="flex min-w-0 flex-1 cursor-pointer items-center gap-4 text-left focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+      >
+        <div className="relative">
+          <Avatar
+            initial={(friend.displayName || friend.username)
+              .charAt(0)
+              .toUpperCase()}
+            username={friend.username}
+            alt={friend.displayName || friend.username}
+            size="md"
+          />
+          <span
+            className={`absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-arena-800 ${look.dot}`}
+            aria-hidden="true"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-bold text-white">
+              {friend.displayName || friend.username}
             </span>
-          )}
+            {friend.currentStreak > 0 && (
+              <span className="flex items-center gap-1 text-[10px] text-flame">
+                <FlameIcon className="h-3 w-3 shrink-0" />
+                {friend.currentStreak}
+              </span>
+            )}
+          </div>
+          <div
+            className={`flex items-center gap-1 text-[10px] tracking-wider uppercase ${look.text}`}
+          >
+            {presence === 'spectating' && (
+              <EyeIcon className="h-3 w-3 shrink-0" />
+            )}
+            {t(look.labelKey)}
+          </div>
         </div>
-        <div
-          className={`flex items-center gap-1 text-[10px] tracking-wider uppercase ${look.text}`}
-        >
-          {presence === 'spectating' && (
-            <EyeIcon className="h-3 w-3 shrink-0" />
-          )}
-          {t(look.labelKey)}
-        </div>
-      </div>
+      </button>
       <div className="hidden text-[11px] text-arena-300 sm:block">
         {t('arena.friends.wins', { n: friend.wins })}
       </div>
@@ -593,6 +637,7 @@ function FriendRow({ friend }: { friend: FriendSummary }) {
       ) : (
         <button
           type="button"
+          onClick={() => onOpen(cardFor(friend))}
           className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.15em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           aria-label={t('arena.friends.profileOf', {
             name: friend.displayName || friend.username,

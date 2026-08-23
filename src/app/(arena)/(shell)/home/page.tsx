@@ -4,19 +4,86 @@ import Link from 'next/link';
 import PressButton from '@/app/(arena)/_components/press_button';
 import { useT } from '@/app/lib/i18n';
 import { homeRecentMatches } from '@/app/(arena)/_mock/matches';
-import { onlineFriends } from '@/app/(arena)/_mock/players';
+import Avatar from '@/app/(arena)/_components/avatar';
+import PlayerPreview, {
+  type PlayerCard,
+} from '@/app/(arena)/_components/player_preview';
+import {
+  fetchFriends,
+  presenceOf,
+  type FriendSummary,
+  type PresenceStatus,
+} from '@/app/helpers/friends';
 import AchievementGrid from '@/app/(arena)/_components/achievement_grid';
 import { buildAchievements } from '@/app/(arena)/_lib/achievements';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
-import { FlameIcon } from '@/app/(arena)/_components/icons';
+import { EyeIcon, FlameIcon } from '@/app/(arena)/_components/icons';
+import { useEffect, useState } from 'react';
 
 /**
  * Dashboard, translated from the Angular app's home.html. Static there and
  * static here — data in, markup out.
  */
+/**
+ * The presence vocabulary, identical to the friends list.
+ *
+ * It is the same fact on both screens, so it has to be the same colour on
+ * both. The rail used to paint "In Game" gold and everything else grey, which
+ * put a busy friend in the app's achievement colour and an ONLINE one in the
+ * colour of nothing at all.
+ */
+const PRESENCE: Record<
+  PresenceStatus,
+  { dot: string; text: string; key: string }
+> = {
+  playing: {
+    dot: 'bg-live',
+    text: 'text-live',
+    key: 'arena.friends.statusPlaying',
+  },
+  spectating: {
+    dot: 'bg-frost',
+    text: 'text-frost',
+    key: 'arena.friends.statusSpectating',
+  },
+  online: {
+    dot: 'bg-ready',
+    text: 'text-ready',
+    key: 'arena.friends.statusOnline',
+  },
+  offline: {
+    dot: 'bg-arena-500',
+    text: 'text-arena-400',
+    key: 'arena.friends.statusOffline',
+  },
+};
+
 export default function Page() {
   const { t } = useT();
   const { wallet, loading } = useWallet();
+
+  /*
+   * The rail ran on _mock/players — three invented names, a square initials
+   * box and a gold dot — so it showed the same strangers to everybody and
+   * disagreed with /friends about what a presence colour means. It reads the
+   * real endpoint now, and only the friends who are actually about.
+   */
+  const [friends, setFriends] = useState<FriendSummary[] | null>(null);
+  const [preview, setPreview] = useState<PlayerCard | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    fetchFriends().then((snapshot) => {
+      if (live) setFriends(snapshot?.friends ?? []);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const onlineFriends = (friends ?? [])
+    .filter((f) => presenceOf(f) !== 'offline')
+    .slice(0, 4);
 
   /** the four numbers this screen leads with, from the player's own record */
   const homeStats = [
@@ -92,7 +159,19 @@ export default function Page() {
           className="pointer-events-none absolute top-0 right-0 bottom-0 hidden w-64 items-center justify-center opacity-5 sm:flex"
           aria-hidden="true"
         >
-          <div className="text-[200px] leading-none font-bold text-gold">?</div>
+          {/*
+            The hero's watermark, black rather than gold.
+
+            At 5% over #0c1c0d a gold glyph does not read as gold — it reads as
+            a warm olive smudge in the corner, which looks like a rendering
+            fault rather than a mark. Black at the same opacity darkens instead
+            of tinting, so the green stays green and the "?" is a shadow in it.
+
+            The background gradient is untouched.
+          */}
+          <div className="text-[200px] leading-none font-bold text-black">
+            ?
+          </div>
         </div>
         <div className="relative">
           <div className="mb-3 text-xs tracking-[0.3em] text-arena-200 uppercase">
@@ -201,46 +280,77 @@ export default function Page() {
             </Link>
           </div>
 
-          {onlineFriends.map((friend) => (
-            <div
-              key={friend.name}
-              className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
-            >
-              <span className="relative">
-                <span
-                  className="flex h-9 w-9 items-center justify-center bg-arena-600 text-sm font-bold text-white"
-                  aria-hidden="true"
-                >
-                  {friend.name[0]}
-                </span>
-                <span
-                  className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-arena-800 ${friend.status === 'In Game' ? 'bg-gold' : 'bg-arena-300'}`}
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs font-bold text-white">
-                  {friend.name}
-                </span>
-                <span className="block text-[10px] text-arena-200">
-                  {friend.status}
-                </span>
-              </span>
-              {friend.streak > 0 && (
-                <span className="flex items-center gap-1 text-[10px] font-bold text-flame">
-                  <FlameIcon className="h-3 w-3 shrink-0" />
-                  {friend.streak}
-                </span>
-              )}
-              <button
-                type="button"
-                className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-                aria-label={t('arena.home.inviteName', { name: friend.name })}
-              >
-                {t('arena.home.invite')}
-              </button>
+          {friends !== null && onlineFriends.length === 0 && (
+            <div className="border border-white/[0.07] bg-arena-800 p-4 text-center text-[11px] text-arena-300">
+              {t('arena.home.noFriendsOnline')}
             </div>
-          ))}
+          )}
+
+          {onlineFriends.map((friend) => {
+            const presence = presenceOf(friend);
+            const look = PRESENCE[presence];
+            const name = friend.displayName || friend.username;
+            return (
+              <div
+                key={friend.username}
+                className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
+              >
+                {/*
+                  Avatar and name are one target, as on the friends list, and
+                  the click opens the overlay rather than leaving the page.
+                */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPreview({
+                      username: friend.username,
+                      displayName: friend.displayName,
+                      presence,
+                      points: friend.points,
+                      wins: friend.wins,
+                      currentStreak: friend.currentStreak,
+                    })
+                  }
+                  aria-label={t('arena.player.viewProfile', { name })}
+                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                >
+                  <span className="relative shrink-0">
+                    <Avatar username={friend.username} name={name} size="sm" />
+                    <span
+                      className={`absolute -right-0.5 -bottom-0.5 h-2.5 w-2.5 rounded-full border-2 border-arena-800 ${look.dot}`}
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold text-white">
+                      {name}
+                    </span>
+                    <span
+                      className={`flex items-center gap-1 text-[10px] tracking-wider uppercase ${look.text}`}
+                    >
+                      {presence === 'spectating' && (
+                        <EyeIcon className="h-3 w-3 shrink-0" />
+                      )}
+                      {t(look.key)}
+                    </span>
+                  </span>
+                </button>
+                {friend.currentStreak > 0 && (
+                  <span className="flex items-center gap-1 text-[10px] font-bold text-flame">
+                    <FlameIcon className="h-3 w-3 shrink-0" />
+                    {friend.currentStreak}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                  aria-label={t('arena.home.inviteName', { name })}
+                >
+                  {t('arena.home.invite')}
+                </button>
+              </div>
+            );
+          })}
         </section>
       </div>
 
@@ -259,6 +369,8 @@ export default function Page() {
         </div>
         <AchievementGrid items={teasers} limit={4} loading={loading} />
       </section>
+
+      <PlayerPreview player={preview} onClose={() => setPreview(null)} />
     </div>
   );
 }
