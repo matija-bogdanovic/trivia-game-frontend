@@ -5,11 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'aws-amplify/auth';
 import Avatar from './avatar';
 import GoogleBadge from './google_mark';
+import { FlameIcon } from './icons';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { useT } from '@/app/lib/i18n';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
-import { ME } from '@/app/(arena)/_mock/progress';
 import LogoPlaceholder from './logo_placeholder';
 import { navItems } from './nav_items';
 
@@ -162,8 +162,15 @@ export default function Sidebar() {
                   />
                 )}
               </span>
-              <span className="block text-[10px] tracking-wider text-gold">
-                🔥 {t('arena.nav.streak', { n: ME.streak })}
+              {/*
+                The player's OWN streak. This printed ME.streak from
+                _mock/progress — a fixture — so every account, signed in or
+                not, was shown the same invented 7. Flame icon and streak
+                colour to match the profile and the leaderboard.
+              */}
+              <span className="flex items-center gap-1 text-[10px] tracking-wider text-flame">
+                <FlameIcon className="h-3 w-3 shrink-0" />
+                {t('arena.nav.streak', { n: wallet?.currentStreak ?? 0 })}
               </span>
             </span>
           </Link>

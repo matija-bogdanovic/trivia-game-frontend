@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import PageHeader from '@/app/(arena)/_components/page_header';
-import { rankBadges } from '@/app/(arena)/_lib/rank_badges';
+import { FlameIcon } from '@/app/(arena)/_components/icons';
 import { apiFetch } from '@/app/helpers/api';
 import { getPort } from '@/app/helpers/port';
 import { useWallet } from '@/app/(arena)/_data/use_wallet';
@@ -29,7 +29,26 @@ const PODIUM_BADGE: Record<number, string> = {
   3: 'text-2xl',
 };
 
-const badgeFor = (rank: number) => rankBadges[rank] ?? String(rank);
+/**
+ * Gold, silver, bronze — and everyone else in the muted rank colour.
+ *
+ * All three used to be `text-gold`, so the podium was one colour and the only
+ * thing separating first from third was position.
+ */
+const RANK_COLOR: Record<number, string> = {
+  1: 'text-gold',
+  2: 'text-silver',
+  3: 'text-bronze',
+};
+
+const rankColor = (rank: number) => RANK_COLOR[rank] ?? 'text-arena-400';
+
+/** the podium tile's edge, matching the place it holds */
+const PODIUM_BORDER: Record<number, string> = {
+  1: 'border-gold/40',
+  2: 'border-silver/40',
+  3: 'border-bronze/40',
+};
 
 /** What GET /leaderboard returns for each player. */
 interface LeaderboardApiRow {
@@ -366,7 +385,7 @@ export default function Page() {
             <div
               key={slot.row.username}
               className={`border bg-arena-800 p-6 text-center ${
-                slot.place === 1 ? 'border-gold/40' : 'border-white/[0.07]'
+                PODIUM_BORDER[slot.place] ?? 'border-white/[0.07]'
               }`}
             >
               <div className="mb-3 flex justify-center">
@@ -379,25 +398,37 @@ export default function Page() {
                 />
               </div>
               <div
-                className={`mb-1 font-bold ${slot.place === 1 ? 'text-lg text-gold' : 'text-white'}`}
+                className={`mb-1 font-bold ${
+                  slot.place === 1 ? 'text-lg' : ''
+                } ${slot.place <= 3 ? rankColor(slot.place) : 'text-white'}`}
               >
                 {slot.row.name}
               </div>
+              {/*
+                The place as a figure, in its medal colour. It was ★ ◆ ▲, all
+                three in gold — so the tiles were told apart by size alone and
+                second and third were the same colour as first.
+
+                NOT aria-hidden any more: a number is the information, where a
+                decorative symbol was not, and the tile has nothing else that
+                says which place it is.
+              */}
               <div
-                className={`mb-2 font-bold ${PODIUM_BADGE[slot.place] ?? 'text-2xl'} ${
-                  slot.place === 1 ? 'text-gold' : 'text-arena-300'
-                }`}
-                aria-hidden="true"
+                className={`mb-2 font-bold tabular-nums ${PODIUM_BADGE[slot.place] ?? 'text-2xl'} ${rankColor(slot.place)}`}
               >
-                {badgeFor(slot.place)}
+                {slot.place}
               </div>
               {/* points first: it is what put them on this tile */}
               <div className="font-bold text-white tabular-nums">
                 {t('arena.lb.pointsCount', { n: slot.row.points })}
               </div>
-              <div className="mt-1 text-[10px] text-arena-200">
-                {t('arena.lb.winsCount', { n: slot.row.wins })} · 🔥{' '}
-                {t('arena.lb.streakCount', { n: slot.row.streak })}
+              <div className="mt-1 flex items-center justify-center gap-1.5 text-[10px] text-arena-200">
+                <span>{t('arena.lb.winsCount', { n: slot.row.wins })}</span>
+                <span aria-hidden="true">·</span>
+                <FlameIcon className="h-3 w-3 shrink-0 text-flame" />
+                <span className="text-flame">
+                  {t('arena.lb.streakCount', { n: slot.row.streak })}
+                </span>
               </div>
             </div>
           ))}
@@ -426,10 +457,17 @@ export default function Page() {
                     : 'hover:bg-arena-750'
                 }`}
               >
+                {/*
+                  THE NUMBER, always. This cell used to run through
+                  badgeFor(), which swapped the first three ranks for ★ ◆ ▲ —
+                  so the column read "★ ◆ ▲ 4 5 6" and the top three had no
+                  number at all. Colour carries the medal now; the figure
+                  carries the position.
+                */}
                 <div
-                  className={`font-bold ${row.rank <= 3 ? 'text-gold' : 'text-arena-400'}`}
+                  className={`font-bold tabular-nums ${rankColor(row.rank)}`}
                 >
-                  {badgeFor(row.rank)}
+                  {row.rank}
                 </div>
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar
@@ -450,8 +488,15 @@ export default function Page() {
                     )}
                   </div>
                 </div>
-                <div className="text-sm font-bold text-gold">
-                  🔥 {row.streak}
+                {/*
+                  A drawn flame in the streak colour, matching the profile.
+                  It was a gold emoji, which put it in the same colour as the
+                  points column and left its size to whatever font rendered
+                  it.
+                */}
+                <div className="flex items-center gap-1.5 text-sm font-bold text-flame">
+                  <FlameIcon className="h-4 w-4 shrink-0" />
+                  <span className="tabular-nums">{row.streak}</span>
                 </div>
                 <div className="text-sm font-bold text-white tabular-nums">
                   {row.wins}

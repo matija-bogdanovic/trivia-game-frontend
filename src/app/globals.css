@@ -74,6 +74,18 @@
   --color-flame: #e2703a;
   --color-frost: #6ab5dd;
 
+  /*
+   * The podium. Gold already exists and is the app's accent, so second and
+   * third borrow its role rather than inventing one: a cool light grey and a
+   * warm brown, both light enough to read on arena-800.
+   *
+   * Bronze is deliberately browner and less saturated than --color-flame,
+   * which sits two columns away on the same leaderboard row — two similar
+   * oranges side by side would make third place look like a streak.
+   */
+  --color-silver: #ccd3db;
+  --color-bronze: #c08f5a;
+
   --radius: 0.25rem;
 }
 
