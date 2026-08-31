@@ -302,7 +302,7 @@ export default function Page() {
       />
 
       {/* ========================================================== account */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-sm border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.settings.account')}
@@ -378,7 +378,7 @@ export default function Page() {
                     onBlur={handleBlur}
                     aria-invalid={!!errors.username || nameTaken}
                     aria-describedby="username-status"
-                    className={`w-full border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                    className={`w-full rounded-sm border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
                       errors.username || nameTaken
                         ? 'border-gold/60'
                         : 'border-white/10'
@@ -426,7 +426,7 @@ export default function Page() {
                     onBlur={handleBlur}
                     aria-invalid={!!errors.email}
                     aria-describedby={errors.email ? 'email-error' : undefined}
-                    className={`w-full border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                    className={`w-full rounded-sm border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
                       errors.email ? 'border-gold/60' : 'border-white/10'
                     }`}
                   />
@@ -492,7 +492,7 @@ export default function Page() {
                     type="button"
                     onClick={() => setPreview(null)}
                     disabled={uploading}
-                    className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
+                    className="cursor-pointer rounded-sm border border-arena-400 px-4 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
                   >
                     {t('profile.cancel')}
                   </button>
@@ -524,7 +524,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => setChangingPassword(true)}
-                className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                className="cursor-pointer rounded-sm border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
                 {t('arena.settings.changePassword')}
               </button>
@@ -558,7 +558,7 @@ export default function Page() {
       </section>
 
       {/* ====================================================== preferences */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-sm border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.settings.preferences')}
@@ -591,7 +591,7 @@ export default function Page() {
                   type="button"
                   onClick={() => setDefaultDifficulty(difficulty)}
                   aria-pressed={defaultDifficulty === difficulty}
-                  className={`cursor-pointer border px-4 py-2 text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                  className={`cursor-pointer rounded-sm border px-4 py-2 text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                     defaultDifficulty === difficulty
                       ? 'border-arena-300 bg-arena-600 font-bold text-white'
                       : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
@@ -606,7 +606,7 @@ export default function Page() {
       </section>
 
       {/* ========================================================== privacy */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-sm border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.settings.privacy')}
@@ -638,7 +638,7 @@ export default function Page() {
       </section>
 
       {/* ===================================================== danger zone */}
-      <section className="border border-red-500/40 bg-red-500/[0.04]">
+      <section className="rounded-sm border border-red-500/40 bg-red-500/[0.04]">
         <div className="border-b border-red-500/30 px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-red-400 uppercase">
             {t('arena.settings.dangerZone')}
@@ -657,14 +657,14 @@ export default function Page() {
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full cursor-pointer border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            className="w-full cursor-pointer rounded-sm border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
             {t('arena.settings.logOut')}
           </button>
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
-            className="w-full cursor-pointer border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
+            className="w-full cursor-pointer rounded-sm border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
             {t('arena.settings.deleteAccount')}
           </button>

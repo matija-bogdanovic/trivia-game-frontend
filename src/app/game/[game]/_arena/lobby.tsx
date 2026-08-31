@@ -161,7 +161,7 @@ export default function ArenaLobby() {
                   })}
             </span>
             <span
-              className={`flex items-center gap-1 border px-2 py-0.5 text-[9px] tracking-widest uppercase ${
+              className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[9px] tracking-widest uppercase ${
                 isPrivate
                   ? 'border-gold/40 text-gold'
                   : 'border-frost/40 text-frost'
@@ -195,7 +195,7 @@ export default function ArenaLobby() {
       </div>
 
       {/* Connected bar */}
-      <div className="mb-6 flex flex-wrap items-center gap-4 border border-white/[0.07] bg-arena-800 px-5 py-3">
+      <div className="mb-6 flex flex-wrap items-center gap-4 rounded-sm border border-white/[0.07] bg-arena-800 px-5 py-3">
         {/*
           Two different numbers, both real and both worth stating: how many
           players hold a socket right now (active), and how many seats the
@@ -259,7 +259,7 @@ export default function ArenaLobby() {
               onClick={() => setInviting(true)}
               disabled={roomFull}
               title={roomFull ? t('arena.invite.full') : undefined}
-              className={`inline-flex shrink-0 items-center gap-1.5 border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-sm border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 roomFull
                   ? 'cursor-not-allowed border-arena-500 text-arena-500'
                   : 'cursor-pointer border-gold/40 text-gold hover:bg-gold/10'
@@ -285,17 +285,17 @@ export default function ArenaLobby() {
               return (
                 <div
                   key={player.username}
-                  className={`bg-arena-800 border p-5 relative ${
+                  className={`bg-arena-800 rounded-sm border p-5 relative ${
                     isMe ? 'border-gold/30' : 'border-white/[0.07]'
                   }`}
                 >
                   {player.isHost && (
-                    <div className="absolute top-3 right-3 text-[9px] tracking-widest text-gold border border-gold/40 px-2 py-0.5 uppercase">
+                    <div className="absolute top-3 right-3 text-[9px] tracking-widest text-gold rounded-sm border border-gold/40 px-2 py-0.5 uppercase">
                       {t('arena.lobby.host')}
                     </div>
                   )}
                   {isMe && !player.isHost && (
-                    <div className="absolute top-3 right-3 text-[9px] tracking-widest text-arena-200 border border-arena-400 px-2 py-0.5 uppercase">
+                    <div className="absolute top-3 right-3 text-[9px] tracking-widest text-arena-200 rounded-sm border border-arena-400 px-2 py-0.5 uppercase">
                       {t('arena.common.you')}
                     </div>
                   )}
@@ -327,7 +327,7 @@ export default function ArenaLobby() {
                       {t('arena.lobby.bank')}
                     </div>
                     <div
-                      className={`inline-flex items-center gap-1.5 border px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${
+                      className={`inline-flex items-center gap-1.5 rounded-sm border px-3 py-1 text-[10px] font-bold tracking-widest uppercase ${
                         player.connected
                           ? 'border-gold/40 text-gold'
                           : 'border-arena-400 text-arena-300'
@@ -360,7 +360,7 @@ export default function ArenaLobby() {
                       }
                       aria-label={t('arena.lobby.removeNamed', { name: shown })}
                       title={t('arena.lobby.removeNamed', { name: shown })}
-                      className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                      className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-sm border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                     >
                       <XIcon className="h-3 w-3 shrink-0" />
                       {t('arena.lobby.remove')}
@@ -378,7 +378,7 @@ export default function ArenaLobby() {
             {Array.from({ length: emptySlots }).map((_, i) => (
               <div
                 key={`empty-${i}`}
-                className="flex items-center justify-center border border-white/[0.04] bg-arena-750 p-5"
+                className="flex items-center justify-center rounded-sm border border-white/[0.04] bg-arena-750 p-5"
                 aria-label={t('arena.lobby.emptySlot')}
               >
                 <div className="text-[11px] tracking-widest text-arena-500 uppercase">
@@ -430,14 +430,14 @@ export default function ArenaLobby() {
             */}
             <button
               onClick={() => (iAmHost ? setConfirmingLeave(true) : leaveRoom())}
-              className="ml-auto border border-white/10 px-5 py-4 text-[11px] tracking-[0.15em] text-arena-200 uppercase transition-colors hover:bg-arena-700 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="ml-auto rounded-sm border border-white/10 px-5 py-4 text-[11px] tracking-[0.15em] text-arena-200 uppercase transition-colors hover:bg-arena-700 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               {t('arena.lobby.leave')}
             </button>
             {iAmHost && (
               <button
                 onClick={terminateLobby}
-                className="border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors"
+                className="rounded-sm border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors"
               >
                 {t('arena.lobby.close')}
               </button>
@@ -446,7 +446,7 @@ export default function ArenaLobby() {
         </div>
 
         {/* Chat */}
-        <div className="flex min-h-0 flex-col border border-white/[0.07] bg-arena-800 xl:w-72">
+        <div className="flex min-h-0 flex-col rounded-sm border border-white/[0.07] bg-arena-800 xl:w-72">
           <div className="px-4 py-3 border-b border-white/[0.07]">
             <div className="text-[10px] tracking-[0.25em] uppercase text-arena-200">
               {t('arena.lobby.chat')}
@@ -490,7 +490,7 @@ export default function ArenaLobby() {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder={t('arena.lobby.messagePlaceholder')}
-              className="flex-1 bg-arena-750 border border-white/10 text-white text-xs px-3 py-2 outline-none focus:border-gold/30 placeholder:text-arena-400 min-w-0"
+              className="flex-1 bg-arena-750 rounded-sm border border-white/10 text-white text-xs px-3 py-2 outline-none focus:border-gold/30 placeholder:text-arena-400 min-w-0"
             />
             <button
               onClick={send}
@@ -510,7 +510,7 @@ export default function ArenaLobby() {
           aria-modal="true"
           aria-labelledby="kick-confirm"
         >
-          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8">
+          <div className="flex max-w-md flex-col gap-4 rounded-sm border border-gold/30 bg-arena-800 p-8">
             <p id="kick-confirm" className="text-sm text-arena-100">
               {t('arena.lobby.kickConfirm', { name: confirmingKick.name })}
             </p>
@@ -528,7 +528,7 @@ export default function ArenaLobby() {
               <button
                 type="button"
                 onClick={() => setConfirmingKick(null)}
-                className="cursor-pointer border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
                 {t('arena.lobby.hostLeaveCancel')}
               </button>
@@ -544,7 +544,7 @@ export default function ArenaLobby() {
           aria-modal="true"
           aria-labelledby="leave-warning"
         >
-          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8">
+          <div className="flex max-w-md flex-col gap-4 rounded-sm border border-gold/30 bg-arena-800 p-8">
             <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
               {t('arena.lobby.hostLeaveTitle')}
             </div>
@@ -565,7 +565,7 @@ export default function ArenaLobby() {
               <button
                 type="button"
                 onClick={() => setConfirmingLeave(false)}
-                className="cursor-pointer border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
               >
                 {t('arena.lobby.hostLeaveCancel')}
               </button>

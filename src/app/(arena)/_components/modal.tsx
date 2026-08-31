@@ -84,7 +84,7 @@ export default function Modal({
         aria-labelledby={titleId}
         // the card is not the backdrop; clicking inside it must not dismiss
         onClick={(e) => e.stopPropagation()}
-        className={`relative flex w-full flex-col gap-4 border border-gold/30 bg-arena-800 p-8 ${
+        className={`relative flex w-full flex-col gap-4 rounded-sm border border-gold/30 bg-arena-800 p-8 ${
           wide ? 'max-w-md' : 'max-w-sm'
         }`}
       >

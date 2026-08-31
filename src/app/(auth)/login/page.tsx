@@ -121,7 +121,7 @@ function Page() {
 
       {error && (
         <p
-          className="mb-5 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}

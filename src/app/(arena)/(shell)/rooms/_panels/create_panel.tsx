@@ -209,7 +209,7 @@ export default function CreatePanel() {
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value.toUpperCase())}
-          className="bg-arena-750 border border-white/10 text-white text-xl font-bold tracking-widest px-5 py-4 w-full outline-none focus:border-gold/40 placeholder:text-arena-400 uppercase"
+          className="bg-arena-750 rounded-sm border border-white/10 text-white text-xl font-bold tracking-widest px-5 py-4 w-full outline-none focus:border-gold/40 placeholder:text-arena-400 uppercase"
           placeholder={t('arena.create.namePlaceholder')}
           maxLength={NAME_MAX}
           disabled={creating}
@@ -263,7 +263,7 @@ export default function CreatePanel() {
                 onClick={() => setVisibility(v)}
                 disabled={creating}
                 aria-pressed={visibility === v}
-                className={`p-5 border text-left transition-colors ${
+                className={`p-5 rounded-sm border text-left transition-colors ${
                   visibility === v
                     ? 'border-gold/40 bg-gold/10'
                     : 'border-white/10 bg-arena-750 hover:bg-arena-700'
@@ -295,7 +295,7 @@ export default function CreatePanel() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('arena.create.passwordPlaceholder')}
               aria-label={t('arena.create.passwordPlaceholder')}
-              className="w-full border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+              className="w-full rounded-sm border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
               disabled={creating}
             />
             {!creating && roomPassword.button}
@@ -342,7 +342,7 @@ export default function CreatePanel() {
             onClick={() => setCategories([])}
             aria-pressed={everyCategory}
             disabled={creating}
-            className={`cursor-pointer border px-3 py-2 text-[11px] font-bold tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+            className={`cursor-pointer rounded-sm border px-3 py-2 text-[11px] font-bold tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
               everyCategory
                 ? 'border-gold bg-gold text-arena-950'
                 : 'border-gold/40 text-gold hover:bg-gold/10'
@@ -385,7 +385,7 @@ export default function CreatePanel() {
                 }
                 aria-pressed={selected}
                 disabled={creating}
-                className={`cursor-pointer border px-3 py-2 text-[11px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`cursor-pointer rounded-sm border px-3 py-2 text-[11px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   selected
                     ? 'border-gold bg-gold font-bold text-arena-950'
                     : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
@@ -462,7 +462,7 @@ export default function CreatePanel() {
               onClick={() => setMaxPlayers(n)}
               aria-pressed={maxPlayers === n}
               disabled={creating}
-              className={`w-12 cursor-pointer border py-2 text-sm font-bold tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              className={`w-12 cursor-pointer rounded-sm border py-2 text-sm font-bold tabular-nums transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 maxPlayers === n
                   ? 'border-gold bg-gold text-arena-950'
                   : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
@@ -503,7 +503,7 @@ export default function CreatePanel() {
       </Section>
 
       {error && (
-        <div className="bg-arena-800 border border-gold/40 text-arena-100 text-sm px-4 py-3">
+        <div className="bg-arena-800 rounded-sm border border-gold/40 text-arena-100 text-sm px-4 py-3">
           {error}
         </div>
       )}
@@ -522,7 +522,7 @@ export default function CreatePanel() {
         </button>
         <Link
           href="/home"
-          className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
+          className="rounded-sm border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-6 py-4 hover:bg-arena-700 transition-colors"
         >
           {t('arena.common.cancel')}
         </Link>
@@ -548,7 +548,7 @@ function Section({
 }) {
   const heading = 'text-[11px] font-bold tracking-[0.2em] text-white uppercase';
   return (
-    <section className="border border-white/[0.07] bg-arena-800 p-6">
+    <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-6">
       <div className="mb-4">
         {htmlFor ? (
           <label htmlFor={htmlFor} className={`block ${heading}`}>

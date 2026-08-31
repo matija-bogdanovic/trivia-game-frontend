@@ -93,7 +93,7 @@ export default function ArenaDuel() {
                 </div>
               )}
               <div
-                className={`flex-1 border bg-arena-800 p-4 text-center sm:p-6 ${
+                className={`flex-1 rounded-sm border bg-arena-800 p-4 text-center sm:p-6 ${
                   isMe ? 'border-gold/30' : 'border-white/10'
                 }`}
               >
@@ -137,7 +137,7 @@ export default function ArenaDuel() {
       )}
 
       {/* ======================================================== question */}
-      <div className="mb-4 border border-white/[0.07] bg-arena-800 p-6">
+      <div className="mb-4 rounded-sm border border-white/[0.07] bg-arena-800 p-6">
         <h1 className="mb-6 text-xl font-bold text-white">
           {questionText || '…'}
         </h1>
@@ -154,7 +154,7 @@ export default function ArenaDuel() {
                 onClick={() => interactive && setPending(option)}
                 disabled={!interactive}
                 aria-pressed={picked}
-                className={`flex items-center gap-3 border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`flex items-center gap-3 rounded-sm border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   picked
                     ? 'border-gold bg-gold/15 text-gold'
                     : interactive

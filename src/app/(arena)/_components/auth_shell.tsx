@@ -28,7 +28,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
           <LogoPlaceholder />
         </div>
 
-        <div className="w-full max-w-sm shrink-0 border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
+        <div className="w-full max-w-sm shrink-0 rounded-sm border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
           {children}
         </div>
 

@@ -231,7 +231,7 @@ function Page() {
         !kicked &&
         !terminated && (
           <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
-            <div className="flex w-full max-w-sm flex-col gap-4 border border-white/[0.07] bg-arena-800 p-8">
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-8">
               {joinDenied === 'unauthenticated' ? (
                 <>
                   <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
@@ -268,7 +268,7 @@ function Page() {
 
       {closedOnMe && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
-          <div className="flex max-w-md flex-col gap-4 border border-gold/30 bg-arena-800 p-8 text-center">
+          <div className="flex max-w-md flex-col gap-4 rounded-sm border border-gold/30 bg-arena-800 p-8 text-center">
             <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
               {t('arena.lobby.roomClosedTitle')}
             </div>
@@ -289,7 +289,7 @@ function Page() {
 
       {(kicked || terminated) && (
         <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
-          <div className="flex max-w-md flex-col gap-4 border border-white/[0.07] bg-arena-800 p-8 text-center">
+          <div className="flex max-w-md flex-col gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-8 text-center">
             <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
               {kicked
                 ? t('arena.lobby.kickedTitle')
@@ -324,7 +324,7 @@ function Page() {
       )}
 
       {notImplemented && !blocked && (
-        <div className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 border border-gold/40 bg-arena-800 px-4 py-3 text-sm text-white">
+        <div className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-sm border border-gold/40 bg-arena-800 px-4 py-3 text-sm text-white">
           <span>{t('game.notImplemented')}</span>
           <button
             className="cursor-pointer font-bold text-gold"
@@ -337,7 +337,7 @@ function Page() {
       )}
 
       {error && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-arena-800 border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-arena-800 rounded-sm border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
           <span>{error}</span>
           <button
             className="font-bold cursor-pointer text-gold"

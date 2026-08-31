@@ -95,7 +95,7 @@ export default function ArenaQuestion() {
         not here, because the server withholds it until reveal.
       */}
       {turnMode === 'challenge' && (
-        <div className="mb-4 border border-gold/30 bg-gold/10 px-4 py-3 text-[11px] tracking-wider text-gold">
+        <div className="mb-4 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[11px] tracking-wider text-gold">
           {challengeBet
             ? t('arena.game.challengeBanner', {
                 name: displayNameOf(players, challengeBet.username),
@@ -106,7 +106,7 @@ export default function ArenaQuestion() {
       )}
 
       {/* ========================================================= question */}
-      <div className="mb-4 border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
+      <div className="mb-4 rounded-sm border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
         <h1 className="mb-8 text-xl leading-relaxed font-bold text-white">
           {questionText || '…'}
         </h1>
@@ -124,7 +124,7 @@ export default function ArenaQuestion() {
                 onClick={() => interactive && setPending(option)}
                 disabled={!interactive}
                 aria-pressed={picked}
-                className={`flex items-center gap-3 border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`flex items-center gap-3 rounded-sm border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   picked
                     ? 'border-gold bg-gold/15 text-gold'
                     : interactive

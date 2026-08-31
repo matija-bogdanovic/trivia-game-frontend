@@ -119,7 +119,7 @@ export default function DeleteAccountDialog({
           autoComplete="off"
           disabled={busy}
           aria-invalid={Boolean(error)}
-          className="w-full border border-red-500/40 bg-arena-750 px-4 py-3 text-sm tracking-widest text-white uppercase outline-none focus:border-red-400"
+          className="w-full rounded-sm border border-red-500/40 bg-arena-750 px-4 py-3 text-sm tracking-widest text-white uppercase outline-none focus:border-red-400"
         />
 
         {error && (
@@ -138,7 +138,7 @@ export default function DeleteAccountDialog({
             disabled={!armed || busy}
             className={`flex-1 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none ${
               armed && !busy
-                ? 'cursor-pointer border border-red-500/60 bg-red-500/20 text-red-300 hover:bg-red-500/30'
+                ? 'cursor-pointer rounded-sm border border-red-500/60 bg-red-500/20 text-red-300 hover:bg-red-500/30'
                 : 'cursor-not-allowed border border-arena-600 bg-arena-700 text-arena-400'
             }`}
           >
@@ -148,7 +148,7 @@ export default function DeleteAccountDialog({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="cursor-pointer border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('arena.common.cancel')}
           </button>

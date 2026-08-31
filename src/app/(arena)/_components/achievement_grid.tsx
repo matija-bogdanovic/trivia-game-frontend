@@ -44,7 +44,7 @@ export default function AchievementGrid({
         {Array.from({ length: limit ?? 8 }, (_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-2 border border-white/[0.04] p-4"
+            className="flex flex-col gap-2 rounded-sm border border-white/[0.04] p-4"
           >
             <Skeleton className="h-5 w-5" />
             <Skeleton className="h-3 w-20" />
@@ -71,7 +71,7 @@ export default function AchievementGrid({
         return (
           <div
             key={a.id}
-            className={`flex flex-col gap-1 border p-4 ${
+            className={`flex flex-col gap-1 rounded-sm border p-4 ${
               a.unlocked
                 ? 'border-gold/20 bg-gold/5'
                 : 'border-white/[0.04] opacity-50'

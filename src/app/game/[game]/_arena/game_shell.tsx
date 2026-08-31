@@ -58,7 +58,7 @@ export default function GameShell({
             {LADDER.map((label, i) => (
               <li
                 key={label}
-                className={`border px-2 py-1 text-[9px] tracking-widest uppercase transition-colors duration-300 ${
+                className={`rounded-sm border px-2 py-1 text-[9px] tracking-widest uppercase transition-colors duration-300 ${
                   i < difficulty
                     ? 'border-gold/50 bg-gold/10 text-gold'
                     : 'border-arena-500 text-arena-500'
@@ -86,7 +86,7 @@ export default function GameShell({
           {/* said once, where the frame is, rather than on every phase card */}
           {spectating && (
             <div
-              className="border border-gold/40 bg-gold/10 px-2.5 py-1 text-[9px] font-bold tracking-[0.2em] text-gold uppercase"
+              className="rounded-sm border border-gold/40 bg-gold/10 px-2.5 py-1 text-[9px] font-bold tracking-[0.2em] text-gold uppercase"
               role="status"
             >
               {t('arena.game.spectatingBadge')}
@@ -98,7 +98,7 @@ export default function GameShell({
           <button
             type="button"
             onClick={onLeave}
-            className="cursor-pointer border border-arena-500 px-3 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="cursor-pointer rounded-sm border border-arena-500 px-3 py-1.5 text-[10px] tracking-wider text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.lobby.leave')}
           </button>
@@ -126,7 +126,7 @@ export default function GameShell({
               return (
                 <div
                   key={p.username}
-                  className={`min-w-[9.5rem] border p-3 transition-colors duration-150 lg:min-w-0 ${
+                  className={`min-w-[9.5rem] rounded-sm border p-3 transition-colors duration-150 lg:min-w-0 ${
                     isAnswering
                       ? 'border-gold/50 bg-gold/10'
                       : 'border-white/[0.07] bg-arena-800'

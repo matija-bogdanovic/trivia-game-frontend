@@ -271,7 +271,7 @@ export default function Page() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('arena.friends.searchPlaceholder')}
-                className="w-full border border-white/10 bg-arena-800 py-3 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+                className="w-full rounded-sm border border-white/10 bg-arena-800 py-3 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
               />
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function Page() {
               {Array.from({ length: 5 }, (_, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
+                  className="flex items-center gap-3 rounded-sm border border-white/[0.07] bg-arena-800 p-3"
                 >
                   <SkeletonAvatar size="sm" />
                   <div className="min-w-0 flex-1 space-y-1.5">
@@ -371,7 +371,7 @@ export default function Page() {
         <div className="space-y-6">
           {/* add friend */}
           <form
-            className="border border-white/[0.07] bg-arena-800 p-5"
+            className="rounded-sm border border-white/[0.07] bg-arena-800 p-5"
             onSubmit={sendRequest}
           >
             <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
@@ -391,7 +391,7 @@ export default function Page() {
               autoComplete="off"
               disabled={sending}
               placeholder={t('arena.friends.usernamePlaceholder')}
-              className="mb-3 w-full border border-white/10 bg-arena-750 px-3 py-2.5 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+              className="mb-3 w-full rounded-sm border border-white/10 bg-arena-750 px-3 py-2.5 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
             />
             <button
               type="submit"
@@ -425,7 +425,7 @@ export default function Page() {
 
           {/* requests */}
           {requests.length > 0 && (
-            <section className="border border-white/[0.07] bg-arena-800 p-5">
+            <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-5">
               <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
                 {t('arena.friends.requests', { n: requests.length })}
               </h2>
@@ -468,7 +468,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => act(request, 'accept')}
-                      className="cursor-pointer border border-gold/40 px-2 py-1 text-[10px] text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                      className="cursor-pointer rounded-sm border border-gold/40 px-2 py-1 text-[10px] text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.accept', {
                         name: request.displayName,
                       })}
@@ -478,7 +478,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => act(request, 'decline')}
-                      className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                      className="cursor-pointer rounded-sm border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       aria-label={t('arena.friends.decline', {
                         name: request.displayName,
                       })}
@@ -506,7 +506,7 @@ export default function Page() {
             tidy it away.
           */}
           {outgoingSupported && outgoing.length > 0 && (
-            <section className="border border-white/[0.07] bg-arena-800 p-5">
+            <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-5">
               <h2 className="mb-4 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
                 {t('arena.friends.sentRequests', { n: outgoing.length })}
               </h2>
@@ -555,7 +555,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => cancelOutgoing(entry)}
-                        className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                        className="cursor-pointer rounded-sm border border-arena-400 px-2 py-1 text-[10px] text-arena-300 transition-colors hover:border-arena-300 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                         aria-label={t('arena.friends.cancelRequest', {
                           name: entry.displayName,
                         })}
@@ -632,7 +632,7 @@ function FriendRow({
   const look = PRESENCE[presence] ?? PRESENCE.offline;
   const name = friend.displayName || friend.username;
   return (
-    <div className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
+    <div className="flex items-center gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-750">
       {/*
         The avatar and the name are ONE button, not two. They are a single
         target as far as a reader is concerned — the person — and splitting
@@ -697,7 +697,7 @@ function FriendRow({
         <button
           type="button"
           onClick={() => onOpen(cardFor(friend))}
-          className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.15em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="cursor-pointer rounded-sm border border-arena-400 px-4 py-2 text-[10px] tracking-[0.15em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           aria-label={t('arena.friends.profileOf', {
             name: friend.displayName || friend.username,
           })}

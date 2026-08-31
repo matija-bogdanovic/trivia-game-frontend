@@ -60,7 +60,7 @@ export default function Sidebar() {
     <button
       type="button"
       onClick={() => setLang(lang === 'en' ? 'sr' : 'en')}
-      className={`cursor-pointer border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
+      className={`cursor-pointer rounded-sm border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
       aria-label={t('arena.nav.switchLanguage')}
     >
       {lang === 'en' ? 'SR' : 'EN'}

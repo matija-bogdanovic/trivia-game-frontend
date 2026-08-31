@@ -44,7 +44,7 @@ function AvatarCropper({ imageSrc, onDone, onCancel }: AvatarCropperProps) {
       aria-modal="true"
       aria-labelledby="crop-title"
     >
-      <div className="flex w-full max-w-md flex-col gap-4 border border-white/[0.07] bg-arena-800 p-6">
+      <div className="flex w-full max-w-md flex-col gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-6">
         <h3
           id="crop-title"
           className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase"
@@ -90,7 +90,7 @@ function AvatarCropper({ imageSrc, onDone, onCancel }: AvatarCropperProps) {
             type="button"
             onClick={onCancel}
             disabled={busy}
-            className="cursor-pointer border border-white/20 px-5 py-3 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
+            className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
           >
             {t('profile.cancel')}
           </button>

@@ -125,7 +125,7 @@ export default function SignUp() {
 
       {error && (
         <p
-          className="mb-5 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}
@@ -135,7 +135,7 @@ export default function SignUp() {
       {offerConfirm && (
         <button
           type="button"
-          className="mb-5 w-full cursor-pointer border border-gold/40 px-4 py-3 text-[11px] tracking-wider text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="mb-5 w-full cursor-pointer rounded-sm border border-gold/40 px-4 py-3 text-[11px] tracking-wider text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           onClick={goConfirmExisting}
         >
           {t('auth.confirmInstead')}

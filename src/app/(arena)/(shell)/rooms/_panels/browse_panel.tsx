@@ -304,7 +304,7 @@ export default function BrowsePanel() {
         </Link>
         <Link
           href="/rooms/create"
-          className="inline-flex items-center gap-2 border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="inline-flex items-center gap-2 rounded-sm border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           <PlusCircleIcon className="h-4 w-4" />
           {t('arena.rooms.createRoom')}
@@ -318,7 +318,7 @@ export default function BrowsePanel() {
       */}
       {gone && (
         <div
-          className="mb-6 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] text-gold"
+          className="mb-6 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] text-gold"
           role="status"
         >
           {t('arena.rooms.gone')}
@@ -326,7 +326,7 @@ export default function BrowsePanel() {
       )}
 
       {/* ========================================================== filters */}
-      <div className="mb-6 flex flex-col gap-4 border border-white/[0.07] bg-arena-800 p-4 xl:flex-row xl:flex-wrap xl:items-center">
+      <div className="mb-6 flex flex-col gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-4 xl:flex-row xl:flex-wrap xl:items-center">
         <label className="sr-only" htmlFor="room-search">
           {t('arena.rooms.searchLabel')}
         </label>
@@ -348,14 +348,14 @@ export default function BrowsePanel() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t('arena.rooms.searchPlaceholder')}
-            className="w-full border border-white/10 bg-arena-750 py-2 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40"
+            className="w-full rounded-sm border border-white/10 bg-arena-750 py-2 pr-4 pl-10 text-sm text-white outline-none placeholder:text-arena-300 focus:border-gold/40"
           />
         </div>
 
         <button
           type="button"
           onClick={() => void load(true)}
-          className="cursor-pointer border border-white/10 px-3 py-2 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="cursor-pointer rounded-sm border border-white/10 px-3 py-2 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.rooms.refresh')}
         </button>
@@ -367,7 +367,7 @@ export default function BrowsePanel() {
           id="room-sort"
           value={sort}
           onChange={(e) => setSort(e.target.value as RoomSort)}
-          className="cursor-pointer border border-white/10 bg-arena-750 px-3 py-2 text-[10px] tracking-wider text-arena-200 uppercase outline-none focus:border-gold/40 xl:ml-auto"
+          className="cursor-pointer rounded-sm border border-white/10 bg-arena-750 px-3 py-2 text-[10px] tracking-wider text-arena-200 uppercase outline-none focus:border-gold/40 xl:ml-auto"
         >
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -388,7 +388,7 @@ export default function BrowsePanel() {
       </div>
 
       {error && (
-        <div className="mb-4 border border-gold/40 bg-gold/10 px-4 py-3 text-[12px] text-gold">
+        <div className="mb-4 rounded-sm border border-gold/40 bg-gold/10 px-4 py-3 text-[12px] text-gold">
           {error}
         </div>
       )}
@@ -403,7 +403,7 @@ export default function BrowsePanel() {
           {Array.from({ length: 4 }, (_, i) => (
             <div
               key={i}
-              className="border border-white/[0.07] bg-arena-800 p-5"
+              className="rounded-sm border border-white/[0.07] bg-arena-800 p-5"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-2">
@@ -430,7 +430,7 @@ export default function BrowsePanel() {
         {visible.map((room) => (
           <article
             key={room.lobbyId}
-            className="border border-white/[0.07] bg-arena-800 p-5 transition-colors hover:bg-arena-750"
+            className="rounded-sm border border-white/[0.07] bg-arena-800 p-5 transition-colors hover:bg-arena-750"
           >
             <div className="mb-4 flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -457,7 +457,7 @@ export default function BrowsePanel() {
               */}
               {room.status === 'playing' && room.spectateEnabled !== false && (
                 <span
-                  className="flex shrink-0 items-center gap-1 border border-frost/40 px-2 py-1 text-[10px] tracking-wider text-frost uppercase"
+                  className="flex shrink-0 items-center gap-1 rounded-sm border border-frost/40 px-2 py-1 text-[10px] tracking-wider text-frost uppercase"
                   title={t('arena.rooms.spectateAllowed')}
                 >
                   <EyeIcon className="h-3 w-3 shrink-0" />
@@ -471,7 +471,7 @@ export default function BrowsePanel() {
                 distinction: open to anyone, or shut behind a password.
               */}
               <div
-                className={`flex shrink-0 items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-sm border px-2 py-1 text-[10px] tracking-wider uppercase ${
                   room.isPrivate
                     ? 'border-gold/40 text-gold'
                     : 'border-frost/40 text-frost'
@@ -522,7 +522,7 @@ export default function BrowsePanel() {
                   {t('arena.rooms.statusLabel')}
                 </div>
                 <span
-                  className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[10px] tracking-wider uppercase ${
+                  className={`inline-flex items-center gap-1.5 rounded-sm border px-2 py-1 text-[10px] tracking-wider uppercase ${
                     room.status === 'playing'
                       ? 'border-live/40 text-live'
                       : 'border-ready/40 text-ready'

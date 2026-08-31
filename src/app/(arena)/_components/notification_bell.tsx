@@ -140,7 +140,7 @@ export default function NotificationBell() {
         <div
           role="dialog"
           aria-label={t('arena.notif.title')}
-          className="absolute right-0 bottom-full z-50 mb-2 w-72 border border-white/[0.07] bg-arena-800 shadow-lg lg:bottom-auto lg:top-full lg:mt-2 lg:mb-0"
+          className="absolute right-0 bottom-full z-50 mb-2 w-72 rounded-sm border border-white/[0.07] bg-arena-800 shadow-lg lg:bottom-auto lg:top-full lg:mt-2 lg:mb-0"
         >
           <div className="flex items-center justify-between gap-2 border-b border-white/[0.07] px-3 py-2">
             <span className="text-[10px] tracking-[0.2em] text-arena-300 uppercase">

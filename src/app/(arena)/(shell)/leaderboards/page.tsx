@@ -373,7 +373,7 @@ export default function Page() {
             role="tab"
             aria-selected={tab === tabName}
             onClick={() => setTab(tabName)}
-            className={`cursor-pointer border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
+            className={`cursor-pointer rounded-sm border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
               tab === tabName
                 ? 'border-gold bg-gold text-arena-950'
                 : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
@@ -395,7 +395,7 @@ export default function Page() {
             {[2, 1, 3].map((place) => (
               <div
                 key={place}
-                className="flex flex-col items-center border border-white/[0.07] bg-arena-800 p-6"
+                className="flex flex-col items-center rounded-sm border border-white/[0.07] bg-arena-800 p-6"
               >
                 <SkeletonAvatar
                   size={place === 1 ? 'lg' : place === 2 ? 'md' : 'sm'}
@@ -408,7 +408,7 @@ export default function Page() {
             ))}
           </div>
 
-          <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
+          <div className="overflow-x-auto rounded-sm border border-white/[0.07] bg-arena-800">
             <div className="min-w-[42rem]">
               {Array.from({ length: 8 }, (_, i) => (
                 <div
@@ -483,7 +483,7 @@ export default function Page() {
               */
               <div
                 key={`empty-${slot.place}`}
-                className="border border-dashed border-arena-500 p-6 text-center"
+                className="rounded-sm border border-dashed border-arena-500 p-6 text-center"
               >
                 <div className="mb-3 flex justify-center">
                   <span
@@ -515,7 +515,7 @@ export default function Page() {
             ) : (
               <div
                 key={slot.row.username}
-                className={`border bg-arena-800 p-6 text-center ${
+                className={`rounded-sm border bg-arena-800 p-6 text-center ${
                   PODIUM_BORDER[slot.place] ?? 'border-white/[0.07]'
                 }`}
               >
@@ -587,7 +587,7 @@ export default function Page() {
 
       {/* ============================================================ table */}
       {rows.length > 0 && (
-        <div className="overflow-x-auto border border-white/[0.07] bg-arena-800">
+        <div className="overflow-x-auto rounded-sm border border-white/[0.07] bg-arena-800">
           <div className="min-w-[42rem]">
             <div className="grid grid-cols-[40px_1fr_80px_60px_60px_100px] gap-4 border-b border-white/[0.07] px-5 py-3 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
               <span className="flex items-center" title="#">
@@ -648,7 +648,7 @@ export default function Page() {
                       {row.name}
                     </span>
                     {row.isYou && (
-                      <span className="shrink-0 border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
+                      <span className="shrink-0 rounded-sm border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
                         {t('arena.common.you')}
                       </span>
                     )}
@@ -698,7 +698,7 @@ export default function Page() {
       {/* ==================================================== your position */}
       {you && (
         <div
-          className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border border-gold/20 bg-gold/10 px-5 py-3"
+          className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-sm border border-gold/20 bg-gold/10 px-5 py-3"
           aria-live="polite"
         >
           <div className="text-[10px] tracking-widest text-gold uppercase">

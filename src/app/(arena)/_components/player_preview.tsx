@@ -78,7 +78,7 @@ const PRESENCE: Record<
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-white/[0.07] bg-arena-750 p-3 text-center">
+    <div className="rounded-sm border border-white/[0.07] bg-arena-750 p-3 text-center">
       <div className="mb-1 text-[9px] tracking-[0.2em] text-arena-300 uppercase">
         {label}
       </div>

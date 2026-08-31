@@ -130,7 +130,7 @@ export default function OAuthReturn({ failed }: { failed: boolean }) {
           <button
             type="button"
             onClick={() => router.replace('/login')}
-            className="cursor-pointer border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="cursor-pointer rounded-sm border border-white/20 px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.auth.backToLogin')}
           </button>

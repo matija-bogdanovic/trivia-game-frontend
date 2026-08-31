@@ -150,7 +150,7 @@ export default function Page() {
         {homeStats.map((stat) => (
           <div
             key={stat.labelKey}
-            className="border border-white/[0.07] bg-arena-800 p-5"
+            className="rounded-sm border border-white/[0.07] bg-arena-800 p-5"
           >
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-200 uppercase">
               {t(stat.labelKey)}
@@ -172,7 +172,7 @@ export default function Page() {
         warm to sit against.
       */}
       <section
-        className="relative overflow-hidden border border-white/[0.07] p-6 sm:p-10"
+        className="relative overflow-hidden rounded-sm border border-white/[0.07] p-6 sm:p-10"
         style={{
           background:
             'linear-gradient(135deg, #0c1c0d 0%, #122513 60%, #162a18 100%)',
@@ -213,7 +213,7 @@ export default function Page() {
             </PressButton>
             <Link
               href="/rooms/join"
-              className="border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
+              className="rounded-sm border border-white/20 px-6 py-4 text-sm font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-8"
             >
               {t('arena.home.joinRoom')}
             </Link>
@@ -261,7 +261,7 @@ export default function Page() {
             browse what is open, or open one.
           */}
           {!loading && signedIn && recentMatches.length === 0 && (
-            <div className="border border-white/[0.07] bg-arena-800 px-4 py-10 text-center">
+            <div className="rounded-sm border border-white/[0.07] bg-arena-800 px-4 py-10 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
                 <CalendarXIcon className="h-8 w-8 text-arena-500" />
               </div>
@@ -311,7 +311,7 @@ export default function Page() {
             <Link
               key={match.matchId}
               href="/history"
-              className="flex items-center gap-4 border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="flex items-center gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-4 transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               <span
                 className={`h-12 w-2 shrink-0 ${match.won ? 'bg-gold' : 'bg-arena-400'}`}
@@ -322,7 +322,7 @@ export default function Page() {
                   <span className="truncate text-sm font-bold text-white">
                     {match.roomName}
                   </span>
-                  <span className="shrink-0 border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
+                  <span className="shrink-0 rounded-sm border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
                     {t('arena.history.players', { n: match.playerCount })}
                   </span>
                 </span>
@@ -372,7 +372,7 @@ export default function Page() {
             one the page scrolls to.
           */}
           {friends !== null && onlineFriends.length === 0 && (
-            <div className="border border-white/[0.07] bg-arena-800 px-4 py-8 text-center">
+            <div className="rounded-sm border border-white/[0.07] bg-arena-800 px-4 py-8 text-center">
               <div className="mb-3 flex justify-center" aria-hidden="true">
                 <UsersThreeIcon className="h-8 w-8 text-arena-500" />
               </div>
@@ -384,7 +384,7 @@ export default function Page() {
               {friends.length === 0 && (
                 <Link
                   href="/friends#add-friend"
-                  className="mt-4 inline-flex items-center gap-2 border border-gold/40 px-4 py-2 text-[10px] font-bold tracking-[0.2em] text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                  className="mt-4 inline-flex items-center gap-2 rounded-sm border border-gold/40 px-4 py-2 text-[10px] font-bold tracking-[0.2em] text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                 >
                   <UserPlusIcon className="h-3.5 w-3.5 shrink-0" />
                   {t('arena.home.addFriend')}
@@ -400,7 +400,7 @@ export default function Page() {
             return (
               <div
                 key={friend.username}
-                className="flex items-center gap-3 border border-white/[0.07] bg-arena-800 p-3"
+                className="flex items-center gap-3 rounded-sm border border-white/[0.07] bg-arena-800 p-3"
               >
                 {/*
                   Avatar and name are one target, as on the friends list, and
@@ -450,7 +450,7 @@ export default function Page() {
                 )}
                 <button
                   type="button"
-                  className="cursor-pointer border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                  className="cursor-pointer rounded-sm border border-arena-400 px-2 py-1 text-[10px] tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                   aria-label={t('arena.home.inviteName', { name })}
                 >
                   {t('arena.home.invite')}

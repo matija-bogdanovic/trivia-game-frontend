@@ -158,7 +158,7 @@ function Toast({
        * pointer-events-none column, so the toast takes the close button and
        * the swipe while everything around it stays click-through to the game.
        */
-      className={`pointer-events-auto relative w-[17rem] border border-gold/30 bg-arena-800 shadow-[0_0_0_1px_rgba(0,0,0,0.4)] select-none ${
+      className={`pointer-events-auto relative w-[17rem] rounded-sm border border-gold/30 bg-arena-800 shadow-[0_0_0_1px_rgba(0,0,0,0.4)] select-none ${
         dragging ? '' : 'transition-all duration-[260ms] ease-out'
       } ${
         shown && !leaving
