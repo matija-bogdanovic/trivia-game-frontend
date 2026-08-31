@@ -38,7 +38,30 @@ export function useAvatarSource(
     username ? state.avatar.avatars[username] : undefined
   );
 
-  const info = decodeAvatar(fallbackAvatar ?? storedAvatar);
+  const source = fallbackAvatar ?? storedAvatar;
+  const info = decodeAvatar(source);
+
+  /*
+   * One line, in development only, from the one place that knows everything:
+   * who is being drawn, what avatar string was available, where it came from,
+   * and what the decoder made of it.
+   *
+   * Every earlier round of this was a guess about which link was broken, and
+   * each guess cost a sign-in to test. This prints the whole chain at once —
+   * "no string at all" and "a string the decoder rejected" and "decoded fine,
+   * so the image itself must be failing" are three different problems that all
+   * look identical on screen.
+   *
+   * Only for a signed-in-looking render: a list of initials placeholders would
+   * otherwise fill the console with nothing.
+   */
+  if (process.env.NODE_ENV !== 'production' && username) {
+    console.debug(
+      `[avatar] ${username}: source=${
+        fallbackAvatar ? 'prop' : storedAvatar ? 'store' : 'NONE'
+      } value=${source ?? '(none)'} decoded=${info ? info.kind : 'null'}`
+    );
+  }
 
   /*
    * A federated picture is a plain URL, so there is nothing to version and
