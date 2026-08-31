@@ -60,7 +60,7 @@ function ReconnectBanner() {
 
   return (
     <div
-      className="fixed bottom-4 left-1/2 z-30 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 rounded-sm border border-gold/30 bg-arena-800 px-4 py-3 sm:bottom-6"
+      className="fixed bottom-4 left-1/2 z-30 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 rounded-lg border border-gold/30 bg-arena-800 px-4 py-3 sm:bottom-6"
       role="status"
     >
       <span className="flex items-center gap-2 text-[12px] text-arena-100">

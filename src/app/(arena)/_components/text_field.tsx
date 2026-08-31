@@ -66,7 +66,7 @@ export default function TextField({
           aria-describedby={describedBy}
           disabled={disabled}
           onChange={(e) => onValueChange(e.target.value)}
-          className={`w-full rounded-sm border bg-arena-750 py-3 pl-4 text-sm text-white outline-none transition-colors placeholder:text-arena-400 focus:border-gold/40 disabled:opacity-50 ${
+          className={`w-full rounded-lg border bg-arena-750 py-3 pl-4 text-sm text-white outline-none transition-colors placeholder:text-arena-400 focus:border-gold/40 disabled:opacity-50 ${
             masked ? 'pr-11' : 'pr-4'
           } ${error ? 'border-gold/60' : 'border-white/10'}`}
         />

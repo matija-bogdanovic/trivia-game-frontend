@@ -60,7 +60,7 @@ export default function Sidebar() {
     <button
       type="button"
       onClick={() => setLang(lang === 'en' ? 'sr' : 'en')}
-      className={`cursor-pointer rounded-sm border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
+      className={`cursor-pointer rounded-lg border border-arena-400 px-2 py-1 text-[10px] font-bold tracking-wider text-arena-200 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${extra}`}
       aria-label={t('arena.nav.switchLanguage')}
     >
       {lang === 'en' ? 'SR' : 'EN'}
@@ -132,7 +132,7 @@ export default function Sidebar() {
                   than its neighbours, so the icon and label shifted every time
                   you changed page.
                 */
-                className={`flex w-full items-center gap-3 rounded-sm border-l-2 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`flex w-full items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   active
                     ? 'border-gold bg-arena-600 text-white'
                     : 'border-transparent text-arena-200 hover:bg-arena-700 hover:text-white'

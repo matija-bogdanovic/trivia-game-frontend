@@ -76,7 +76,7 @@ export default function ArenaBetting() {
       </p>
 
       {/* the pot everything pays out of */}
-      <div className="mb-4 rounded-sm border border-white/[0.07] bg-arena-750 p-3 text-center">
+      <div className="mb-4 rounded-lg border border-white/[0.07] bg-arena-750 p-3 text-center">
         <div className="text-[10px] tracking-wider text-arena-300 uppercase">
           {t('arena.game.pot')}
         </div>
@@ -103,13 +103,13 @@ export default function ArenaBetting() {
               step={10}
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value) || MIN_BET)}
-              className="w-full rounded-sm border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
+              className="w-full rounded-lg border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
             />
             <button
               type="button"
               onClick={() => setAmount(myMoney)}
               disabled={myMoney < MIN_BET}
-              className="shrink-0 cursor-pointer rounded-sm border border-gold/40 px-3 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:border-arena-500 disabled:text-arena-500"
+              className="shrink-0 cursor-pointer rounded-lg border border-gold/40 px-3 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:border-arena-500 disabled:text-arena-500"
             >
               {t('arena.bet.allIn')}
             </button>
@@ -122,7 +122,7 @@ export default function ArenaBetting() {
                 type="button"
                 onClick={() => placeBet(side, stake, stake >= myMoney)}
                 disabled={myMoney < MIN_BET}
-                className={`w-full rounded-sm border py-3 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`w-full rounded-lg border py-3 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   myMoney < MIN_BET
                     ? 'cursor-not-allowed border-arena-500 text-arena-500'
                     : side === 'correct'
@@ -153,7 +153,7 @@ export default function ArenaBetting() {
           <button
             type="button"
             onClick={() => placeBet('neutral', 0)}
-            className="mb-4 w-full cursor-pointer rounded-sm border border-white/10 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="mb-4 w-full cursor-pointer rounded-lg border border-white/10 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.bet.sitOut')}
           </button>
@@ -167,7 +167,7 @@ export default function ArenaBetting() {
       )}
 
       {declared && (
-        <div className="mb-4 rounded-sm border border-white/[0.07] bg-arena-750 p-3 text-center">
+        <div className="mb-4 rounded-lg border border-white/[0.07] bg-arena-750 p-3 text-center">
           <div className="mb-1 text-[10px] tracking-wider text-arena-300 uppercase">
             {t('arena.bet.yours')}
           </div>

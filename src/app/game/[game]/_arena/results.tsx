@@ -57,7 +57,7 @@ export default function ArenaResults({
   return (
     <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
       {/* =========================================================== winner */}
-      <section className="relative mb-8 overflow-hidden rounded-sm border border-gold/20 bg-arena-800 p-6 text-center sm:p-10">
+      <section className="relative mb-8 overflow-hidden rounded-lg border border-gold/20 bg-arena-800 p-6 text-center sm:p-10">
         <div
           className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-5"
           aria-hidden="true"
@@ -110,7 +110,7 @@ export default function ArenaResults({
           {rankings.map((row, i) => (
             <li
               key={row.name}
-              className={`flex items-center gap-3 rounded-sm border p-4 sm:gap-4 ${
+              className={`flex items-center gap-3 rounded-lg border p-4 sm:gap-4 ${
                 row.isYou
                   ? 'border-gold/30 bg-gold/10'
                   : 'border-white/[0.07] bg-arena-800'
@@ -140,7 +140,7 @@ export default function ArenaResults({
                     {row.name}
                   </span>
                   {row.isYou && (
-                    <span className="rounded-sm border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
+                    <span className="rounded-lg border border-arena-400 px-1.5 text-[9px] tracking-widest text-arena-300">
                       {t('arena.common.you')}
                     </span>
                   )}
@@ -169,7 +169,7 @@ export default function ArenaResults({
       </section>
 
       {/* ==================================================== your numbers */}
-      <section className="mb-8 rounded-sm border border-white/[0.07] bg-arena-800 p-6">
+      <section className="mb-8 rounded-lg border border-white/[0.07] bg-arena-800 p-6">
         <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           {t('arena.results.yourPerformance')}
         </h2>
@@ -197,13 +197,13 @@ export default function ArenaResults({
         </Link>
         <Link
           href="/home"
-          className="rounded-sm border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.results.returnHome')}
         </Link>
         <Link
           href="/rooms/create"
-          className="rounded-sm border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.results.createNew')}
         </Link>

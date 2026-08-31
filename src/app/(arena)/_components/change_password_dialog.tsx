@@ -247,7 +247,7 @@ export default function ChangePasswordDialog({
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              className="cursor-pointer rounded-lg border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
               {t('arena.common.cancel')}
             </button>

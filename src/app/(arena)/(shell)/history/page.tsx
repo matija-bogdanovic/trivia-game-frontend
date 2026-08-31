@@ -90,7 +90,7 @@ export default function Page() {
               type="button"
               onClick={() => changeFilter(option.value)}
               aria-pressed={filter === option.value}
-              className={`cursor-pointer rounded-sm border px-5 py-2.5 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              className={`cursor-pointer rounded-lg border px-5 py-2.5 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 filter === option.value
                   ? 'border-gold bg-gold text-arena-950'
                   : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
@@ -114,7 +114,7 @@ export default function Page() {
           {Array.from({ length: 6 }, (_, i) => (
             <div
               key={i}
-              className="flex flex-wrap items-center gap-3 rounded-sm border border-white/[0.07] bg-arena-800 p-4 sm:flex-nowrap sm:gap-4 sm:p-5"
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-white/[0.07] bg-arena-800 p-4 sm:flex-nowrap sm:gap-4 sm:p-5"
             >
               <Skeleton className="h-12 w-2 shrink-0" />
               <div className="min-w-0 flex-1 space-y-2">
@@ -189,7 +189,7 @@ export default function Page() {
           return (
             <div
               key={match.matchId}
-              className="rounded-sm border border-white/[0.07] bg-arena-800"
+              className="rounded-lg border border-white/[0.07] bg-arena-800"
             >
               <button
                 type="button"
@@ -208,7 +208,7 @@ export default function Page() {
                     <span className="font-bold text-white">
                       {match.roomName}
                     </span>
-                    <span className="rounded-sm border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
+                    <span className="rounded-lg border border-arena-500 px-1.5 py-0.5 text-[9px] tracking-widest text-arena-300">
                       {t('arena.history.players', { n: match.playerCount })}
                     </span>
                   </span>
@@ -230,7 +230,7 @@ export default function Page() {
                 </span>
 
                 <span
-                  className={`ml-2 rounded-sm border px-3 py-1 text-[11px] font-bold tracking-widest uppercase ${
+                  className={`ml-2 rounded-lg border px-3 py-1 text-[11px] font-bold tracking-widest uppercase ${
                     match.won
                       ? 'border-gold/40 text-gold'
                       : 'border-arena-400 text-arena-300'
@@ -280,7 +280,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={retry}
-                        className="cursor-pointer rounded-sm border border-white/20 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                        className="cursor-pointer rounded-lg border border-white/20 px-3 py-1.5 text-[10px] font-bold tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       >
                         {t('arena.history.retry')}
                       </button>

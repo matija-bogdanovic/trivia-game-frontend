@@ -101,7 +101,7 @@ export default function ArenaPicking() {
               type="button"
               onClick={() => setTarget(u)}
               aria-pressed={selected}
-              className={`cursor-pointer rounded-sm border p-5 text-center transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              className={`cursor-pointer rounded-lg border p-5 text-center transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 selected
                   ? 'border-gold/60 bg-gold/10'
                   : 'border-white/[0.07] bg-arena-800 hover:border-gold/30 hover:bg-arena-750'
@@ -155,7 +155,7 @@ export default function ArenaPicking() {
 
       {/* ===================================================== the optional wager */}
       {target && (
-        <div className="mb-6 rounded-sm border border-white/[0.07] bg-arena-800 p-5">
+        <div className="mb-6 rounded-lg border border-white/[0.07] bg-arena-800 p-5">
           <div className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.pick.backIt')}
           </div>
@@ -169,7 +169,7 @@ export default function ArenaPicking() {
                 type="button"
                 onClick={() => setSide(side === s ? null : s)}
                 aria-pressed={side === s}
-                className={`flex-1 rounded-sm border py-3 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`flex-1 rounded-lg border py-3 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   side === s
                     ? 'border-gold bg-gold/15 text-gold'
                     : 'cursor-pointer border-white/10 text-white hover:bg-arena-700'
@@ -194,7 +194,7 @@ export default function ArenaPicking() {
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value) || minBet)}
                 aria-label={t('arena.bet.stake')}
-                className="w-full rounded-sm border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
+                className="w-full rounded-lg border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
               />
               <span className="shrink-0 text-[10px] tracking-wider text-arena-300 uppercase">
                 {t('arena.pick.ofYours', { amount: money(myMoney) })}
@@ -222,7 +222,7 @@ export default function ArenaPicking() {
                 : undefined
             )
           }
-          className={`rounded-sm border py-5 font-bold tracking-widest uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+          className={`rounded-lg border py-5 font-bold tracking-widest uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
             target
               ? 'cursor-pointer border-white/20 text-white hover:bg-arena-700'
               : 'cursor-not-allowed border-arena-500 text-arena-500'

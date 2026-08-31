@@ -105,7 +105,7 @@ export default function RoomsShell({ tab }: { tab: RoomsTab }) {
               role="tab"
               aria-selected={active}
               aria-current={active ? 'page' : undefined}
-              className={`inline-flex cursor-pointer items-center gap-2 rounded-sm border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-[11px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:px-6 ${
                 active
                   ? 'border-gold bg-gold text-arena-950'
                   : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'

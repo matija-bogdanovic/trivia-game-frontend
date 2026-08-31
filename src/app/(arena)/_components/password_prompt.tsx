@@ -70,7 +70,7 @@ export default function PasswordPrompt({
             aria-invalid={Boolean(error)}
             autoComplete="off"
             disabled={submitting}
-            className="w-full rounded-sm border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
+            className="w-full rounded-lg border border-white/10 bg-arena-750 py-3 pr-11 pl-4 text-sm text-white outline-none placeholder:text-arena-400 focus:border-gold/40"
           />
           {!submitting && reveal.button}
         </div>
@@ -100,7 +100,7 @@ export default function PasswordPrompt({
           <button
             type="button"
             onClick={onCancel}
-            className="cursor-pointer rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="cursor-pointer rounded-lg border border-white/20 px-5 py-3 text-[11px] tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           >
             {t('arena.common.cancel')}
           </button>

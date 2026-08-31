@@ -77,7 +77,7 @@ export default function ArenaReveal() {
 
       {/* the answer the server states — never inferred from the options */}
       <div
-        className={`mb-6 rounded-sm border bg-arena-800 p-6 ${lastCorrect ? 'border-gold/20' : 'border-white/[0.07]'}`}
+        className={`mb-6 rounded-lg border bg-arena-800 p-6 ${lastCorrect ? 'border-gold/20' : 'border-white/[0.07]'}`}
       >
         <div className="mb-2 text-[10px] tracking-widest text-arena-300 uppercase">
           {t('arena.game.correctAnswer')}
@@ -93,7 +93,7 @@ export default function ArenaReveal() {
 
       {/* ================================================= settled bets */}
       {bets.length > 0 && (
-        <div className="mb-6 rounded-sm border border-white/[0.07] bg-arena-800 p-5 text-left">
+        <div className="mb-6 rounded-lg border border-white/[0.07] bg-arena-800 p-5 text-left">
           <div className="mb-3 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.game.betsSettled')}
           </div>
@@ -101,7 +101,7 @@ export default function ArenaReveal() {
             {bets.map((b) => (
               <li
                 key={`${b.username}-${b.side}-${b.amount}`}
-                className={`flex items-center gap-3 rounded-sm border p-3 ${
+                className={`flex items-center gap-3 rounded-lg border p-3 ${
                   b.username === username
                     ? 'border-gold/30 bg-gold/5'
                     : 'border-white/[0.05]'
@@ -143,7 +143,7 @@ export default function ArenaReveal() {
       )}
 
       {/* ================================================ pot and minting */}
-      <div className="mb-6 grid grid-cols-2 gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-5 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-5 sm:grid-cols-3">
         <div>
           <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
             {t('arena.game.pot')}
@@ -173,7 +173,7 @@ export default function ArenaReveal() {
       </div>
 
       {eliminated.length > 0 && (
-        <div className="rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[11px] tracking-wider text-gold">
+        <div className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[11px] tracking-wider text-gold">
           {t('arena.game.eliminated', {
             names: eliminated
               .map((u) => displayNameOf(players, u))

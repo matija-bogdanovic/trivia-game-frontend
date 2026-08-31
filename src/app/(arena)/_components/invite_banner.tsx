@@ -48,7 +48,7 @@ export default function InviteBanner() {
 
   return (
     <div
-      className="fixed bottom-4 left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 rounded-sm border border-gold/40 bg-arena-800 px-4 py-3 shadow-lg sm:bottom-6"
+      className="fixed bottom-4 left-1/2 z-40 flex max-w-[92vw] -translate-x-1/2 items-center gap-3 rounded-lg border border-gold/40 bg-arena-800 px-4 py-3 shadow-lg sm:bottom-6"
       role="alert"
     >
       <UserPlusIcon className="h-5 w-5 shrink-0 text-gold" />

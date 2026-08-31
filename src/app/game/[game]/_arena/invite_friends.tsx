@@ -119,7 +119,7 @@ export default function InviteFriends({
           return (
             <div
               key={friend.username}
-              className="flex items-center gap-3 rounded-sm border border-white/[0.07] bg-arena-750 p-3"
+              className="flex items-center gap-3 rounded-lg border border-white/[0.07] bg-arena-750 p-3"
             >
               <span className="relative shrink-0">
                 <Avatar username={friend.username} name={name} size="sm" />
@@ -155,7 +155,7 @@ export default function InviteFriends({
                   type="button"
                   disabled={!invitable}
                   onClick={() => inviteFriend(friend.username)}
-                  className={`shrink-0 rounded-sm border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                  className={`shrink-0 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                     invitable
                       ? 'cursor-pointer border-gold/40 text-gold hover:bg-gold/10'
                       : 'cursor-not-allowed border-arena-500 text-arena-500'

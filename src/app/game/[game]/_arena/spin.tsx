@@ -78,7 +78,7 @@ export default function ArenaSpin() {
           return (
             <div
               key={p.username}
-              className={`flex flex-col items-center rounded-sm border p-4 transition-all duration-100 ${
+              className={`flex flex-col items-center rounded-lg border p-4 transition-all duration-100 ${
                 lit
                   ? 'scale-110 border-gold bg-gold/15 shadow-[0_0_24px_-6px] shadow-gold/50'
                   : 'scale-100 border-white/[0.07] bg-arena-800'

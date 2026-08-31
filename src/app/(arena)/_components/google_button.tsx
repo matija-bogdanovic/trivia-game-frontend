@@ -34,7 +34,7 @@ export default function GoogleButton({
         type="button"
         onClick={onPress}
         disabled={disabled}
-        className={`flex w-full items-center justify-center gap-3 rounded-sm border py-3.5 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
+        className={`flex w-full items-center justify-center gap-3 rounded-lg border py-3.5 text-[11px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
           disabled
             ? 'cursor-not-allowed border-arena-600 text-arena-500'
             : 'cursor-pointer border-white/20 text-white hover:border-white/40 hover:bg-arena-700'

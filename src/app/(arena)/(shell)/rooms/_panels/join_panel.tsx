@@ -182,7 +182,7 @@ export default function JoinPanel() {
       <div className="grid gap-6 lg:grid-cols-5 lg:gap-8">
         {/* ===================================================== code entry */}
         <section className="lg:col-span-2">
-          <div className="rounded-sm border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
+          <div className="rounded-lg border border-white/[0.07] bg-arena-800 p-6 sm:p-8">
             <h2
               className="mb-6 text-[11px] tracking-[0.25em] text-arena-200 uppercase"
               id="code-label"
@@ -211,7 +211,7 @@ export default function JoinPanel() {
                   onKeyDown={(e) => onKeyDown(i, e)}
                   aria-label={t('arena.join.digit', { n: i + 1 })}
                   disabled={joining}
-                  className={`h-12 w-10 rounded-sm border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-50 sm:h-14 sm:w-12 ${
+                  className={`h-12 w-10 rounded-lg border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-50 sm:h-14 sm:w-12 ${
                     digit
                       ? 'border-gold/50 text-gold'
                       : 'border-white/10 text-white focus:border-gold/40'
@@ -287,7 +287,7 @@ export default function JoinPanel() {
             {lobbies.map((room) => (
               <article
                 key={room.lobbyId}
-                className="flex flex-col gap-4 rounded-sm border border-white/[0.07] bg-arena-800 p-5 transition-colors hover:bg-arena-750 sm:flex-row sm:items-center sm:gap-5"
+                className="flex flex-col gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-5 transition-colors hover:bg-arena-750 sm:flex-row sm:items-center sm:gap-5"
               >
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-3">
@@ -295,7 +295,7 @@ export default function JoinPanel() {
                       {room.roomName}
                     </h3>
                     <span
-                      className={`flex items-center gap-1 rounded-sm border px-2 py-0.5 text-[9px] tracking-widest ${
+                      className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[9px] tracking-widest ${
                         room.isPrivate
                           ? 'border-gold/40 text-gold'
                           : 'border-frost/40 text-frost'
@@ -346,7 +346,7 @@ export default function JoinPanel() {
             ))}
 
             {lobbiesLoaded && lobbies.length === 0 && (
-              <div className="rounded-sm border border-white/[0.07] bg-arena-800 p-8 text-center">
+              <div className="rounded-lg border border-white/[0.07] bg-arena-800 p-8 text-center">
                 <div className="mb-3 flex justify-center" aria-hidden="true">
                   <SmileyIcon className="h-9 w-9 text-arena-500" />
                 </div>

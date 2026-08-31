@@ -91,7 +91,7 @@ export default function Page() {
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
       {/* =========================================================== header */}
-      <section className="flex flex-col items-start gap-6 rounded-sm border border-white/[0.07] bg-arena-800 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8">
+      <section className="flex flex-col items-start gap-6 rounded-lg border border-white/[0.07] bg-arena-800 p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8">
         {/*
           username and avatar are both required for a picture to resolve:
           useAvatarSource needs the username to build the URL and the wallet's
@@ -185,7 +185,7 @@ export default function Page() {
 
         <Link
           href="/settings"
-          className="rounded-sm border border-white/20 px-5 py-3 text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="rounded-lg border border-white/20 px-5 py-3 text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.profile.edit')}
         </Link>
@@ -197,7 +197,7 @@ export default function Page() {
           {Array.from({ length: 4 }, (_, i) => (
             <div
               key={i}
-              className="flex flex-col items-center rounded-sm border border-white/[0.07] bg-arena-800 p-4"
+              className="flex flex-col items-center rounded-lg border border-white/[0.07] bg-arena-800 p-4"
             >
               <Skeleton className="mb-2 h-7 w-14" />
               <Skeleton className="h-2.5 w-16" />
@@ -210,7 +210,7 @@ export default function Page() {
         {stats.map((stat) => (
           <div
             key={stat.labelKey}
-            className="rounded-sm border border-white/[0.07] bg-arena-800 p-4 text-center"
+            className="rounded-lg border border-white/[0.07] bg-arena-800 p-4 text-center"
           >
             <div className="mb-1 text-2xl font-bold text-gold tabular-nums">
               {stat.value}
@@ -245,7 +245,7 @@ export default function Page() {
           per category: 40 games of Geography say nothing about the four
           History questions sitting next to them.
         */}
-        <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-6">
+        <section className="rounded-lg border border-white/[0.07] bg-arena-800 p-6">
           <h2 className="mb-5 text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.categoryPerformance')}
           </h2>
@@ -255,7 +255,7 @@ export default function Page() {
         </section>
 
         {/* ================================================ recent matches */}
-        <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-6">
+        <section className="rounded-lg border border-white/[0.07] bg-arena-800 p-6">
           <div className="mb-5 flex items-center justify-between">
             <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
               {t('arena.profile.recentMatches')}
@@ -349,7 +349,7 @@ export default function Page() {
       </div>
 
       {/* ===================================================== achievements */}
-      <section className="rounded-sm border border-white/[0.07] bg-arena-800 p-6">
+      <section className="rounded-lg border border-white/[0.07] bg-arena-800 p-6">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
             {t('arena.profile.achievements')}

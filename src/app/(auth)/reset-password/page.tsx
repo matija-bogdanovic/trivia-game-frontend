@@ -82,7 +82,7 @@ function Page() {
 
       {error && (
         <p
-          className="mb-5 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}
@@ -133,7 +133,7 @@ function Page() {
 
       {step === 'done' && (
         <>
-          <p className="mb-6 rounded-sm border border-arena-400 bg-arena-750 px-4 py-3 text-[12px] text-arena-100">
+          <p className="mb-6 rounded-lg border border-arena-400 bg-arena-750 px-4 py-3 text-[12px] text-arena-100">
             {t('reset.done')}
           </p>
           <Link

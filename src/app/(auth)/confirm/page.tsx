@@ -242,7 +242,7 @@ function Page() {
 
       {error && (
         <p
-          className="mb-5 rounded-sm border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}
@@ -250,7 +250,7 @@ function Page() {
       )}
       {notice && (
         <p
-          className="mb-5 rounded-sm border border-arena-400 bg-arena-750 px-4 py-3 text-[12px] leading-relaxed text-arena-100"
+          className="mb-5 rounded-lg border border-arena-400 bg-arena-750 px-4 py-3 text-[12px] leading-relaxed text-arena-100"
           role="status"
         >
           {notice}
@@ -271,7 +271,7 @@ function Page() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
-            className="w-full rounded-sm border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-arena-400 focus:border-gold/40"
+            className="w-full rounded-lg border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-arena-400 focus:border-gold/40"
           />
         </div>
       )}
@@ -296,7 +296,7 @@ function Page() {
             onKeyDown={handleKeyDown(index)}
             onPaste={handlePaste(index)}
             aria-label={`Digit ${index + 1} of 6`}
-            className={`h-12 w-10 rounded-sm border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold sm:h-14 sm:w-12 ${
+            className={`h-12 w-10 rounded-lg border bg-arena-750 text-center text-2xl font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-gold sm:h-14 sm:w-12 ${
               value
                 ? 'border-gold/50 text-gold'
                 : 'border-white/10 text-white focus:border-gold/40'
