@@ -77,9 +77,9 @@ const SR: RulesContent = {
         {
           points: [
             'Točak se okreće i bira ko odgovara. Ko je nedavno bio na redu ima manju šansu da odmah opet dođe na red, ali nikad ne postane nemoguć.',
-            'Izabrani dobija pitanje sa četiri ponuđena odgovora. Vremena je 15 sekundi na početku, i skraćuje se za sekundu sa svakim nastavkom lanca, najmanje 8 sekundi.',
+            'Izabrani dobija pitanje sa četiri ponuđena odgovora. Vremena je 18 sekundi na početku, i skraćuje se za sekundu sa svakim nastavkom lanca, najmanje 10 sekundi.',
             'Svi ostali živi igrači se u međuvremenu klade na to da li će on pogoditi. Knjiga je otvorena od trenutka kad se pitanje pojavi.',
-            'Kad odgovori — ili kad mu istekne vreme — ostaje još 8 sekundi pauze za klađenje. Pauza se prekida ranije čim se svi izjasne.',
+            'Kad odgovori — ili kad mu istekne vreme — ostaje još 10 sekundi pauze za klađenje. Pauza se prekida ranije čim se svi izjasne.',
             'Otkriva se tačan odgovor, opklade se isplaćuju, i vidi se ko je koliko dobio ili izgubio.',
           ],
         },
@@ -127,7 +127,7 @@ const SR: RulesContent = {
       lead: 'Koga, i na koji način.',
       blocks: [
         {
-          text: 'Tačan odgovor ti daje pravo da izabereš sledećeg — imaš 20 sekundi. Pitanje koje šalješ je teže od uobičajenog, jer je izbor napad, a ne usluga. Biraš i način:',
+          text: 'Tačan odgovor ti daje pravo da izabereš sledećeg — imaš 25 sekundi. Pitanje koje šalješ je teže od uobičajenog, jer je izbor napad, a ne usluga. Biraš i način:',
         },
         {
           points: [
@@ -234,9 +234,9 @@ const EN: RulesContent = {
         {
           points: [
             'The wheel spins and chooses who answers. Anyone picked recently is less likely to come up again straight away, but never impossible.',
-            'They get a question with four options. Fifteen seconds to begin with, one second less for every link the chain runs on, never below eight.',
+            'They get a question with four options. Eighteen seconds to begin with, one second less for every link the chain runs on, never below ten.',
             'Everyone else still in the game bets on whether they will get it right. The book opens the moment the question appears.',
-            'Once they answer — or run out of time — there are eight more seconds of betting. The pause ends early as soon as everyone has declared.',
+            'Once they answer — or run out of time — there are ten more seconds of betting. The pause ends early as soon as everyone has declared.',
             'The answer is revealed, bets are settled, and everyone sees what they won or lost.',
           ],
         },
@@ -284,7 +284,7 @@ const EN: RulesContent = {
       lead: 'Who, and how.',
       blocks: [
         {
-          text: 'A correct answer lets you pick who faces the next question — you have 20 seconds. What you send is harder than the usual draw, because picking is an act of aggression rather than a favour. You also choose the shape:',
+          text: 'A correct answer lets you pick who faces the next question — you have 25 seconds. What you send is harder than the usual draw, because picking is an act of aggression rather than a favour. You also choose the shape:',
         },
         {
           points: [
