@@ -7,6 +7,7 @@ import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import HostChangeBanner from './host_change_banner';
+import { fetchFriends, friendAction } from '@/app/helpers/friends';
 import InviteFriends from './invite_friends';
 import {
   CheckIcon,
@@ -37,11 +38,45 @@ export default function ArenaLobby() {
     isHost: iAmHost,
     startGame,
     kickPlayer,
-    terminateLobby,
     sendChat,
     leaveRoom,
   } = useGame();
   const [inviting, setInviting] = useState(false);
+  /*
+   * Who in this room you are already friends with — read once, so the tiles
+   * can offer "Dodaj prijatelja" only to the people it would mean something
+   * for. A failure leaves the set empty, which shows the button to everyone;
+   * the server refuses a duplicate request anyway, so the worst case is one
+   * wasted click rather than a broken lobby.
+   */
+  const [friends, setFriends] = useState<Set<string>>(new Set());
+  const [requested, setRequested] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let live = true;
+    fetchFriends().then((snap) => {
+      if (!live || !snap) return;
+      setFriends(new Set(snap.friends.map((f) => f.username)));
+      // somebody you have already asked is not somebody to ask again
+      setRequested(new Set((snap.outgoing ?? []).map((o) => o.username)));
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const addFriend = async (target: string) => {
+    setRequested((current) => new Set(current).add(target));
+    const result = await friendAction(target, 'request');
+    // a refusal puts the button back rather than leaving a false "sent"
+    if (!result.ok) {
+      setRequested((current) => {
+        const next = new Set(current);
+        next.delete(target);
+        return next;
+      });
+    }
+  };
 
   const inviteSentTo = useSelector((st: RootState) => st.invite.sent);
   const inviteResult = useSelector((st: RootState) => st.invite.result);
@@ -100,7 +135,22 @@ export default function ArenaLobby() {
     setMessage('');
   };
 
-  const seated = players.filter((p) => !p.isSpectator);
+  /*
+   * You first, everybody else in the order the room already had them.
+   *
+   * Purely presentational — the roster's order is join order and the server
+   * still decides everything by it, succession included. This only moves the
+   * tile you are looking for to where you look first.
+   *
+   * A stable partition rather than a sort: [me, ...rest] preserves the
+   * relative order of everyone else exactly, where a comparator returning 0
+   * for every other pair would leave that to the engine's discretion.
+   */
+  const seatedRaw = players.filter((p) => !p.isSpectator);
+  const seated = [
+    ...seatedRaw.filter((p) => p.username === username),
+    ...seatedRaw.filter((p) => p.username !== username),
+  ];
   const spectators = players.filter((p) => p.isSpectator);
   const connectedCount = seated.filter((p) => p.connected).length;
 
@@ -356,6 +406,33 @@ export default function ArenaLobby() {
                   </div>
 
                   {/*
+                    Ask somebody you have just met to be friends.
+                    
+                    Only on other people's tiles, and only when there is no
+                    relationship yet — already a friend, or already asked, and
+                    the button has nothing to offer. Optimistic: the label
+                    flips on click and flips back if the server refuses, so a
+                    denial does not leave a false "sent".
+                  */}
+                  {!isMe &&
+                    !friends.has(player.username) &&
+                    (requested.has(player.username) ? (
+                      <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-400 uppercase">
+                        <CheckIcon className="h-3 w-3 shrink-0" />
+                        {t('game.friendRequested')}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => addFriend(player.username)}
+                        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gold/40 py-1.5 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                      >
+                        <UserPlusIcon className="h-3 w-3 shrink-0" />
+                        {t('game.addFriend')}
+                      </button>
+                    ))}
+
+                  {/*
                     Host-only, and never on the host's own tile — the same
                     isHost the start button and the leave warning read, so a
                     player who cannot start a match cannot remove someone from
@@ -437,9 +514,11 @@ export default function ArenaLobby() {
               </div>
             )}
             {/*
-              The host leaving deletes the room for everyone, so they are asked
-              first. For anyone else leaving is just leaving, and a confirm
-              would be friction with nothing behind it.
+              The host is still asked before leaving, but the question changed
+              with succession: leaving no longer deletes the room, it hands it
+              to the longest-present player. Worth a confirm anyway — giving
+              away the start button is a decision — and worth NOT saying
+              "the room will be deleted", which stopped being true.
             */}
             <button
               onClick={() => (iAmHost ? setConfirmingLeave(true) : leaveRoom())}
@@ -447,14 +526,6 @@ export default function ArenaLobby() {
             >
               {t('arena.lobby.leave')}
             </button>
-            {iAmHost && (
-              <button
-                onClick={terminateLobby}
-                className="rounded-lg border border-white/10 text-arena-200 text-[11px] tracking-[0.15em] uppercase px-5 py-4 hover:bg-arena-700 hover:text-white transition-colors"
-              >
-                {t('arena.lobby.close')}
-              </button>
-            )}
           </div>
         </div>
 

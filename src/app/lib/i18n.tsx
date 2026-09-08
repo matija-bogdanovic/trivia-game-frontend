@@ -159,8 +159,8 @@ const dict: Record<Lang, Record<string, string>> = {
     // lobby — host leaving, room closure, capacity the server has not stated
     'arena.lobby.hostLeaveTitle': 'You are the host',
     'arena.lobby.hostLeaveWarning':
-      'If you leave the room, the room will be deleted for all players. Continue?',
-    'arena.lobby.hostLeaveConfirm': 'Leave and close',
+      'If you leave, the room passes to whoever has been here longest. Continue?',
+    'arena.lobby.hostLeaveConfirm': 'Leave and hand over',
     'arena.lobby.hostLeaveCancel': 'Stay',
     'arena.lobby.roomClosedTitle': 'Room closed',
     'arena.lobby.roomClosedHostLeft':
@@ -1051,8 +1051,8 @@ const dict: Record<Lang, Record<string, string>> = {
     // lobby — host leaving, room closure, capacity the server has not stated
     'arena.lobby.hostLeaveTitle': 'Ti si domaćin',
     'arena.lobby.hostLeaveWarning':
-      'Ako napustiš sobu, soba će biti obrisana za sve igrače. Nastaviti?',
-    'arena.lobby.hostLeaveConfirm': 'Napusti i zatvori',
+      'Ako odeš, soba prelazi onome ko je najduže u njoj. Nastaviti?',
+    'arena.lobby.hostLeaveConfirm': 'Napusti i predaj',
     'arena.lobby.hostLeaveCancel': 'Ostani',
     'arena.lobby.roomClosedTitle': 'Soba je zatvorena',
     'arena.lobby.roomClosedHostLeft':
