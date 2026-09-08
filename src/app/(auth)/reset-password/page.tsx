@@ -93,7 +93,8 @@ function Page() {
         <form className="space-y-4" onSubmit={requestCode}>
           <TextField
             fieldId="reset-username"
-            label={t('auth.username')}
+            label={t('auth.identifier')}
+            placeholder={t('auth.identifierPlaceholder')}
             autoComplete="username"
             value={username}
             disabled={busy}

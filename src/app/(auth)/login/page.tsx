@@ -131,8 +131,8 @@ function Page() {
       <form className="space-y-4" onSubmit={logIn}>
         <TextField
           fieldId="login-username"
-          label={t('auth.username')}
-          placeholder={t('auth.namePlaceholder')}
+          label={t('auth.identifier')}
+          placeholder={t('auth.identifierPlaceholder')}
           autoComplete="username"
           value={username}
           disabled={busy}

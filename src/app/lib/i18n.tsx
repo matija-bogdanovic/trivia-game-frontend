@@ -229,6 +229,15 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.login': 'Login',
     'auth.loginSub': 'Login to your account to get started',
     'auth.username': 'Username',
+    /*
+     * The field you SIGN IN with, which is not the same string as the one
+     * you pick at signup. The pool carries AliasAttributes ['email'], so a
+     * verified address works wherever a username does — Cognito resolves
+     * the alias itself, and the app needed no change to allow it, only to
+     * stop hiding it.
+     */
+    'auth.identifier': 'Username or email',
+    'auth.identifierPlaceholder': 'e.g. matija or you@example.com',
     'auth.password': 'Password',
     'auth.email': 'Email',
     'auth.repeatPassword': 'Repeat password',
@@ -1107,6 +1116,8 @@ const dict: Record<Lang, Record<string, string>> = {
     'auth.login': 'Prijava',
     'auth.loginSub': 'Prijavi se na svoj nalog',
     'auth.username': 'Korisničko ime',
+    'auth.identifier': 'Korisničko ime ili mejl',
+    'auth.identifierPlaceholder': 'npr. matija ili mejl@primer.com',
     'auth.password': 'Lozinka',
     'auth.email': 'Mejl',
     'auth.repeatPassword': 'Ponovi lozinku',
