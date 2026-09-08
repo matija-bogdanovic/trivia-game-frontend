@@ -12,6 +12,34 @@ import { useT } from '@/app/lib/i18n';
 const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 /**
+ * A stopwatch, counting UP from the moment the question went on screen.
+ *
+ * Deliberately not useServerClock: that ticks once a second, which is right
+ * for a countdown and useless for a race regularly decided inside a tenth. It
+ * runs on its own fast interval and only while the duel is live, so the cost
+ * is paid by the one screen that needs it.
+ *
+ * Derived from the deadline rather than from a local start time, because the
+ * deadline is the server's and a locally-started clock would drift away from
+ * the times the result screen prints.
+ */
+function useStopwatch(deadline: number | null, durationMs: number): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (deadline === null || !Number.isFinite(deadline)) return;
+    const id = setInterval(() => setNow(Date.now()), 60);
+    return () => clearInterval(id);
+  }, [deadline]);
+  if (deadline === null || !Number.isFinite(deadline) || durationMs <= 0) {
+    return 0;
+  }
+  return Math.max(0, Math.min(durationMs, durationMs - (deadline - now)));
+}
+
+/** seconds to hundredths — the resolution a duel is actually decided at */
+const secondsOf = (ms: number) => (Math.max(0, ms) / 1000).toFixed(2);
+
+/**
  * The duel: two racers, one question, fastest correct answer takes it.
  *
  * This screen has never been reachable. The reducer listened for
@@ -34,6 +62,7 @@ export default function ArenaDuel() {
   const {
     duelPlayers,
     duelAnswered,
+    duelAnsweredAt,
     duelAnte,
     players,
     questionText,
@@ -46,6 +75,7 @@ export default function ArenaDuel() {
 
   const [pending, setPending] = useState<string | null>(null);
   const { seconds } = useCountdown(answerEndsAt, answerDurationMs);
+  const elapsedMs = useStopwatch(answerEndsAt, answerDurationMs);
 
   useEffect(() => {
     setPending(null);
@@ -114,8 +144,26 @@ export default function ArenaDuel() {
                 >
                   {money(p?.money ?? 0)}
                 </div>
-                {/* that they have answered, never what */}
-                <div className="mt-2 text-[10px] tracking-widest uppercase">
+                {/*
+                  THAT they have answered and HOW FAST, never what. A racer
+                  who has buzzed shows the server's own time, frozen — the
+                  same figure the result screen will print — and one still
+                  thinking shows their clock running, so the person deciding
+                  can see exactly what they are spending.
+                */}
+                <div
+                  className={`mt-2 text-xl font-bold tabular-nums ${
+                    buzzed ? 'text-gold' : 'text-arena-300'
+                  }`}
+                  role="timer"
+                >
+                  {t('arena.duel.seconds', {
+                    n: secondsOf(
+                      buzzed ? (duelAnsweredAt?.[u] ?? 0) : elapsedMs
+                    ),
+                  })}
+                </div>
+                <div className="mt-1 text-[10px] tracking-widest uppercase">
                   {buzzed ? (
                     <span className="text-gold">{t('arena.duel.locked')}</span>
                   ) : (

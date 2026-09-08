@@ -39,11 +39,34 @@ export default function ArenaBetting() {
     betCount,
     betEndsAt,
     betDurationMs,
+    answerEndsAt,
+    answerDurationMs,
     phase,
   } = useSelector((s: RootState) => s.game);
 
   const [amount, setAmount] = useState(50);
-  const { seconds } = useCountdown(betEndsAt, betDurationMs);
+
+  /*
+    THE CLOCK THIS PANEL SHOWS.
+
+    It used to show one only during the `betting` pause, and nothing at all
+    while the question was up — which is most of the window. So the panel sat
+    there looking untimed, and the first number a bettor ever saw was the one
+    that appeared when the pause started and the answerer had already buzzed.
+    Matija's report was the clock running out mid-typing, and this is why:
+    there was no clock to watch until it was nearly gone.
+
+    Whichever phase is live owns the readout. During the question that is the
+    question's own deadline — not a betting deadline, but the honest answer to
+    "how long have I got", since the answerer can end it at any moment.
+  */
+  const inPause = phase === 'betting';
+  const { seconds } = useCountdown(
+    inPause ? betEndsAt : answerEndsAt,
+    inPause ? betDurationMs : answerDurationMs
+  );
+  const deadline = inPause ? betEndsAt : answerEndsAt;
+  const urgent = deadline !== null && seconds <= 3;
 
   const me = (players ?? []).find((p) => p.username === username);
   const myMoney = me?.money ?? 0;
@@ -61,9 +84,11 @@ export default function ArenaBetting() {
         <div className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           {t('arena.bet.title')}
         </div>
-        {betEndsAt !== null && phase === 'betting' && (
+        {deadline !== null && (
           <span
-            className="text-sm font-bold text-gold tabular-nums"
+            className={`text-sm font-bold tabular-nums ${
+              urgent ? 'animate-pulse text-blood' : 'text-gold'
+            }`}
             role="timer"
           >
             {seconds}

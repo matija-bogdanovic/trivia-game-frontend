@@ -7,6 +7,7 @@ import { money } from '@/app/(arena)/_lib/money';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useT } from '@/app/lib/i18n';
+import ArenaDuelResult from './duel_result';
 
 /** a signed amount, with its sign spelled out */
 function Delta({ value }: { value: number }) {
@@ -56,7 +57,17 @@ export default function ArenaReveal() {
     pot,
     minted,
     mintedThisTurn,
+    duelSubmissions,
   } = useSelector((s: RootState) => s.game);
+
+  /*
+    A duel resolves into the same `reveal` phase as a wheel question, but it
+    settles nothing this screen reads — no answerer, no correctness, no book.
+    Rendering it here showed the PREVIOUS turn's verdict above the duel's
+    ante. `duelSubmissions` is the server's own per-racer record and is
+    written only by duel_result, so it is exactly the discriminator.
+  */
+  if ((duelSubmissions ?? []).length > 0) return <ArenaDuelResult />;
 
   const answererName = displayNameOf(players, answering);
   const bets = betOutcomes ?? [];

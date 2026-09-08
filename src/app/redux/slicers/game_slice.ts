@@ -15,10 +15,21 @@ export type GamePhase =
   | 'duel'
   | 'gameover';
 
-export interface DuelGuess {
+/**
+ * One racer's run at a duel question, exactly as the server states it.
+ *
+ * `atMs` is the SERVER's clock — milliseconds from the moment the question was
+ * put up to the moment the submission landed — because a duel is decided on
+ * speed and a client-supplied time would be a self-reported race time. Null
+ * when they never answered, which is what `answered` distinguishes from a
+ * genuine 0.
+ */
+export interface DuelSubmission {
   username: string;
-  guess: number | null;
-  diff: number | null;
+  answer: string | null;
+  atMs: number | null;
+  correct: boolean;
+  answered: boolean;
 }
 
 export interface GamePlayer {
@@ -259,6 +270,8 @@ export interface GameState {
   duelPlayers: string[];
   /** who has buzzed in — never what they said, which the server withholds */
   duelAnswered: string[];
+  /** how long each buzz took, ms from the question going up — the server's */
+  duelAnsweredAt: Record<string, number>;
   duelAnte: number;
   myGuessSubmitted: boolean;
   // code duel
@@ -272,12 +285,11 @@ export interface GameState {
   >;
   secretCode: string[] | null;
   codeCracked: boolean;
-  correctValue: number | null;
-  duelGuesses: DuelGuess[];
+  duelSubmissions: DuelSubmission[];
   duelWinner: string | null;
   duelLoser: string | null;
-  duelTie: boolean;
-  duelLoserDelta: number;
+  /** what the winner collected — both antes, not the gain */
+  duelPayout: number;
   kicked: boolean;
   /**
    * Why, when the server says. 'host' is the only reason it sends today; the
@@ -396,6 +408,7 @@ const initialState: GameState = {
   duelKind: null,
   duelPlayers: [],
   duelAnswered: [],
+  duelAnsweredAt: {},
   duelAnte: 0,
   myGuessSubmitted: false,
   codeSymbols: [],
@@ -405,12 +418,10 @@ const initialState: GameState = {
   codeProgress: {},
   secretCode: null,
   codeCracked: false,
-  correctValue: null,
-  duelGuesses: [],
+  duelSubmissions: [],
   duelWinner: null,
   duelLoser: null,
-  duelTie: false,
-  duelLoserDelta: 0,
+  duelPayout: 0,
   kicked: false,
   kickedReason: null,
   terminated: false,
@@ -514,6 +525,7 @@ const gameSlice = createSlice({
           if (s.duel) {
             state.duelPlayers = s.duel.players ?? [];
             state.duelAnswered = s.duel.answered ?? [];
+            state.duelAnsweredAt = s.duel.answeredAt ?? {};
             state.duelAnte = Number(s.duel.ante ?? 0);
             if (s.duel.question) {
               state.questionText = s.duel.question.text ?? state.questionText;
@@ -608,6 +620,7 @@ const gameSlice = createSlice({
           state.chainDepth = message.chainDepth ?? state.chainDepth;
           state.duelPlayers = message.players ?? [];
           state.duelAnswered = message.answered ?? [];
+          state.duelAnsweredAt = message.answeredAt ?? {};
           state.duelAnte = Number(message.ante ?? 0);
           state.picker = message.picker ?? null;
           state.questionText = message.questionText ?? '';
@@ -617,19 +630,44 @@ const gameSlice = createSlice({
           state.answerDurationMs = message.answerTimeMs ?? 0;
           state.answerEndsAt = receivedAt + (message.answerTimeMs ?? 0);
           break;
+        /*
+         * A DUEL'S REVEAL.
+         *
+         * This case used to read `correctValue`, `guesses`, `tie` and
+         * `loserDelta` — four fields of the old guess-a-number duel that the
+         * server has never sent for a race. Every one of them landed as
+         * undefined, and, worse, the fields the reveal screen actually renders
+         * were left holding the PREVIOUS turn's values: a duel showed the last
+         * wheel question's headline, that question's correct answer, and its
+         * bet settlements, because nothing here overwrote them.
+         *
+         * These are the fields duel_result really carries.
+         */
         case 'duel_result':
           state.phase = 'reveal';
-          state.correctValue = message.correctValue;
-          state.duelGuesses = message.guesses;
-          state.duelWinner = message.winner;
-          state.duelLoser = message.loser;
-          state.duelTie = message.tie;
-          state.duelLoserDelta = message.loserDelta;
+          state.duelWinner = message.winner ?? null;
+          state.duelLoser = message.loser ?? null;
+          state.duelAnte = Number(message.ante ?? 0);
+          state.duelPayout = Number(message.payout ?? 0);
+          state.duelSubmissions = Array.isArray(message.submissions)
+            ? message.submissions
+            : [];
+          state.correctAnswer = message.correctAnswer ?? null;
           state.eliminatedNow = message.eliminated ?? [];
           // the two duellists, not the room: assigning them to the roster
           // shrank the player list to whoever happened to be duelling
           state.duelPlayers = message.players ?? [];
+          /*
+           * A duel takes no side bets — its only stakes are the two antes — so
+           * the book is emptied rather than left showing the previous turn's
+           * settlements underneath the race.
+           */
+          state.betOutcomes = [];
+          if (typeof message.pot === 'number') state.pot = message.pot;
+          state.mintedThisTurn = Number(message.minted ?? 0);
+          state.minted = Number(message.mintedTotal ?? state.minted);
           state.answerEndsAt = null;
+          state.betEndsAt = null;
           break;
         case 'turn_question':
           learnSkew(state, message.answerTimeMs, receivedAt);
@@ -676,9 +714,11 @@ const gameSlice = createSlice({
           state.spinEndsAt = null;
           state.countdown = null;
           state.duelPlayers = [];
+          state.duelAnsweredAt = {};
           state.duelKind = null;
-          state.correctValue = null;
-          state.duelGuesses = [];
+          state.duelSubmissions = [];
+          state.duelWinner = null;
+          state.duelLoser = null;
           state.myGuessSubmitted = false;
           state.secretCode = null;
           state.myCodeAttempts = [];
