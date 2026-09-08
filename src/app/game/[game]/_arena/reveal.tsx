@@ -32,16 +32,6 @@ function Delta({ value }: { value: number }) {
  * nothing is recomputed from the roster, which is what kept the old screen
  * disagreeing with the server about who had won what.
  */
-/**
- * One column per figure shown. Literal classes, because Tailwind cannot
- * generate a class it never sees in the source.
- */
-const REVEAL_COLUMNS: Record<number, string> = {
-  1: 'grid-cols-1',
-  2: 'grid-cols-2',
-  3: 'grid-cols-3',
-};
-
 export default function ArenaReveal() {
   const { t } = useT();
   const { username } = useGame();
@@ -205,11 +195,22 @@ export default function ArenaReveal() {
         ];
         return (
           <div className="mb-6 rounded-lg border border-white/[0.07] bg-arena-800 p-5">
-            <div
-              className={`mx-auto grid w-fit gap-x-10 gap-y-4 text-center ${
-                REVEAL_COLUMNS[figures.length] ?? 'grid-cols-1'
-              }`}
-            >
+            {/*
+              A WRAPPING ROW, not a grid with a column count.
+
+              The count-driven grid this replaced was centred but `w-fit`,
+              so three figures laid out at their natural width — and
+              "DODATO OVE RUNDE" is sixteen uppercase characters. Three of
+              those plus the gaps come to roughly 416px, against the ~287px
+              a 375px phone has left after the stage and panel padding. It
+              pushed the page sideways on exactly the turn that mints,
+              which is the turn worth reading.
+
+              Wrapping needs no count at all: one, two or three figures
+              centre themselves at any width, and the third drops to its
+              own line when there is no room rather than off the screen.
+            */}
+            <div className="flex flex-wrap items-start justify-center gap-x-10 gap-y-4 text-center">
               {figures.map((f) => (
                 <div key={f.label}>
                   <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
