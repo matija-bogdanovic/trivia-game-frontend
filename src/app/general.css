@@ -1,0 +1,144 @@
+/*
+ * ===========================================================================
+ * general.css — the numbers the app repeats, given names
+ * ===========================================================================
+ *
+ * globals.css already holds every COLOUR as a token. Nothing else was named:
+ * the border that draws the edge of almost every surface, the two type sizes
+ * the whole interface labels things at, the inset every page in the shell
+ * wears, the focus ring. Those were literals, retyped by hand at each site.
+ *
+ * Counted across the 75 .tsx files at the time of writing:
+ *
+ *     focus-visible:ring-2 focus-visible:ring-gold        124
+ *     border-white/[0.07]                                  87
+ *     rounded-lg + hairline + bg-arena-800  (a panel)      50
+ *     text-[10px] tracking-wider   (a label)               47
+ *     bg-arena-750                 (an inset surface)      33
+ *     text-[10px] tracking-[0.25em] (an eyebrow)           24
+ *     p-4 sm:p-6 lg:p-8            (the page inset)        11
+ *
+ * A number typed 87 times is not a decision, it is 87 chances to typo one of
+ * them — and it cannot be changed at all without a find-and-replace that has
+ * to be right every time. Named here, each is one edit.
+ *
+ * ── WHY THE CLASSES ARE IN @layer components ───────────────────────────────
+ * This matters and is easy to get wrong. Tailwind puts its utilities in a
+ * cascade layer, and UNLAYERED css beats every layer regardless of
+ * specificity. So an unlayered `.arena-panel` setting `border` would win over
+ * a `border-gold/40` utility sitting right beside it in the same className —
+ * silently, and only on the elements that override. Inside @layer components
+ * the utilities keep winning, which is the whole point of a component class:
+ * it is a starting position, not a verdict.
+ */
+
+@layer theme {
+  :root {
+    /* ── surfaces ────────────────────────────────────────────────────────
+       The hairline that separates one surface from the next. It is white at
+       7% rather than a flat grey so it reads the same on arena-800 and on
+       arena-750 without a second value for each. */
+    --arena-hairline: rgba(255, 255, 255, 0.07);
+    /* the same edge where it needs to be seen rather than merely felt */
+    --arena-hairline-strong: rgba(255, 255, 255, 0.2);
+
+    /* ── shape ───────────────────────────────────────────────────────────
+       8px. It was 4px until Matija asked for the softer corner; the value
+       lives here now so the next such change is one line and not a sweep. */
+    --arena-radius: 0.5rem;
+
+    /* ── the page inset ──────────────────────────────────────────────────
+       What every screen inside the shell stands off its edges by. The shell's
+       <main> deliberately carries none of its own, so each page owns this —
+       which is exactly why it needs a name. */
+    --arena-pad: 1rem;
+    --arena-pad-sm: 1.5rem;
+    --arena-pad-lg: 2rem;
+
+    /* ── label type ──────────────────────────────────────────────────────
+       Two sizes carry nearly every piece of chrome in the app: the EYEBROW
+       over a section, and the LABEL under a figure. They differ only in
+       tracking, and that difference is deliberate — the eyebrow is wider
+       because it sits alone, the label tighter because it sits under
+       something it belongs to. */
+    --arena-label-size: 10px;
+    --arena-label-track: 0.05em;
+    --arena-eyebrow-track: 0.25em;
+    /* the body-adjacent small size: hints, one-line explanations */
+    --arena-hint-size: 11px;
+
+    /* ── focus ───────────────────────────────────────────────────────────
+       One ring, everywhere, and the most-repeated string in the codebase. */
+    --arena-focus-width: 2px;
+    --arena-focus-color: var(--color-gold);
+  }
+}
+
+@layer components {
+  /*
+   * A PANEL — the bordered surface almost everything sits on.
+   * Padding is deliberately NOT included: the 50 sites that draw one disagree
+   * about it (p-3 through p-6), and folding a padding into this would mean
+   * every one of them overriding it straight back.
+   */
+  .arena-panel {
+    border-radius: var(--arena-radius);
+    border: 1px solid var(--arena-hairline);
+    background-color: var(--color-arena-800);
+  }
+
+  /* the inset surface: a panel WITHIN a panel — a figure, a well, a row */
+  .arena-inset {
+    border-radius: var(--arena-radius);
+    border: 1px solid var(--arena-hairline);
+    background-color: var(--color-arena-750);
+  }
+
+  /* the small caps over a section */
+  .arena-eyebrow {
+    font-size: var(--arena-label-size);
+    letter-spacing: var(--arena-eyebrow-track);
+    text-transform: uppercase;
+    color: var(--color-arena-200);
+  }
+
+  /* the small caps under a figure */
+  .arena-label {
+    font-size: var(--arena-label-size);
+    letter-spacing: var(--arena-label-track);
+    text-transform: uppercase;
+    color: var(--color-arena-300);
+  }
+
+  /* a one-line explanation beneath a control */
+  .arena-hint {
+    font-size: var(--arena-hint-size);
+    color: var(--color-arena-300);
+  }
+
+  /* the inset every screen in the shell wears */
+  .arena-page {
+    padding: var(--arena-pad);
+  }
+  @media (min-width: 40rem) {
+    .arena-page {
+      padding: var(--arena-pad-sm);
+    }
+  }
+  @media (min-width: 64rem) {
+    .arena-page {
+      padding: var(--arena-pad-lg);
+    }
+  }
+
+  /*
+   * The focus ring, the single most-repeated string in the app.
+   * :focus-visible, not :focus — a mouse click on a button should not leave a
+   * ring behind it, and that distinction is the whole reason the utility
+   * string was three classes long.
+   */
+  .arena-focus:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--arena-focus-width) var(--arena-focus-color);
+  }
+}

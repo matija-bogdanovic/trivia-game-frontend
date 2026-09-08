@@ -1,4 +1,11 @@
 @import 'tailwindcss';
+/*
+ * The named numbers — borders, radii, the page inset, label type, the focus
+ * ring. Colours stay in the @theme block below, because Tailwind generates
+ * utilities from those; general.css holds everything that was a literal.
+ * After tailwindcss, so its @layer declarations attach to the real layers.
+ */
+@import './general.css';
 
 @theme {
   /* keeps the font-sans utility in step with the app font below */
