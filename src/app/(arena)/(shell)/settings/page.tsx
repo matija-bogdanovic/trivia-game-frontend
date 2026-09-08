@@ -1,20 +1,48 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAvatarVersion } from '@/app/redux/slicers/avatar_slice';
+import { setDisplayName } from '@/app/redux/slicers/profile_slice';
+import type { AppDispatch, RootState } from '@/app/redux/store';
 import { useEffect, useRef, useState } from 'react';
-import { signOut } from 'aws-amplify/auth';
+import { signOut, updateUserAttributes } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
-import { ME, difficultyOptions } from '@/app/(arena)/_mock/progress';
-import { getIdentity } from '@/app/helpers/token_operations';
+import DeleteAccountDialog from '@/app/(arena)/_components/delete_account_dialog';
+import ChangePasswordDialog from '@/app/(arena)/_components/change_password_dialog';
+import { difficultyOptions } from '@/app/(arena)/_mock/progress';
+import { useWallet } from '@/app/(arena)/_data/use_wallet';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import Button from '@/app/components/general/button';
 import { apiFetch } from '@/app/helpers/api';
-import { decodeAvatar, fileToDataUrl } from '@/app/helpers/avatar';
-import { getPort } from '@/app/helpers/port';
+import { fileToDataUrl } from '@/app/helpers/avatar';
+import {
+  checkUsernameAvailability,
+  walletRejectedName,
+  type UsernameAvailability,
+} from '@/app/helpers/username';
+import { CheckIcon } from '@/app/(arena)/_components/icons';
 import { useT } from '@/app/lib/i18n';
 import AvatarCropper from '@/app/components/ui/avatar_cropper';
+import {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonRegion,
+} from '@/app/(arena)/_components/skeleton';
+
+/** long enough that a name is not queried once per keystroke */
+const NAME_CHECK_DEBOUNCE_MS = 400;
+
+/**
+ * Is this the same name the player already has? Compared without case,
+ * because two names differing only in casing are the same handle to anyone
+ * reading a leaderboard — and re-saving your own name must never be a clash.
+ */
+function sameName(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
 
 /**
  * Account and preference toggles.
@@ -26,16 +54,32 @@ import AvatarCropper from '@/app/components/ui/avatar_cropper';
  */
 export default function Page() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { t } = useT();
-  const [username, setUsername] = useState(ME.name);
-  const [email, setEmail] = useState(ME.email);
+  const { identity, wallet, loading, signedIn } = useWallet();
+  const storedName = useSelector((s: RootState) => s.profile.displayName);
+  const showSignInPrompt = !loading && !signedIn;
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [defaultDifficulty, setDefaultDifficulty] = useState('Medium');
   const [notifications, setNotifications] = useState(true);
   const [profileVisible, setProfileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState(true);
   const [roomInvites, setRoomInvites] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  /** the name the server already has for this player — never "taken" by them */
+  const [savedName, setSavedName] = useState('');
+  /** the email as loaded, which is the other half of the dirty check */
+  const [savedEmail, setSavedEmail] = useState('');
+  /** where the availability check for the typed name has got to */
+  const [nameStatus, setNameStatus] = useState<
+    'idle' | 'checking' | UsernameAvailability
+  >('idle');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   /** the picked file, waiting to be cropped */
@@ -47,13 +91,26 @@ export default function Page() {
   const [uploading, setUploading] = useState(false);
   const [avatarError, setAvatarError] = useState('');
 
+  /**
+   * The account fields show what Cognito and the wallet actually hold, rather
+   * than a fixture. They seed once the session resolves and are not overwritten
+   * afterwards, so typing is never clobbered by a late response.
+   */
   useEffect(() => {
-    getIdentity().then((id) => setSignedInAs(id?.username ?? null));
-    // the wallet holds the avatar the server already has
-    apiFetch('/wallet')
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setCurrentAvatar(data?.avatar ?? null))
-      .catch(() => {});
+    if (loading) return;
+    setSignedInAs(identity?.username ?? null);
+    setUsername(
+      (current) => current || storedName || identity?.displayName || ''
+    );
+    setSavedName(
+      (current) => current || storedName || identity?.displayName || ''
+    );
+    setEmail((current) => current || identity?.email || '');
+    setSavedEmail((current) => current || identity?.email || '');
+    setCurrentAvatar(wallet?.avatar ?? null);
+  }, [loading, identity, wallet, storedName]);
+
+  useEffect(() => {
     return () => {
       if (savedTimer.current) clearTimeout(savedTimer.current);
     };
@@ -62,13 +119,119 @@ export default function Page() {
   /** Enough of an email to be worth submitting; the server decides the rest. */
   const emailValid = /^\S+@\S+\.\S+$/.test(email);
   const usernameValid = username.trim().length >= 3;
-  const canSave = usernameValid && emailValid;
 
-  const save = () => {
-    if (!canSave) return;
-    setSaved(true);
-    if (savedTimer.current) clearTimeout(savedTimer.current);
-    savedTimer.current = setTimeout(() => setSaved(false), 2500);
+  /**
+   * Whether the typed name is somebody else's, asked while it is being typed.
+   *
+   * Debounced, because this fires on every keystroke, and skipped entirely for
+   * the name the player already has — nobody's own name is taken — and for one
+   * too short to be valid, which has its own message. A verdict the server
+   * could not give ('unsupported', 'unknown') never blocks the save; only a
+   * definite 'taken' does, and the save itself checks again anyway.
+   */
+  useEffect(() => {
+    const name = username.trim();
+    if (name.length < 3 || sameName(name, savedName)) {
+      setNameStatus('idle');
+      return;
+    }
+    setNameStatus('checking');
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const verdict = await checkUsernameAvailability(name);
+      // a slower earlier keystroke must not answer for a newer one
+      if (!cancelled) setNameStatus(verdict);
+    }, NAME_CHECK_DEBOUNCE_MS);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [username, savedName]);
+
+  const nameTaken = nameStatus === 'taken';
+
+  /**
+   * Has anything actually changed?
+   *
+   * Save was enabled from the moment the form was valid, so the button
+   * invited a write that would have set every field to the value it already
+   * held — a request, a token refresh and a "Saved" flash for doing nothing.
+   *
+   * Compared against what was LOADED, not against the last keystroke, so
+   * typing a change and undoing it disables the button again. The name is
+   * compared without case, matching sameName(): re-saving your own name in
+   * different casing is not a change the server would record either.
+   */
+  const dirty =
+    !sameName(username, savedName) || email.trim() !== savedEmail.trim();
+
+  const canSave =
+    dirty &&
+    usernameValid &&
+    emailValid &&
+    !nameTaken &&
+    nameStatus !== 'checking';
+
+  /**
+   * Save the display name.
+   *
+   * Two writes, because two things read it. The wallet is what every
+   * server-sourced screen shows — leaderboard, friends, lobby, in-game — and
+   * the Cognito `name` attribute is what survives into the next session's id
+   * token, which is where the sidebar and profile header get it from on a
+   * fresh load.
+   *
+   * Only surrounding whitespace is stripped. The casing is the whole point of
+   * this screen, so nothing here normalises it, and the Cognito *username* is
+   * untouched — that handle is immutable and case-insensitive by pool config.
+   */
+  const save = async () => {
+    const name = username.trim();
+    if (!canSave || saving || !name) return;
+    setSaving(true);
+    setSaveError('');
+    setSaved(false);
+    try {
+      /*
+       * Ask once more before writing. The debounced check above can still be
+       * pending — or can have been answered before the last keystroke — for
+       * someone who types a name and hits Save in the same breath.
+       */
+      if (!sameName(name, savedName)) {
+        if ((await checkUsernameAvailability(name)) === 'taken') {
+          setNameStatus('taken');
+          return;
+        }
+      }
+
+      const res = await apiFetch('/wallet', { body: { displayName: name } });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        // a conflict belongs on the field, not in the generic save error
+        if (walletRejectedName(res, data)) {
+          setNameStatus('taken');
+          return;
+        }
+        throw new Error('wallet');
+      }
+
+      // the id token keeps the old name until it refreshes, so the store is
+      // what updates the sidebar and profile header right now
+      await updateUserAttributes({ userAttributes: { name } });
+      dispatch(setDisplayName(name));
+      setSavedName(name);
+      setSavedEmail(email.trim());
+      setNameStatus('idle');
+
+      setSaved(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error('Saving the display name failed:', err);
+      setSaveError(t('arena.settings.saveFailed'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,6 +259,10 @@ export default function Page() {
       }
       const { avatar } = await res.json();
       setCurrentAvatar(avatar);
+      // this is what makes the new picture appear everywhere at once — the
+      // sidebar and any other render site read the version from the store
+      if (signedInAs)
+        dispatch(setAvatarVersion({ username: signedInAs, avatar }));
       setPreview(null);
     } catch (err) {
       console.error('Avatar upload failed:', err);
@@ -108,11 +275,6 @@ export default function Page() {
   };
 
   /** what the tile shows: the pending crop, else the saved avatar, else initials */
-  const savedAvatar = decodeAvatar(currentAvatar);
-  const savedAvatarUrl =
-    savedAvatar?.kind === 'upload' && signedInAs
-      ? `${getPort()}/avatar/img/${encodeURIComponent(signedInAs)}?v=${savedAvatar.version}`
-      : null;
 
   const handleSignOut = async () => {
     try {
@@ -123,7 +285,7 @@ export default function Page() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8 ">
+    <div className="mx-auto max-w-2xl space-y-6 p-4 sm:p-6 lg:p-8">
       {cropSrc && (
         <AvatarCropper
           imageSrc={cropSrc}
@@ -134,26 +296,61 @@ export default function Page() {
           onCancel={() => setCropSrc(null)}
         />
       )}
-      <PageHeader eyebrow="Configuration" title="SETTINGS" />
+      <PageHeader
+        eyebrow={t('arena.settings.eyebrow')}
+        title={t('arena.settings.title')}
+      />
 
       {/* ========================================================== account */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-lg border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Account
+            {t('arena.settings.account')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
-          <div>
+          {showSignInPrompt && (
+            <p className="mb-4 text-[11px] text-arena-300">
+              {t('arena.common.signInPrompt')}
+            </p>
+          )}
+
+          {/*
+            The form used to mount empty and fill in a moment later, so the
+            name and email fields flashed blank at whoever opened the page —
+            and an empty username field briefly failed its own "at least three
+            characters" check. Label-and-field bars stand in until the wallet
+            is here, then the real form mounts with its values already in it.
+          */}
+          {loading && (
+            <SkeletonRegion className="space-y-4">
+              {[0, 1].map((field) => (
+                <div key={field} className="space-y-2">
+                  <Skeleton className="h-2.5 w-20" />
+                  <Skeleton className="h-[46px] w-full" />
+                </div>
+              ))}
+              <div className="space-y-2 pt-2">
+                <Skeleton className="h-2.5 w-28" />
+                <div className="flex flex-wrap items-center gap-4">
+                  <SkeletonAvatar size="lg" />
+                  <Skeleton className="h-10 w-32" />
+                </div>
+              </div>
+            </SkeletonRegion>
+          )}
+
+          <div className={loading ? 'hidden' : undefined}>
             <Formik
-              initialValues={{ username: ME.name, email: ME.email }}
+              initialValues={{ username, email }}
+              enableReinitialize
               validate={(values) => {
                 const errors: { username?: string; email?: string } = {};
                 if (!values.username || values.username.trim().length < 3) {
-                  errors.username = 'Usernames need at least three characters.';
+                  errors.username = t('arena.settings.usernameShort');
                 }
                 if (!values.email || !/^\S+@\S+\.\S+$/.test(values.email)) {
-                  errors.email = "That doesn't look like an email.";
+                  errors.email = t('arena.settings.emailInvalid');
                 }
 
                 return errors;
@@ -166,7 +363,7 @@ export default function Page() {
                     htmlFor="username"
                     className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
                   >
-                    Username
+                    {t('auth.username')}
                   </label>
                   <Field
                     id="username"
@@ -176,17 +373,46 @@ export default function Page() {
                       handleChange(e);
                       setUsername(e.target.value);
                       setSaved(false);
+                      setSaveError('');
                     }}
                     onBlur={handleBlur}
-                    aria-invalid={!!errors.username}
-                    className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
+                    aria-invalid={!!errors.username || nameTaken}
+                    aria-describedby="username-status"
+                    className={`w-full rounded-lg border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                      errors.username || nameTaken
+                        ? 'border-gold/60'
+                        : 'border-white/10'
+                    }`}
                   />
-                  <ErrorMessage name="username" component="div" />
+                  {/*
+                    One line under the field for everything it can say: too
+                    short, taken, being checked, free. aria-live so the verdict
+                    that arrives after typing stopped is announced, not just
+                    coloured.
+                  */}
+                  <p
+                    id="username-status"
+                    aria-live="polite"
+                    className={`mt-1.5 min-h-[1rem] text-[11px] ${
+                      errors.username || nameTaken
+                        ? 'text-gold'
+                        : 'text-arena-300'
+                    }`}
+                  >
+                    {errors.username ||
+                      (nameTaken
+                        ? t('arena.settings.usernameTaken')
+                        : nameStatus === 'checking'
+                          ? t('arena.settings.usernameChecking')
+                          : nameStatus === 'free'
+                            ? t('arena.settings.usernameFree')
+                            : '')}
+                  </p>
                   <label
                     htmlFor="email"
                     className="mb-2 block text-[10px] tracking-[0.2em] text-arena-300 uppercase"
                   >
-                    Email
+                    {t('auth.email')}
                   </label>
                   <Field
                     id="email"
@@ -199,30 +425,37 @@ export default function Page() {
                     }}
                     onBlur={handleBlur}
                     aria-invalid={!!errors.email}
-                    className="w-full border border-white/10 bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40"
+                    aria-describedby={errors.email ? 'email-error' : undefined}
+                    className={`w-full rounded-lg border bg-arena-750 px-4 py-3 text-sm text-white outline-none focus:border-gold/40 ${
+                      errors.email ? 'border-gold/60' : 'border-white/10'
+                    }`}
                   />
-                  <ErrorMessage name="email" component="div" />
+                  <ErrorMessage
+                    name="email"
+                    id="email-error"
+                    component="p"
+                    className="mt-1.5 text-[11px] text-gold"
+                  />
                 </Form>
               )}
             </Formik>
           </div>
-          <div>
+          <div className={loading ? 'hidden' : undefined}>
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              Profile Picture
+              {t('arena.settings.profilePicture')}
             </div>
             <div className="flex flex-wrap items-center gap-4">
-              {preview || savedAvatarUrl ? (
-                // the backend serves these; next/image would need the host
-                // allow-listed, and a data: URL cannot be optimised at all
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={preview ?? savedAvatarUrl ?? ''}
-                  alt={t('profile.avatar')}
-                  className="h-12 w-12 shrink-0 object-cover"
-                />
-              ) : (
-                <Avatar initial={ME.initial} size="lg" accent />
-              )}
+              <Avatar
+                initial={(username || identity?.username || '?')
+                  .charAt(0)
+                  .toUpperCase()}
+                username={signedInAs}
+                avatar={currentAvatar}
+                previewUrl={preview}
+                alt={t('profile.avatar')}
+                size="lg"
+                accent
+              />
 
               <input
                 ref={fileInput}
@@ -233,7 +466,7 @@ export default function Page() {
                 aria-label={t('profile.avatar')}
               />
               <Button
-                text={'Change photo'}
+                text={t('arena.settings.changePhoto')}
                 version="secondary"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.preventDefault();
@@ -259,7 +492,7 @@ export default function Page() {
                     type="button"
                     onClick={() => setPreview(null)}
                     disabled={uploading}
-                    className="cursor-pointer border border-arena-400 px-4 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
+                    className="cursor-pointer rounded-lg border border-arena-400 px-4 py-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none disabled:opacity-50"
                   >
                     {t('profile.cancel')}
                   </button>
@@ -275,47 +508,66 @@ export default function Page() {
 
           <div>
             <div className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase">
-              Password
+              {t('arena.settings.password')}
             </div>
-            <button
-              type="button"
-              className="cursor-pointer border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-            >
-              Change password
-            </button>
+            {/*
+              A Google account has no password in this pool — Cognito holds a
+              federated identity for it and ChangePassword would refuse. So the
+              button is replaced by the reason rather than left to fail: a
+              control that cannot work is worse than no control.
+            */}
+            {identity?.provider === 'google' ? (
+              <p className="text-[11px] leading-relaxed text-arena-300">
+                {t('arena.pw.google')}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setChangingPassword(true)}
+                className="cursor-pointer rounded-lg border border-white/20 px-4 py-2 text-[10px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+              >
+                {t('arena.settings.changePassword')}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-4 pt-2">
             <button
               type="button"
               onClick={save}
-              disabled={!canSave}
+              disabled={!canSave || saving}
               className={`px-6 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                 canSave
                   ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
                   : 'cursor-not-allowed bg-arena-700 text-arena-400'
               }`}
             >
-              Save changes
+              {saving ? t('arena.settings.saving') : t('arena.settings.save')}
             </button>
-            <p className="text-[11px] text-gold" aria-live="polite">
-              {saved && '✓ Saved'}
+            <p
+              className="flex items-center gap-1.5 text-[11px] text-gold"
+              aria-live="polite"
+            >
+              {!saveError && saved && (
+                <CheckIcon className="h-3.5 w-3.5 shrink-0" />
+              )}
+              {saveError || (saved && t('arena.settings.saved'))}
             </p>
           </div>
         </div>
       </section>
 
       {/* ====================================================== preferences */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-lg border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Game Preferences
+            {t('arena.settings.preferences')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
           <ToggleSwitch
-            label="Game Notifications"
-            description="Get notified when friends start games or invite you"
+            label={t('arena.settings.notifications')}
+            description={t('arena.settings.notificationsDesc')}
             labelId="toggle-notifications"
             checked={notifications}
             onToggle={() => setNotifications((v) => !v)}
@@ -326,7 +578,7 @@ export default function Page() {
               className="mb-2 text-[10px] tracking-[0.2em] text-arena-300 uppercase"
               id="default-difficulty-label"
             >
-              Default Difficulty
+              {t('arena.settings.defaultDifficulty')}
             </div>
             <div
               className="flex flex-wrap gap-2"
@@ -339,13 +591,13 @@ export default function Page() {
                   type="button"
                   onClick={() => setDefaultDifficulty(difficulty)}
                   aria-pressed={defaultDifficulty === difficulty}
-                  className={`cursor-pointer border px-4 py-2 text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                  className={`cursor-pointer rounded-lg border px-4 py-2 text-[10px] tracking-wider uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                     defaultDifficulty === difficulty
                       ? 'border-arena-300 bg-arena-600 font-bold text-white'
                       : 'border-white/10 text-arena-200 hover:border-arena-300 hover:text-white'
                   }`}
                 >
-                  {difficulty}
+                  {t(`arena.difficulty.${difficulty}`)}
                 </button>
               ))}
             </div>
@@ -354,30 +606,30 @@ export default function Page() {
       </section>
 
       {/* ========================================================== privacy */}
-      <section className="border border-white/[0.07] bg-arena-800">
+      <section className="rounded-lg border border-white/[0.07] bg-arena-800">
         <div className="border-b border-white/[0.07] px-6 py-4">
           <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Privacy
+            {t('arena.settings.privacy')}
           </h2>
         </div>
         <div className="space-y-4 p-6">
           <ToggleSwitch
-            label="Public Profile"
-            description="Allow other players to view your profile and stats"
+            label={t('arena.settings.publicProfile')}
+            description={t('arena.settings.publicProfileDesc')}
             labelId="toggle-profile"
             checked={profileVisible}
             onToggle={() => setProfileVisible((v) => !v)}
           />
           <ToggleSwitch
-            label="Friend Requests"
-            description="Allow others to send you friend requests"
+            label={t('arena.settings.friendRequests')}
+            description={t('arena.settings.friendRequestsDesc')}
             labelId="toggle-requests"
             checked={friendRequests}
             onToggle={() => setFriendRequests((v) => !v)}
           />
           <ToggleSwitch
-            label="Room Invitations"
-            description="Allow friends to invite you to their rooms"
+            label={t('arena.settings.roomInvites')}
+            description={t('arena.settings.roomInvitesDesc')}
             labelId="toggle-invites"
             checked={roomInvites}
             onToggle={() => setRoomInvites((v) => !v)}
@@ -385,34 +637,49 @@ export default function Page() {
         </div>
       </section>
 
-      {/* =================================================== account mgmt */}
-      <section className="border border-white/[0.07] bg-arena-800">
-        <div className="border-b border-white/[0.07] px-6 py-4">
-          <h2 className="text-[11px] font-bold tracking-[0.25em] text-arena-200 uppercase">
-            Account Management
+      {/* ===================================================== danger zone */}
+      <section className="rounded-lg border border-red-500/40 bg-red-500/[0.04]">
+        <div className="border-b border-red-500/30 px-6 py-4">
+          <h2 className="text-[11px] font-bold tracking-[0.25em] text-red-400 uppercase">
+            {t('arena.settings.dangerZone')}
           </h2>
+          <p className="mt-1 text-[10px] text-arena-300">
+            {t('arena.settings.dangerZoneNote')}
+          </p>
         </div>
         <div className="space-y-3 p-6">
+          {/*
+            No handle beside the button. It printed the Cognito username next
+            to Log Out — a google_1024… id on a federated account — which told
+            the player nothing they wanted and showed them an internal
+            identifier they never chose.
+          */}
           <button
             type="button"
             onClick={handleSignOut}
-            className="w-full cursor-pointer border border-white/20 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            className="w-full cursor-pointer rounded-lg border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
-            Log out
-            {signedInAs && (
-              <span className="ml-2 text-arena-300 normal-case">
-                ({signedInAs})
-              </span>
-            )}
+            {t('arena.settings.logOut')}
           </button>
           <button
             type="button"
-            className="w-full cursor-pointer border border-arena-500/40 px-4 py-3 text-left text-[11px] tracking-[0.2em] text-arena-300 uppercase transition-colors hover:border-arena-300 hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            onClick={() => setConfirmingDelete(true)}
+            className="w-full cursor-pointer rounded-lg border border-red-500/60 bg-red-500/10 px-4 py-3 text-[11px] font-bold tracking-[0.2em] text-red-400 uppercase transition-colors hover:bg-red-500/20 hover:text-red-300 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none"
           >
-            Delete account
+            {t('arena.settings.deleteAccount')}
           </button>
         </div>
       </section>
+
+      <ChangePasswordDialog
+        open={changingPassword}
+        onClose={() => setChangingPassword(false)}
+      />
+
+      <DeleteAccountDialog
+        open={confirmingDelete}
+        onClose={() => setConfirmingDelete(false)}
+      />
     </div>
   );
 }

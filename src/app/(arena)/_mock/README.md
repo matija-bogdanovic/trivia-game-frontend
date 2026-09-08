@@ -12,10 +12,8 @@ this directory is empty, the wiring is done.
 | File          | Feeds                           | Real source                                      |
 | ------------- | ------------------------------- | ------------------------------------------------ |
 | `rooms.ts`    | `/rooms`                        | `GET /rooms` on the game server                  |
-| `players.ts`  | `/leaderboards`, `/friends`     | leaderboard + friends endpoints                  |
-| `matches.ts`  | `/home`, `/history`, `/profile` | match history endpoint                           |
-| `progress.ts` | `/profile`, `/achievements`     | wallet + achievements on the game server         |
-| `results.ts`  | `/results`                      | `game_slice` standings at `phase === 'gameover'` |
+| `players.ts`  | `/home` (friends rail)          | `POST /friends/list`                             |
+| `matches.ts`  | `/home`                         | `wallet.matchHistory` + `POST /matches/detail`   |
 
 The mock player is always `AlphaWolf` — grep for that name to find every spot
 still rendering a fake identity rather than the signed-in one.

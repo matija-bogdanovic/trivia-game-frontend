@@ -56,6 +56,69 @@
   --color-gold-light: #e0b93a;
   --color-gold-dark: #a07e1a;
 
+  /*
+   * The streak pair — a run of wins and a run of losses, read as hot and cold.
+   *
+   * Neither could be gold. Gold is this app's "this matters" accent and it is
+   * already spent on money, active nav and every number on a podium; a streak
+   * painted in it competes with all of that and, worse, makes a losing run
+   * look like an award.
+   *
+   * Both are picked to sit on the arena greens rather than against them.
+   * Flame is warm enough to separate from gold at a glance — gold is yellow
+   * at 47° hue, this is orange at 19° — without turning red, which on a dark
+   * green would read as an error state. Frost is a desaturated ice blue: cold
+   * and clearly not-green, but muted enough that a losing streak states
+   * itself instead of shouting.
+   */
+  --color-flame: #e2703a;
+  --color-frost: #6ab5dd;
+
+  /*
+   * Blood — First Blood, and whatever else earns a red.
+   *
+   * The palette had no red at all, deliberately: on a dark green, red reads as
+   * an error state, which is why --color-flame stops at orange. An achievement
+   * is the one place that does not apply — a badge is a thing you WON, and
+   * nothing else on these screens is red to be confused with it.
+   *
+   * Picked at 357deg, just past the wrap, so it is unmistakably red rather
+   * than a deeper flame — flame sits at 19deg and the two must not read as
+   * the same colour on the same tile grid. Held down to 55% lightness so it
+   * carries on arena-800 without vibrating against it the way a pure #f00
+   * would.
+   */
+  --color-blood: #c2333a;
+
+  /*
+   * The podium. Gold already exists and is the app's accent, so second and
+   * third borrow its role rather than inventing one: a cool light grey and a
+   * warm brown, both light enough to read on arena-800.
+   *
+   * Bronze is deliberately browner and less saturated than --color-flame,
+   * which sits two columns away on the same leaderboard row — two similar
+   * oranges side by side would make third place look like a streak.
+   */
+  --color-silver: #ccd3db;
+  --color-bronze: #c08f5a;
+
+  /*
+   * Availability, used by room dots and friend presence alike so the two read
+   * as one vocabulary: ready = you can join in, live = it is already running.
+   *
+   * `ready` is a brighter, cooler green than anything in the arena ramp on
+   * purpose — arena-200 is a muted sage that IS the page, and a status dot
+   * painted in it would disappear into the surface it sits on.
+   *
+   * `live` is the awkward one and worth naming: the warm end of this palette
+   * is already busy, with gold at 47° hue and flame at 19°. This sits at 35°,
+   * lighter and more saturated than gold and far less red than flame, which
+   * separates it — but it is the tightest gap in the palette. If the three
+   * ever read as one colour on a real screen, `live` is the one to move.
+   */
+  --color-ready: #62e08d;
+  --color-live: #f2a541;
+
   --radius: 0.25rem;
 }
 
@@ -109,6 +172,47 @@ body:has(.arena-root) {
 .arena-root .show-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--color-arena-500);
   border-radius: 4px;
+}
+
+/*
+ * ---- skeleton loading ----------------------------------------------------
+ * The shape of the content, drawn before the content arrives. One class, so
+ * every screen's placeholders pulse in step instead of each inventing its own
+ * grey; see _components/skeleton.tsx for the components that apply it.
+ *
+ * The base is arena-750 — the same fill the app's own inset surfaces use, so a
+ * placeholder reads as part of the page rather than as a hole in it. The sheen
+ * is a white gradient at 5%, which is the most that survives on this palette
+ * without looking like a highlight on a real control.
+ *
+ * The reduced-motion block below catches the sweep: at one iteration of
+ * 0.01ms it finishes off-screen immediately and the flat fill is what remains,
+ * which is exactly the right fallback.
+ */
+.arena-root .skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-arena-750);
+}
+
+.arena-root .skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: arena-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes arena-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* every animation in here is decorative — none of it carries meaning alone */

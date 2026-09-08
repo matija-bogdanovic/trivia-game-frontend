@@ -1,3 +1,7 @@
+'use client';
+
+import { useAvatarSource } from '@/app/components/hooks/use_avatar';
+
 export type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const SIZES: Record<AvatarSize, string> = {
@@ -9,29 +13,98 @@ const SIZES: Record<AvatarSize, string> = {
 };
 
 /**
- * The square initial tile every screen uses for a player.
+ * The one avatar in the app.
  *
- * The Figma export repeated this markup across nine views with slightly
- * different sizes and colour rules each time; one component keeps them honest.
+ * There used to be three: this one, a lobby tile and an in-game one, each with
+ * its own URL building, its own fallback colours and its own idea of what
+ * shape an avatar is. They are all this component now, so a player looks the
+ * same in the sidebar, the friends list, the lobby and mid-match.
+ *
+ * Always a circle — the photo, the legacy emoji and the initials fallback
+ * share one round frame, so a player with a picture and one without read as
+ * the same kind of thing.
+ *
+ * The picture URL comes from useAvatarSource, which takes the version from the
+ * Redux avatar slice, so changing your picture updates every site at once.
  */
 export default function Avatar({
+  name,
   initial,
+  username,
+  avatar,
   size = 'md',
   accent = false,
+  previewUrl,
+  alt,
+  className = '',
 }: {
-  initial: string;
-  size?: AvatarSize;
+  /** display name — the initial is taken from it unless one is given */
+  name?: string | null;
+  initial?: string;
+  /** required to build a picture URL; without it this renders a fallback */
+  username?: string | null;
+  /** the avatar string this caller holds, if any */
+  avatar?: string | null;
+  /** a named preset, or a pixel size for the in-game tiles */
+  size?: AvatarSize | number;
   /** Gold fill — reserved for the winner, the host, or the active player. */
   accent?: boolean;
+  /** a pending crop, shown before it has been uploaded */
+  previewUrl?: string | null;
+  alt?: string;
+  className?: string;
 }) {
+  const { imageUrl, emoji } = useAvatarSource(username, avatar);
+  const src = previewUrl ?? imageUrl;
+
+  const letter = (initial ?? name ?? username ?? '?').charAt(0).toUpperCase();
+  const label = alt ?? name ?? username ?? '';
+
+  const numeric = typeof size === 'number';
+  const sizeClass = numeric ? '' : SIZES[size];
+  // a pixel size cannot come from a class, so those callers get inline styles
+  const sizeStyle = numeric
+    ? { width: size, height: size, fontSize: size * 0.4 }
+    : undefined;
+
+  const frame = `flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold ${sizeClass} ${className}`;
+
+  if (src) {
+    return (
+      // the backend serves these and a data: URL cannot be optimised, so
+      // next/image would need the host allow-listed for no benefit
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={label}
+        style={sizeStyle}
+        className={`${frame} object-cover select-none`}
+      />
+    );
+  }
+
+  if (emoji) {
+    return (
+      <span
+        className={frame}
+        style={{
+          ...sizeStyle,
+          backgroundColor: `hsl(${emoji.hue} 45% 30%)`,
+        }}
+        aria-hidden="true"
+      >
+        {emoji.emoji}
+      </span>
+    );
+  }
+
   return (
     <span
-      className={`flex shrink-0 items-center justify-center font-bold ${SIZES[size]} ${
-        accent ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'
-      }`}
+      className={`${frame} select-none ${accent ? 'bg-gold text-arena-950' : 'bg-arena-600 text-white'}`}
+      style={sizeStyle}
       aria-hidden="true"
     >
-      {initial}
+      {letter}
     </span>
   );
 }

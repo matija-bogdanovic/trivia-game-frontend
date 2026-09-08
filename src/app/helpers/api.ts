@@ -11,14 +11,12 @@ const LEGACY_API_GATEWAY =
   'https://7pqkxtdnod.execute-api.eu-west-3.amazonaws.com/deployedStage';
 
 /**
- * Where REST calls go. .env.example promises NEXT_PUBLIC_API_URL is the one
- * host for both REST and the WebSocket, and getPort() already resolves it —
- * so honour it when it is set. Without it, nothing changes: local dev and
- * production both fall back to the gateway above.
+ * Where REST calls go: NEXT_PUBLIC_API_URL, resolved by getPort().
  *
- * This matters for running against a local game server: the socket derives
- * from NEXT_PUBLIC_API_URL, so a hardcoded REST host would send /createRoom
- * to one backend and the socket to another.
+ * REST only. The game socket is a separate host with its own variable — see
+ * port.ts — because API Gateway cannot serve a WebSocket. Without
+ * NEXT_PUBLIC_API_URL set, nothing changes: calls fall back to the gateway
+ * above, as before.
  */
 function apiBase(): string {
   return process.env.NEXT_PUBLIC_API_URL?.trim()

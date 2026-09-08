@@ -1,21 +1,26 @@
 'use client';
 
-import Avatar from '@/app/components/ui/game/avatar';
-import QuestionUI from '@/app/components/ui/game/question_ui';
-import SpinWheel from '@/app/components/ui/game/spin_wheel';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
-import {
-  clearAchievementNotice,
-  clearError,
-  displayNameOf,
-} from '@/app/redux/slicers/game_slice';
+import { clearError } from '@/app/redux/slicers/game_slice';
 import { AppDispatch, RootState } from '@/app/redux/store';
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
-import SideBar from './side_bar';
-import LeaveButton from './leave_button';
+import GameShell from './_arena/game_shell';
+import ArenaQuestion from './_arena/question';
+import ArenaRoundIntro from './_arena/round_intro';
+import ArenaSpin from './_arena/spin';
+import ArenaReveal from './_arena/reveal';
+import ArenaBetting from './_arena/betting';
+import ArenaPicking from './_arena/picking';
+import ArenaDuel from './_arena/duel';
+import ArenaResults from './_arena/results';
+import { rankPlayers, moneyChange } from './_arena/standings';
+import { money } from '@/app/(arena)/_lib/money';
+import PasswordPrompt from '@/app/(arena)/_components/password_prompt';
 import ArenaLobby from './_arena/lobby';
+import AchievementToasts from './_arena/achievement_toasts';
 import { amplifyConfigure } from '@/app/lib/amplify_configure';
 import { useT } from '@/app/lib/i18n';
 
@@ -23,35 +28,101 @@ amplifyConfigure();
 
 function Page() {
   const { t } = useT();
-  const { leaveRoom, playAgain, username, joinWithPassword } = useGame();
+  const { leaveRoom, username, joinWithPassword, isHost } = useGame();
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const [roomPassword, setRoomPassword] = React.useState('');
   const {
     phase,
     countdown,
-    winner,
-    standings,
-    totalRounds,
     error,
-    achievementNotice,
     kicked,
     terminated,
     players,
+    startingMoney,
+    answering,
+    turnMode,
     joinDenied,
+    roomClosed,
+    kickedReason,
+    notImplemented,
+    spectating,
   } = useSelector((state: RootState) => state.game);
 
-  // achievement toasts dismiss themselves
-  React.useEffect(() => {
-    if (!achievementNotice) return;
-    const id = setTimeout(() => dispatch(clearAchievementNotice()), 6000);
-    return () => clearTimeout(id);
-  }, [achievementNotice, dispatch]);
+  /*
+   * The host left and the server deleted the room under everyone. Nobody who
+   * stayed can do anything here, so the lobby is torn down rather than left on
+   * screen behind the notice — it would be showing a room that no longer
+   * exists. The host who triggered it is already navigating away from their
+   * own leaveRoom(), so they are not told the host left.
+   */
+  const closedOnMe = roomClosed !== null && !isHost;
 
-  const blocked = kicked || terminated || joinDenied !== null;
+  React.useEffect(() => {
+    if (!closedOnMe) return;
+    // nobody gets stranded on a dead room if they ignore the button
+    const id = setTimeout(() => router.push('/rooms'), 6000);
+    return () => clearTimeout(id);
+  }, [closedOnMe, router]);
+
+  /*
+   * Being kicked ends this player's business with the room the same way, so it
+   * leaves the same way. No `leave` is sent: the host already removed them, and
+   * telling the server they are leaving a room they are no longer in would at
+   * best be a no-op. They are simply routed out.
+   */
+  React.useEffect(() => {
+    if (!kicked) return;
+    const id = setTimeout(() => router.push('/rooms'), 6000);
+    return () => clearTimeout(id);
+  }, [kicked, router]);
+
+  const blocked = kicked || terminated || joinDenied !== null || closedOnMe;
   const inLobby = phase === 'lobby' || phase === 'countdown';
+
+  /*
+   * The book is open across the question AND the pause, and closed to the
+   * answerer, to a challenge (whose only bet was committed at pick time) and
+   * to anyone out of the match. These mirror onPlaceBet's own refusals, which
+   * are silent — a panel offered where the server would ignore it is worse
+   * than no panel.
+   */
+  const iAmAnswering = Boolean(username) && answering === username;
+  const meNow = players.find((p) => p.username === username);
+
+  /**
+   * Watching rather than playing.
+   *
+   * Two sources, either sufficient. The server says so once on the join
+   * resync — the only message that can answer it per viewer — and the roster
+   * says so continuously: a match is running and I am not in it. The derived
+   * half is what keeps this right after a broadcast replaces `players`, and
+   * what makes the screen correct even against a server that does not send
+   * the flag at all.
+   *
+   * Deliberately false during `gameover`: the match is over, the results are
+   * for everyone, and there is nothing left to be excluded from.
+   */
+  const inMatch =
+    !inLobby && phase !== 'connecting' && phase !== 'gameover' && !blocked;
+  const iAmSpectator = inMatch && (spectating || (Boolean(username) && !meNow));
+
+  const bookOpen =
+    (phase === 'question' || phase === 'betting') &&
+    turnMode !== 'challenge' &&
+    !iAmAnswering &&
+    !iAmSpectator &&
+    Boolean(meNow?.alive);
 
   return (
     <>
+      {/*
+        Outside every phase branch on purpose: an unlock arrives with the
+        wallet write at the end of a match, so the toast has to outlive the
+        phase that earned it. It is fixed-position and click-through, so it
+        costs the layout nothing wherever it is mounted.
+      */}
+      <AchievementToasts />
+
       {phase === 'connecting' && !blocked && (
         <div className="h-full flex flex-col items-center justify-center gap-4">
           <div className="text-gold text-[11px] tracking-[0.4em] uppercase">
@@ -66,117 +137,180 @@ function Page() {
       {inLobby && !blocked && <ArenaLobby />}
 
       {/*
-       * Play phases still render the pre-reskin UI; the arena LiveGame lands
-       * in the last commit of this tier.
+       * The arena in-game UI. Question is built; the remaining phases land in
+       * the following chunks and fall through to a holding state rather than
+       * to the pre-reskin screens, which are being deleted.
        */}
       {!inLobby && phase !== 'connecting' && !blocked && (
-        <div className="p-4 grid grid-cols-[0.3fr_1fr] grid-rows-1 w-full gap-4 h-full">
-          <SideBar />
-          <QuestionUI />
-          <LeaveButton />
-        </div>
+        <GameShell
+          onLeave={() => void leaveRoom()}
+          spectating={iAmSpectator}
+          aside={bookOpen ? <ArenaBetting /> : undefined}
+        >
+          {phase === 'question' || phase === 'betting' ? (
+            <ArenaQuestion />
+          ) : phase === 'round_intro' ? (
+            <ArenaRoundIntro />
+          ) : phase === 'spin' ? (
+            <ArenaSpin />
+          ) : phase === 'gameover' ? (
+            <ArenaResults
+              rankings={rankPlayers(players).map((p) => ({
+                name: p.displayName || p.username,
+                initial: (p.displayName || p.username || '?')
+                  .charAt(0)
+                  .toUpperCase(),
+                money: p.money ?? 0,
+                change: moneyChange(p.money ?? 0, startingMoney),
+                correct: Number(p.stats?.correct ?? 0),
+                wrong: Number(p.stats?.wrong ?? 0),
+                betsWon: Number(p.stats?.betsWon ?? 0),
+                streak: p.streak ?? 0,
+                isYou: p.username === username,
+              }))}
+              yourPerformance={(() => {
+                const me = players.find((p) => p.username === username);
+                if (!me) return [];
+                return [
+                  {
+                    labelKey: 'arena.stat.correct',
+                    value: String(me.stats?.correct ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.wrong',
+                    value: String(me.stats?.wrong ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.betsWon',
+                    value: String(me.stats?.betsWon ?? 0),
+                  },
+                  {
+                    labelKey: 'arena.stat.balance',
+                    value: money(me.money ?? 0),
+                  },
+                ];
+              })()}
+            />
+          ) : phase === 'duel' ? (
+            <ArenaDuel />
+          ) : phase === 'picking' ? (
+            <ArenaPicking />
+          ) : phase === 'reveal' ? (
+            <ArenaReveal />
+          ) : (
+            <div className="text-center text-[11px] tracking-[0.3em] text-arena-300 uppercase">
+              {t('arena.game.phasePending', { phase })}
+            </div>
+          )}
+        </GameShell>
       )}
 
-      {joinDenied && !kicked && !terminated && (
-        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
-          <form
-            className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-sm w-full"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (roomPassword) joinWithPassword(roomPassword);
-            }}
-          >
-            {joinDenied === 'unauthenticated' ? (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  Sign in to play
-                </div>
-                <p className="text-arena-200 text-sm">
-                  Your session expired or was never started. Sign in and open
-                  the room again.
-                </p>
-                <Link
-                  href="/login"
-                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors text-center"
-                >
-                  GO TO SIGN IN
-                </Link>
-              </>
-            ) : joinDenied === 'room_full' ? (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  {t('join.roomFullTitle')}
-                </div>
-                <p className="text-arena-200 text-sm">{t('join.roomFull')}</p>
-                <button
-                  type="button"
-                  onClick={leaveRoom}
-                  className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
-                >
-                  {t('game.leave')}
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="text-gold text-[11px] tracking-[0.3em] uppercase">
-                  🔒 {t('game.passwordTitle')}
-                </div>
-                {joinDenied === 'wrong_password' && (
-                  <p className="text-arena-100 text-sm">
-                    {t('join.wrongPassword')}
+      {/*
+        Two different refusals, kept apart. `unauthenticated` is a session
+        problem and offers sign-in; `room_full` is a dead end. Only the
+        password cases are a lock, and those now use the same prompt the room
+        list and the code entry use, so a private room asks the same way
+        wherever you meet it.
+      */}
+      {joinDenied === 'password_required' || joinDenied === 'wrong_password' ? (
+        <PasswordPrompt
+          open
+          error={
+            joinDenied === 'wrong_password'
+              ? t('arena.join.wrongPassword')
+              : null
+          }
+          onSubmit={(entered) => joinWithPassword(entered)}
+          onCancel={() => void leaveRoom()}
+        />
+      ) : null}
+
+      {joinDenied &&
+        joinDenied !== 'password_required' &&
+        joinDenied !== 'wrong_password' &&
+        !kicked &&
+        !terminated && (
+          <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-8">
+              {joinDenied === 'unauthenticated' ? (
+                <>
+                  <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+                    {t('arena.join.signInTitle')}
+                  </div>
+                  <p className="text-sm text-arena-200">
+                    {t('arena.join.signInBody')}
                   </p>
-                )}
-                <input
-                  type="password"
-                  value={roomPassword}
-                  onChange={(e) => setRoomPassword(e.target.value)}
-                  placeholder={t('create.passwordPlaceholder')}
-                  className="bg-arena-750 border border-white/10 text-white text-sm px-4 py-3 outline-none focus:border-gold/40 placeholder:text-arena-400"
-                  autoFocus
-                />
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={!roomPassword}
-                    className={`flex-1 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 transition-colors ${
-                      roomPassword
-                        ? 'bg-gold text-arena-950 hover:bg-gold-light'
-                        : 'bg-arena-700 text-arena-400 cursor-not-allowed'
-                    }`}
+                  <Link
+                    href="/login"
+                    className="bg-gold px-6 py-3 text-center text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light"
                   >
-                    {t('game.enterRoom')}
-                  </button>
+                    {t('arena.join.goToSignIn')}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+                    {t('join.roomFullTitle')}
+                  </div>
+                  <p className="text-sm text-arena-200">{t('join.roomFull')}</p>
                   <button
                     type="button"
-                    className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
-                    onClick={leaveRoom}
+                    onClick={() => void leaveRoom()}
+                    className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light"
                   >
                     {t('game.leave')}
                   </button>
-                </div>
-              </>
-            )}
-          </form>
-        </div>
-      )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
-      {(kicked || terminated) && (
-        <div className="fixed inset-0 z-30 bg-[rgba(0,0,0,0.75)] flex justify-center items-center p-4">
-          <div className="flex flex-col gap-4 bg-arena-800 border border-white/[0.07] p-8 max-w-md text-center">
-            <p className="text-arena-100 text-sm">
-              {kicked ? t('game.kickedInfo') : t('game.terminatedInfo')}
+      {closedOnMe && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+          <div className="flex max-w-md flex-col gap-4 rounded-lg border border-gold/30 bg-arena-800 p-8 text-center">
+            <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+              {t('arena.lobby.roomClosedTitle')}
+            </div>
+            <p className="text-sm text-arena-100">
+              {roomClosed === 'host_left'
+                ? t('arena.lobby.roomClosedHostLeft')
+                : t('arena.lobby.roomClosedGeneric')}
             </p>
             <button
-              onClick={leaveRoom}
-              className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
+              onClick={() => router.push('/rooms')}
+              className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
             >
-              {t('game.ok')}
+              {t('arena.lobby.backToRooms')}
             </button>
           </div>
         </div>
       )}
 
-      {phase === 'spin' && !blocked && <SpinWheel />}
+      {(kicked || terminated) && (
+        <div className="fixed inset-0 z-30 flex items-center justify-center bg-[rgba(0,0,0,0.75)] p-4">
+          <div className="flex max-w-md flex-col gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-8 text-center">
+            <div className="text-[11px] tracking-[0.3em] text-gold uppercase">
+              {kicked
+                ? t('arena.lobby.kickedTitle')
+                : t('arena.lobby.roomClosedTitle')}
+            </div>
+            <p className="text-sm text-arena-100">
+              {!kicked
+                ? t('game.terminatedInfo')
+                : kickedReason && kickedReason !== 'host'
+                  ? t('arena.lobby.kickedOther')
+                  : t('game.kickedInfo')}
+            </p>
+            <button
+              onClick={() => (kicked ? router.push('/rooms') : leaveRoom())}
+              className="cursor-pointer bg-gold px-6 py-3 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+            >
+              {t('arena.lobby.backToRooms')}
+            </button>
+          </div>
+        </div>
+      )}
 
       {phase === 'countdown' && countdown !== null && !blocked && (
         <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex flex-col justify-center items-center gap-4">
@@ -189,88 +323,21 @@ function Page() {
         </div>
       )}
 
-      {phase === 'gameover' && !blocked && (
-        <div className="fixed inset-0 z-10 bg-[rgba(6,15,7,0.85)] flex justify-center items-center p-4 overflow-y-auto">
-          <div className="flex flex-col gap-4 bg-arena-800 border border-gold/20 p-8 min-w-[320px] max-w-[90vw]">
-            <h2 className="text-2xl font-bold text-center text-white tracking-wide">
-              {winner
-                ? winner === username
-                  ? t('game.youWin')
-                  : t('game.winner', {
-                      name: displayNameOf(standings, winner),
-                    })
-                : t('game.gameOver')}
-            </h2>
-            <p className="text-center text-arena-300 text-[11px] tracking-wider uppercase">
-              {t('game.questionsAsked', { n: totalRounds })}
-            </p>
-            <div className="flex flex-col gap-2">
-              {standings.map((p, i) => (
-                <div
-                  key={p.username}
-                  className={`flex items-center gap-3 border p-3 ${
-                    p.username === username
-                      ? 'bg-gold/10 border-gold/30'
-                      : 'border-white/[0.07]'
-                  }`}
-                >
-                  <span className="w-6 text-center font-bold text-arena-400">
-                    {i + 1}.
-                  </span>
-                  <Avatar
-                    name={p.displayName}
-                    username={p.username}
-                    avatar={p.avatar}
-                    size={32}
-                  />
-                  <span className="flex-1 truncate text-white text-sm font-bold">
-                    {p.displayName}
-                    {p.username === username && (
-                      <span className="text-[9px] tracking-widest text-arena-300 border border-arena-400 px-1.5 ml-2">
-                        {t('game.you')}
-                      </span>
-                    )}
-                  </span>
-                  <span className="text-gold font-bold">${p.money}</span>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={playAgain}
-                className="bg-gold text-arena-950 font-bold text-[11px] tracking-[0.2em] uppercase px-6 py-3 hover:bg-gold-light transition-colors"
-              >
-                {t('game.playAgain')}
-              </button>
-              <button
-                className="border border-white/20 text-white text-[11px] tracking-[0.15em] uppercase px-5 py-3 hover:bg-arena-700 transition-colors"
-                onClick={leaveRoom}
-              >
-                {t('game.leave')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {achievementNotice && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-20 bg-gold text-arena-950 font-bold text-[11px] tracking-wider px-4 py-2 max-w-[90vw]">
-          {t('game.achUnlocked', {
-            name: displayNameOf(players, achievementNotice.username),
-            items: achievementNotice.ids
-              .map((id, i) => {
-                const translated = t(`ach.${id}`);
-                return translated === `ach.${id}`
-                  ? achievementNotice.names[i]
-                  : translated;
-              })
-              .join(', '),
-          })}
+      {notImplemented && !blocked && (
+        <div className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-lg border border-gold/40 bg-arena-800 px-4 py-3 text-sm text-white">
+          <span>{t('game.notImplemented')}</span>
+          <button
+            className="cursor-pointer font-bold text-gold"
+            onClick={() => dispatch(clearError())}
+            aria-label={t('game.ok')}
+          >
+            ×
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-arena-800 border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-arena-800 rounded-lg border border-gold/40 text-white text-sm px-4 py-3 flex items-center gap-3">
           <span>{error}</span>
           <button
             className="font-bold cursor-pointer text-gold"

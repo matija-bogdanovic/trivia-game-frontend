@@ -18,7 +18,7 @@ export default function LogoPlaceholder({
 }) {
   return (
     <div
-      className="flex h-full items-center justify-center rounded-sm border border-dashed border-gold/40 bg-gold/5 px-3"
+      className="flex h-full items-center justify-center rounded-lg border border-dashed border-gold/40 bg-gold/5 px-3"
       role="img"
       aria-label={label}
     >

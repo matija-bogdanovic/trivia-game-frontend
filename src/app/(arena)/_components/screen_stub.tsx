@@ -19,7 +19,7 @@ export default function ScreenStub({
       <h1 className="text-4xl font-bold text-white tracking-wide mb-4">
         {title}
       </h1>
-      <div className="bg-arena-800 border border-white/[0.07] p-5 inline-block">
+      <div className="bg-arena-800 rounded-lg border border-white/[0.07] p-5 inline-block">
         <div className="text-arena-200 text-[11px] tracking-wider uppercase mb-1">
           Ports from
         </div>

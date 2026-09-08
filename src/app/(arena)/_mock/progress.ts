@@ -21,27 +21,33 @@ export const ME = {
  * read out.
  */
 export interface StatTile {
-  label: string;
+  /** i18n key — screens resolve it through useT */
+  labelKey: string;
   value: string;
   accent?: boolean;
   suffix?: string;
 }
 
 export const homeStats: StatTile[] = [
-  { label: 'Winning Streak', value: '7', accent: true, suffix: '🔥' },
-  { label: 'Total Wins', value: '143' },
-  { label: 'Games Played', value: '201' },
-  { label: 'Balance', value: '$8,340', accent: true },
+  {
+    labelKey: 'arena.stat.winningStreak',
+    value: '7',
+    accent: true,
+    suffix: '🔥',
+  },
+  { labelKey: 'arena.stat.totalWins', value: '143' },
+  { labelKey: 'arena.stat.gamesPlayed', value: '201' },
+  { labelKey: 'arena.stat.balance', value: '$8,340', accent: true },
 ];
 
 /** the profile screen's six-up stat grid */
 export const profileStats: StatTile[] = [
-  { label: 'Total Wins', value: '143' },
-  { label: 'Games Played', value: '201' },
-  { label: 'Win Rate', value: '71%' },
-  { label: 'Duels Won', value: '38' },
-  { label: 'Bets Won', value: '312' },
-  { label: 'Money Won', value: '$8,340' },
+  { labelKey: 'arena.stat.totalWins', value: '143' },
+  { labelKey: 'arena.stat.gamesPlayed', value: '201' },
+  { labelKey: 'arena.stat.winRate', value: '71%' },
+  { labelKey: 'arena.stat.duelsWon', value: '38' },
+  { labelKey: 'arena.stat.betsWon', value: '312' },
+  { labelKey: 'arena.stat.moneyWon', value: '$8,340' },
 ];
 
 export const categoryScores = [
@@ -49,113 +55,6 @@ export const categoryScores = [
   { name: 'Mathematics', pct: 72 },
   { name: 'History', pct: 65 },
   { name: 'Geography', pct: 58 },
-];
-
-export interface Achievement {
-  icon: string;
-  title: string;
-  description: string;
-  unlocked: boolean;
-  /** set when unlocked */
-  date?: string;
-  /** set when still locked */
-  progress?: number;
-  max?: number;
-}
-
-export const achievements: Achievement[] = [
-  {
-    icon: '★',
-    title: 'First Blood',
-    description: 'Win your first game',
-    unlocked: true,
-    date: 'Mar 15, 2024',
-  },
-  {
-    icon: '🔥',
-    title: 'On Fire',
-    description: 'Achieve a 5-win streak',
-    unlocked: true,
-    date: 'Apr 2, 2024',
-  },
-  {
-    icon: '⚡',
-    title: 'Lightning Reflex',
-    description: 'Answer a question in under 2 seconds',
-    unlocked: true,
-    date: 'Apr 18, 2024',
-  },
-  {
-    icon: '◆',
-    title: 'Centurion',
-    description: 'Win 100 games',
-    unlocked: true,
-    date: 'Jun 30, 2024',
-  },
-  {
-    icon: '⚔',
-    title: 'Duel Master',
-    description: 'Win 10 duels',
-    unlocked: false,
-    progress: 8,
-    max: 10,
-  },
-  {
-    icon: '▲',
-    title: 'Unstoppable',
-    description: 'Achieve a 10-win streak',
-    unlocked: false,
-    progress: 7,
-    max: 10,
-  },
-  {
-    icon: '◎',
-    title: 'The Gambler',
-    description: 'Win 50 bets in a row',
-    unlocked: false,
-    progress: 12,
-    max: 50,
-  },
-  {
-    icon: '◈',
-    title: "Oracle's Eye",
-    description: 'Predict 20 correct outcomes',
-    unlocked: false,
-    progress: 14,
-    max: 20,
-  },
-  {
-    icon: '❋',
-    title: 'Apex Predator',
-    description: 'Reach rank #1 on the global leaderboard',
-    unlocked: false,
-    progress: 0,
-    max: 1,
-  },
-  {
-    icon: '◇',
-    title: 'Speed Demon',
-    description: 'Win a duel in under 1 second',
-    unlocked: false,
-    progress: 0,
-    max: 1,
-  },
-  {
-    icon: '✦',
-    title: 'Scholar',
-    description: 'Answer 500 questions correctly',
-    unlocked: false,
-    progress: 143,
-    max: 500,
-  },
-  {
-    icon: '◉',
-    title: 'Champion',
-    description: 'Win 500 games',
-    unlocked: false,
-    progress: 143,
-    max: 500,
-  },
 ];
 
 export const difficultyOptions = ['Easy', 'Medium', 'Hard', 'Mixed'];

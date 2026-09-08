@@ -11,8 +11,8 @@ import React, {
 } from 'react';
 import useWebSocket, { ReadyState } from 'react-use-websocket';
 import { useDispatch, useSelector } from 'react-redux';
-import { usePathname, useRouter } from 'next/navigation';
-import { getWebSocketUrl } from '@/app/helpers/port';
+import { useParams, useRouter } from 'next/navigation';
+import { getSocketUrl } from '@/app/helpers/port';
 import { getIdentity } from '@/app/helpers/token_operations';
 import { apiFetch, getAccessToken } from '@/app/helpers/api';
 import { AppDispatch, RootState } from '@/app/redux/store';
@@ -23,22 +23,47 @@ import {
   serverMessage,
   setMyBet,
 } from '@/app/redux/slicers/game_slice';
+import { notificationArrived } from '@/app/redux/slicers/notification_slice';
+import {
+  inviteReceived,
+  inviteRefused,
+  inviteSent,
+  inviteSessionReset,
+} from '@/app/redux/slicers/invite_slice';
+import { useT } from '@/app/lib/i18n';
 
 export interface GameActions {
   username: string | null;
   displayName: string | null;
+  /**
+   * Whether this player is the room's Admin. It decides whether leaving needs
+   * a warning, so it lives here rather than being recomputed by each screen
+   * that offers a Leave button.
+   */
+  isHost: boolean;
   startGame: () => void;
   submitAnswer: (answer: string) => void;
   submitGuess: (value: number) => void;
   submitCode: (guess: string[]) => void;
   joinWithPassword: (password: string) => void;
-  placeBet: (bet: 'correct' | 'wrong' | 'neutral', amount: number) => void;
-  pickPlayer: (target: string) => void;
+  placeBet: (
+    side: 'correct' | 'wrong' | 'neutral',
+    amount: number,
+    allIn?: boolean
+  ) => void;
+  pickPlayer: (
+    target: string,
+    mode?: 'challenge' | 'duel',
+    wager?: { side: 'correct' | 'wrong'; amount: number | 'all' }
+  ) => void;
   kickPlayer: (target: string) => void;
   terminateLobby: () => void;
   sendChat: (text: string) => void;
+  /** ask a friend into this room; the server reads which room from the socket */
+  inviteFriend: (target: string) => void;
   playAgain: () => void;
-  leaveRoom: () => void;
+  /** free the seat, then go — defaults to the rooms list */
+  leaveRoom: (to?: string) => void | Promise<void>;
 }
 
 const GameContext = createContext<GameActions | null>(null);
@@ -48,19 +73,34 @@ export default function GameProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  /**
+   * The lobby this provider is for. It used to ride in the socket path; API
+   * Gateway drops the path, so it is read from the route here and sent in the
+   * join message instead. The route is /game/[game].
+   */
+  const params = useParams<{ game?: string | string[] }>();
+  const lobbyId = Array.isArray(params?.game) ? params.game[0] : params?.game;
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  // LanguageProvider sits above GameProvider in the root layout, so this is
+  // always inside it — the value is what the join message carries as `lang`
+  const { lang } = useT();
   const phase = useSelector((state: RootState) => state.game.phase);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
-  const socketUrl = useMemo(() => getWebSocketUrl(pathname), [pathname]);
+  // the bare host — no lobby id in the path, see getSocketUrl()
+  const socketUrl = useMemo(() => getSocketUrl(), []);
   const [username, setUsername] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   /** password for private rooms, kept for reconnect re-joins */
   const passwordRef = useRef<string | null>(null);
   const roomCode = useSelector((state: RootState) => state.game.code);
+  const players = useSelector((state: RootState) => state.game.players);
+  const isHost = useMemo(
+    () => players.find((p) => p.username === username)?.isHost ?? false,
+    [players, username]
+  );
 
   useEffect(() => {
     getIdentity().then((id) => {
@@ -77,26 +117,46 @@ export default function GameProvider({
   );
 
   /**
-   * The server reads the player's identity off this token, so the join has to
-   * carry a fresh one — Amplify refreshes it behind getAccessToken(), which
-   * matters on a long game or after a reconnect. displayName stays cosmetic.
+   * The join message carries everything the server needs to place this socket:
+   * which lobby, and who is asking.
+   *
+   * The token has to be fresh — the server verifies it against the pool, and
+   * Amplify refreshes it behind getAccessToken(), which matters on a long game
+   * or after a reconnect. displayName stays cosmetic; identity comes from the
+   * token. The lobby id is here rather than in the URL because an API Gateway
+   * WebSocket API has no path routing.
    */
   const sendJoin = useCallback(
     async (password?: string) => {
+      if (!lobbyId) return;
       const token = await getAccessToken();
       if (!token) return;
       sendJsonMessage({
         type: 'join',
+        lobbyId,
         token,
         displayName,
+        /*
+         * The language the player is reading the app in. The server counts
+         * these across everyone seated and picks ONE language for the match —
+         * a question is shown to the whole table, so it cannot be per-player.
+         * Sent on every join, reconnects included, so a language changed
+         * between matches is picked up at the next start.
+         */
+        lang,
         password: password ?? passwordRef.current ?? undefined,
       });
     },
-    [displayName, sendJsonMessage]
+    [lobbyId, displayName, lang, sendJsonMessage]
   );
 
-  // join (or rejoin after a reconnect) once the socket is open and the
-  // identity has resolved; the server hydrates avatar + streak from the wallet
+  /*
+   * Join once the socket is open and the identity has resolved — and re-join
+   * on every reconnect. That is not belt-and-braces: a serverless socket keeps
+   * no per-connection memory, so a reconnected socket is an anonymous one
+   * until it says who it is again. readyState flipping back to OPEN is what
+   * re-fires this.
+   */
   useEffect(() => {
     if (username && readyState === ReadyState.OPEN) {
       void sendJoin();
@@ -116,16 +176,114 @@ export default function GameProvider({
     dispatch(
       serverMessage({ message: lastJsonMessage, receivedAt: Date.now() })
     );
-  }, [lastJsonMessage, dispatch]);
+    /*
+     * A room invite is not game state, so it goes to its own slice rather than
+     * through serverMessage: the game reducer is wiped by resetGame() on every
+     * leave, and an invite that arrives while you are walking out of a room
+     * must survive that walk.
+     *
+     * Handled here as well as in PresenceProvider because a player already in
+     * a lobby is under GameProvider and never sees the shell's socket.
+     */
+    const msg = lastJsonMessage as unknown as {
+      type?: string;
+      lobbyId?: string;
+      code?: number | null;
+      roomName?: string;
+      isPrivate?: boolean;
+      from?: string;
+      fromName?: string;
+      at?: number;
+    };
+    /*
+     * The room is gone — reloading a lobby you left, or one whose host closed
+     * it. This used to render "Room not found" as a dismissible banner and
+     * leave the reader parked on a dead URL with nothing to do.
+     */
+    if (
+      msg?.type === 'join_denied' &&
+      (msg as { reason?: string }).reason === 'room-gone'
+    ) {
+      dispatch(resetGame());
+      router.replace('/rooms?gone=1');
+      return;
+    }
+    if (msg?.type === 'notification') {
+      const n = msg as unknown as {
+        id: string;
+        kind: string;
+        at: number;
+        data: Record<string, unknown>;
+      };
+      dispatch(
+        notificationArrived({
+          id: String(n.id),
+          kind: String(n.kind),
+          at: Number(n.at ?? Date.now()),
+          read: false,
+          data: n.data ?? {},
+        })
+      );
+      return;
+    }
+    if (msg?.type === 'invite_sent') {
+      dispatch(inviteSent(String((msg as { target?: string }).target ?? '')));
+      return;
+    }
+    if (msg?.type === 'invite_failed') {
+      const f = msg as { reason?: string; target?: string | null };
+      dispatch(
+        inviteRefused({
+          reason: String(f.reason ?? 'generic'),
+          target: String(f.target ?? ''),
+        })
+      );
+      return;
+    }
+    if (msg?.type === 'room_invite' && msg.lobbyId) {
+      dispatch(
+        inviteReceived({
+          lobbyId: String(msg.lobbyId),
+          code: msg.code ?? null,
+          roomName: msg.roomName ?? '',
+          isPrivate: Boolean(msg.isPrivate),
+          from: String(msg.from ?? ''),
+          fromName: msg.fromName || String(msg.from ?? ''),
+          at: msg.at ?? Date.now(),
+        })
+      );
+    }
+  }, [lastJsonMessage, dispatch, router]);
 
-  // fresh state whenever the game screen unmounts
+  /*
+   * A REFRESH IS A RECONNECT, NEVER A DEPARTURE.
+   *
+   * Nothing here may send `leave` — not this cleanup, not an unload handler.
+   * Only two things end membership: the Leave button (which warns the host
+   * first, because their leaving deletes the room) and being kicked. A reload,
+   * a backgrounded tab and a dropped connection all just close the socket,
+   * which the server treats as $disconnect: it reaps the Connections row and
+   * leaves the Lobbies roster untouched, so the player keeps their seat and
+   * the host keeps the room. Sending `leave` on unload would hand the server
+   * the one message that does tear the room down, and a host who pressed F5
+   * would take everybody else's game with them.
+   *
+   * This cleanup therefore resets local Redux state only, and is safe because
+   * the next mount rejoins from the route's lobbyId and a fresh token.
+   */
   useEffect(() => {
     return () => {
       dispatch(resetGame());
+      dispatch(inviteSessionReset());
     };
   }, [dispatch]);
 
-  // warn before closing the tab while a game is running
+  /*
+   * A browser confirm, not a departure — it sends nothing. It exists so a
+   * stray Cmd-R mid-question is a deliberate choice; the server resyncs the
+   * in-flight phase on rejoin either way, so refreshing is safe, just
+   * disruptive to whoever is answering.
+   */
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       const p = phaseRef.current;
@@ -138,9 +296,16 @@ export default function GameProvider({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
+  /*
+   * Only the host starts the match. The server enforces this too, so this is
+   * not the guard that matters — it is here so a stray call from some future
+   * screen cannot send a message the server will only reject, and so the rule
+   * lives next to the isHost that every start control reads.
+   */
   const startGame = useCallback(() => {
+    if (!isHost) return;
     sendJsonMessage({ type: 'start_game' });
-  }, [sendJsonMessage]);
+  }, [isHost, sendJsonMessage]);
 
   const submitAnswer = useCallback(
     (answer: string) => {
@@ -165,21 +330,53 @@ export default function GameProvider({
     [sendJsonMessage]
   );
 
+  /**
+   * Declare on this turn: a side with a stake, or neutral.
+   *
+   * Neutral used to be swallowed here — it set the local flag and returned
+   * without telling anybody. The server counts abstaining as a declaration and
+   * closes the betting pause early once everyone has made one, so a player who
+   * sat out was silently holding the pause open for the whole clock.
+   *
+   * `side` is what the handler reads first (`msg.side ?? msg.bet`); allIn is
+   * sent as a flag rather than an amount so the server stakes the money it
+   * knows the player has, not the figure this client last saw.
+   */
   const placeBet = useCallback(
-    (bet: 'correct' | 'wrong' | 'neutral', amount: number) => {
-      if (bet === 'neutral') {
+    (side: 'correct' | 'wrong' | 'neutral', amount: number, allIn = false) => {
+      if (side === 'neutral') {
         dispatch(setMyBet({ kind: 'neutral' }));
+        sendJsonMessage({ type: 'place_bet', side, amount: 0 });
         return;
       }
-      dispatch(setMyBet({ kind: 'placed', bet, amount }));
-      sendJsonMessage({ type: 'place_bet', bet, amount });
+      dispatch(setMyBet({ kind: 'placed', bet: side, amount }));
+      sendJsonMessage({ type: 'place_bet', side, amount, allIn });
     },
     [dispatch, sendJsonMessage]
   );
 
+  /**
+   * Choose who answers next, and how.
+   *
+   * A challenge may carry a wager, priced off the TARGET's accuracy and
+   * committed blind — the question is drawn in the same server mutation, so
+   * nobody has seen it, picker included. A duel ignores side and amount: its
+   * price is the fixed symmetric ante, not something the picker sizes.
+   */
   const pickPlayer = useCallback(
-    (target: string) => {
-      sendJsonMessage({ type: 'pick_player', target });
+    (
+      target: string,
+      mode: 'challenge' | 'duel' = 'challenge',
+      wager?: { side: 'correct' | 'wrong'; amount: number | 'all' }
+    ) => {
+      sendJsonMessage({
+        type: 'pick_player',
+        target,
+        mode,
+        ...(mode === 'challenge' && wager
+          ? { side: wager.side, amount: wager.amount }
+          : {}),
+      });
     },
     [sendJsonMessage]
   );
@@ -203,24 +400,87 @@ export default function GameProvider({
     [sendJsonMessage]
   );
 
+  /**
+   * Ask a friend into this room.
+   *
+   * The message carries the target and NOTHING else — the server reads which
+   * room from this socket's own Connections row, so there is no lobbyId here
+   * to get wrong or to forge.
+   */
+  const inviteFriend = useCallback(
+    (target: string) => {
+      if (target) sendJsonMessage({ type: 'invite_friend', target });
+    },
+    [sendJsonMessage]
+  );
+
   const playAgain = useCallback(() => {
     sendJsonMessage({ type: 'play_again' });
   }, [sendJsonMessage]);
 
-  const leaveRoom = useCallback(() => {
-    sendJsonMessage({ type: 'leave' });
-    // the URL carries the lobby id; the REST cleanup wants the numeric code
-    if (username && roomCode !== null) {
-      apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(() => {});
-    }
-    dispatch(resetGame());
-    router.push('/');
-  }, [sendJsonMessage, username, roomCode, dispatch, router]);
+  /**
+   * Leave, and land somewhere useful.
+   *
+   * Both halves are needed and neither can do the other's job. The WS `leave`
+   * is what notifies the room — when the leaver is the host the server closes
+   * the room and broadcasts room_closed from there, because the REST Lambda
+   * cannot post to a socket on a different API. The REST call is what makes
+   * the departure durable in the Lobbies item.
+   *
+   * The REST call is awaited before navigating. It used to be fire-and-forget
+   * next to a synchronous router.push, which unmounts this provider and closes
+   * the socket — a host could leave, the frame could die with the socket, and
+   * the room would outlive them. Awaiting gives the frame time to flush and
+   * guarantees the durable delete landed; a failure still navigates, since
+   * trapping someone in a room they asked to leave is the worse outcome.
+   */
+  const leaveRoom = useCallback(
+    async (to: string = '/rooms') => {
+      sendJsonMessage({ type: 'leave' });
+      /*
+       * The WS `leave` is now the one that frees the seat — it edits the Lobbies
+       * roster before it broadcasts, so the other players see the seat empty in
+       * the same message that tells them you went.
+       *
+       * This REST call is the belt to that braces: it is what still works when
+       * the socket has already died, and it is idempotent, so running after the
+       * WS handler has already removed the name changes nothing.
+       *
+       * It is no longer SKIPPED when roomCode is null, which is the bug it used
+       * to be. The code arrives with lobby_state; a client that had not received
+       * one yet — a slow join, a reconnect, the eventually-consistent index —
+       * quietly did no durable cleanup at all, and the seat stayed occupied.
+       * The route takes a code, so it is still only called when there is one,
+       * but the WS half no longer depends on it.
+       */
+      if (username && roomCode !== null) {
+        await apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(
+          () => {}
+        );
+      }
+      dispatch(resetGame());
+      /*
+       * WHERE TO, is the caller's business.
+       *
+       * The rooms list is the right default — someone who just left a room is
+       * most likely looking for another one — but it used to be the only
+       * possibility, which is why the end-of-match screen could not use this
+       * function at all. Its three buttons go three different places, so they
+       * were plain links, and a plain link leaves the seat occupied: a
+       * disconnect deliberately does NOT remove anyone from the roster, so
+       * every finished match left its whole table sitting in a dead room, the
+       * host still holding it.
+       */
+      router.push(to);
+    },
+    [sendJsonMessage, username, roomCode, dispatch, router]
+  );
 
   const value = useMemo<GameActions>(
     () => ({
       username,
       displayName,
+      isHost,
       startGame,
       submitAnswer,
       submitGuess,
@@ -231,12 +491,14 @@ export default function GameProvider({
       kickPlayer,
       terminateLobby,
       sendChat,
+      inviteFriend,
       playAgain,
       leaveRoom,
     }),
     [
       username,
       displayName,
+      isHost,
       startGame,
       submitAnswer,
       submitGuess,
@@ -247,6 +509,7 @@ export default function GameProvider({
       kickPlayer,
       terminateLobby,
       sendChat,
+      inviteFriend,
       playAgain,
       leaveRoom,
     ]

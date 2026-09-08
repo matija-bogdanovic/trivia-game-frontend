@@ -92,18 +92,40 @@ export default function SignUp() {
     router.push(`/confirm?u=${encodeURIComponent(username.trim())}`);
   };
 
+  /**
+   * Same as login's: signInWithRedirect returns a promise, and calling it bare
+   * from onPress leaves a rejection unhandled — the button then does nothing
+   * at all, which is indistinguishable from Google sign-in being broken. See
+   * the note on the login page.
+   */
+  async function continueWithGoogle() {
+    setError('');
+    try {
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (err) {
+      if (
+        (err as { name?: string })?.name === 'UserAlreadyAuthenticatedException'
+      ) {
+        router.push('/home');
+        return;
+      }
+      console.error('Google sign-in error:', err);
+      setError(t('authError.googleFailed'));
+    }
+  }
+
   return (
     <>
-      <h1 className="mb-1 text-2xl font-bold tracking-wide">
+      <h1 className="mb-1 text-center text-2xl font-bold tracking-wide">
         {t('auth.signupTitle')}
       </h1>
-      <p className="mb-6 text-[11px] tracking-wider text-arena-200">
+      <p className="mb-6 text-center text-[11px] tracking-wider text-arena-200">
         {t('auth.signupSub')}
       </p>
 
       {error && (
         <p
-          className="mb-5 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}
@@ -113,7 +135,7 @@ export default function SignUp() {
       {offerConfirm && (
         <button
           type="button"
-          className="mb-5 w-full cursor-pointer border border-gold/40 px-4 py-3 text-[11px] tracking-wider text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+          className="mb-5 w-full cursor-pointer rounded-lg border border-gold/40 px-4 py-3 text-[11px] tracking-wider text-gold transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
           onClick={goConfirmExisting}
         >
           {t('auth.confirmInstead')}
@@ -182,7 +204,7 @@ export default function SignUp() {
         <GoogleButton
           label={t('auth.google')}
           disabled={busy}
-          onPress={() => signInWithRedirect({ provider: 'Google' })}
+          onPress={continueWithGoogle}
         />
       )}
 
@@ -207,4 +229,3 @@ export default function SignUp() {
     </>
   );
 }
-

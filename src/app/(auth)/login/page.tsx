@@ -23,11 +23,24 @@ function Page() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // already signed in? straight to the game
+  /**
+   * Where to land after signing in. Middleware puts the blocked destination on
+   * ?next= when it bounces someone here. Only same-site paths are honoured —
+   * a value like //evil.com is a parser-dependent open redirect, so anything
+   * that is not a single-slash-prefixed path falls back to the home screen.
+   */
+  const destination = () => {
+    if (typeof window === 'undefined') return '/home';
+    const next = new URLSearchParams(window.location.search).get('next');
+    if (next && next.startsWith('/') && !next.startsWith('//')) return next;
+    return '/home';
+  };
+
+  // already signed in? straight through
   useEffect(() => {
     fetchAuthSession()
       .then((session) => {
-        if (session.tokens) router.replace('/');
+        if (session.tokens) router.replace(destination());
       })
       .catch(() => {});
   }, [router]);
@@ -45,11 +58,11 @@ function Page() {
         router.push('/confirm');
         return;
       }
-      router.push('/');
+      router.push(destination());
     } catch (err) {
       const name = (err as { name?: string })?.name;
       if (name === 'UserAlreadyAuthenticatedException') {
-        router.push('/');
+        router.push(destination());
         return;
       }
       if (name === 'UserNotConfirmedException') {
@@ -63,18 +76,52 @@ function Page() {
     }
   }
 
+  /**
+   * Start the Google round trip.
+   *
+   * signInWithRedirect returns a PROMISE, and the button used to call it bare:
+   * `onPress={() => signInWithRedirect({ provider: 'Google' })}`. A rejection
+   * there is unhandled — nothing catches it, nothing renders it, and the
+   * button simply does nothing when pressed. Which is exactly what "Google
+   * sign-in doesn't work" looks like from the outside, on localhost or
+   * anywhere else, with every server-side piece configured correctly.
+   *
+   * The commonest rejection is UserAlreadyAuthenticatedException: Amplify
+   * refuses to start a second sign-in while a session exists, including a
+   * stale one left in cookies from a previous run. The password path has
+   * handled that case since it was written — same exception, three lines
+   * above — and the Google button never got the same treatment.
+   *
+   * So: already signed in means go where you were going, and anything else is
+   * shown rather than swallowed.
+   */
+  async function continueWithGoogle() {
+    setError('');
+    try {
+      await signInWithRedirect({ provider: 'Google' });
+    } catch (err) {
+      const name = (err as { name?: string })?.name;
+      if (name === 'UserAlreadyAuthenticatedException') {
+        router.push(destination());
+        return;
+      }
+      console.error('Google sign-in error:', err);
+      setError(t('authError.googleFailed'));
+    }
+  }
+
   return (
     <>
-      <h1 className="mb-1 text-2xl font-bold tracking-wide">
+      <h1 className="mb-1 text-center text-2xl font-bold tracking-wide">
         {t('auth.login')}
       </h1>
-      <p className="mb-6 text-[11px] tracking-wider text-arena-200">
+      <p className="mb-6 text-center text-[11px] tracking-wider text-arena-200">
         {t('auth.loginSub')}
       </p>
 
       {error && (
         <p
-          className="mb-5 border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
+          className="mb-5 rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[12px] leading-relaxed text-gold"
           role="alert"
         >
           {error}
@@ -84,8 +131,8 @@ function Page() {
       <form className="space-y-4" onSubmit={logIn}>
         <TextField
           fieldId="login-username"
-          label={t('auth.username')}
-          placeholder={t('auth.namePlaceholder')}
+          label={t('auth.identifier')}
+          placeholder={t('auth.identifierPlaceholder')}
           autoComplete="username"
           value={username}
           disabled={busy}
@@ -120,7 +167,7 @@ function Page() {
         <GoogleButton
           label={t('auth.google')}
           disabled={busy}
-          onPress={() => signInWithRedirect({ provider: 'Google' })}
+          onPress={continueWithGoogle}
         />
       )}
 

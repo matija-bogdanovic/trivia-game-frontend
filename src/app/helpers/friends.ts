@@ -1,0 +1,294 @@
+'use client';
+
+import { apiFetch } from './api';
+
+/**
+ * The friends API, in one place.
+ *
+ * ── WHERE FRIENDSHIPS ACTUALLY LIVE ────────────────────────────────────────
+ * Not Firestore, and not a table of their own. A friendship is four arrays on
+ * the player's own DynamoDB record (the `Players` item, PK `username`),
+ * written by two Lambdas behind API Gateway — `lambda/friendsList.mjs` and
+ * `lambda/friendsAction.mjs` in the backend repo:
+ *
+ *   friends: string[]           accepted, mirrored on BOTH players
+ *   friendRequests: string[]    PENDING, incoming — who asked me
+ *   outgoingRequests: string[]  PENDING, outgoing — who I asked
+ *   deniedRequests: [{ username, at }]   DENIED, on the sender
+ *
+ * All three states are represented on both sides, so pending is visible to
+ * whoever sent it as well as whoever received it, and a denial survives as a
+ * fact rather than being deleted — which is what makes "they said no"
+ * different from "you never asked". Every transition is one
+ * TransactWriteItems of two conditional updates, so two people acting at once
+ * cannot half-apply a change or clobber each other.
+ *
+ * ── THE CONTRACT ───────────────────────────────────────────────────────────
+ *   POST /friends/list      no body
+ *     200 { friends:  [{ username, displayName, online, points,
+ *                        currentStreak, wins }],
+ *           requests: [{ username, displayName, status, createdAt }],
+ *           outgoing: [{ username, displayName, status, createdAt,
+ *                        updatedAt }] }
+ *
+ *   POST /friends/action    { target, action }
+ *     action:  "request" | "accept" | "decline" | "cancel" | "remove"
+ *     200 { status: "pending" | "accepted" | "denied" | "cancelled"
+ *                 | "removed" }
+ *     400 { message: "<English reason>" }  — mapped to FriendActionError below
+ *
+ * ── ANTI-SPAM IS THE SERVER'S ──────────────────────────────────────────────
+ * A denial starts a cooldown before that person may be asked again (a week,
+ * a month if they have refused twice), outstanding requests are capped, and
+ * so is the hourly send rate. None of it is checked here and none of it
+ * could be: the rules read counters the client never sees, and the refusals
+ * arrive as 400s like any other. This module's only job is to turn them into
+ * values a Serbian screen can render — see FriendActionError.
+ *   Auth: apiFetch attaches the Cognito ACCESS token; the server takes the
+ *         acting username from it and never from the body.
+ *
+ * ── READING BOTH GENERATIONS ───────────────────────────────────────────────
+ * The frontend and the Lambda deploy separately, and neither order is safe to
+ * assume. So `requests` is read as bare username strings OR as objects, the
+ * older status words are accepted alongside the current ones ("sent" is
+ * "pending", "declined" is "denied"), and a response with no `outgoing` array
+ * at all reports outgoingSupported: false rather than an empty list — "you
+ * have sent nothing" and "this server predates outgoing" are different facts
+ * and the sent panel should only claim the first. That flag can go once the
+ * updated function is deployed everywhere.
+ */
+
+export type FriendshipStatus = 'pending' | 'accepted' | 'denied';
+
+/** every action the endpoint takes */
+export type FriendAction =
+  'request' | 'accept' | 'decline' | 'remove' | 'cancel';
+
+/** a row of `friends` — an accepted friendship, from their wallet */
+/** where a friend is right now, from Connections + GameState */
+export type PresenceStatus = 'offline' | 'online' | 'playing' | 'spectating';
+
+export interface FriendSummary {
+  username: string;
+  displayName: string;
+  /**
+   * The avatar string this player has, straight from their Players row —
+   * the same "u|<version>" / "g|<url>" / "e|<emoji>" shape everything else
+   * decodes. Optional because a server that predates it sends nothing, in
+   * which case <Avatar> falls back to the store and then to an initial.
+   */
+  avatar?: string | null;
+  /**
+   * Richer than `online`, which it supersedes. Absent from a server that
+   * predates it, in which case the boolean is all there is — hence the
+   * fallback in presenceOf().
+   */
+  status?: PresenceStatus;
+  /**
+   * Always false from the Lambda. It answers this from the live socket room
+   * map on the Express server, and a Lambda cannot see that memory — so a
+   * friend who is playing right now still reads as offline.
+   */
+  online: boolean;
+  points: number;
+  currentStreak: number;
+  wins: number;
+}
+
+/** a friendship that is not (yet) accepted, in either direction */
+export interface FriendRequestEntry {
+  username: string;
+  /** falls back to the username, for a server that sends only that */
+  displayName: string;
+  avatar?: string | null;
+  status: FriendshipStatus;
+  /** epoch ms, when the server keeps one */
+  createdAt: number | null;
+  /**
+   * For a denied entry: epoch ms when this person may be asked again, from
+   * the cooldown the server enforces. null when there is no wait — a pending
+   * row, or a denial old enough to have expired.
+   */
+  retryAt: number | null;
+}
+
+export interface FriendsSnapshot {
+  friends: FriendSummary[];
+  /** requests sent TO me, awaiting my accept or deny */
+  incoming: FriendRequestEntry[];
+  /** requests I sent: pending ones, and the ones that were denied */
+  outgoing: FriendRequestEntry[];
+  /**
+   * Did the server actually answer with an `outgoing` array?
+   *
+   * The distinction matters only until the updated Lambda is deployed
+   * everywhere: "no outgoing requests" and "this server is the old one" are
+   * different facts, and a UI that conflates them shows an empty panel that
+   * looks like an answer.
+   */
+  outgoingSupported: boolean;
+}
+
+/**
+ * Why an action was refused, as a value rather than a sentence.
+ *
+ * The endpoint answers 400 with English prose ("Already friends"), which is
+ * server-internal wording and no use to a screen that is Serbian by default.
+ * Matching it happens once, here, so a change of wording is one edit and not
+ * a hunt through components.
+ */
+export type FriendActionError =
+  | 'self'
+  | 'not-found'
+  | 'already-friends'
+  | 'already-sent'
+  | 'no-such-request'
+  /* ── the anti-spam refusals; all three are enforced server-side ────────── */
+  /** they turned you down recently and the cooldown has not run out */
+  | 'denied-cooldown'
+  /** too many requests already outstanding */
+  | 'too-many-pending'
+  /** too many sent in the last hour */
+  | 'rate-limited'
+  | 'unauthenticated'
+  | 'failed'
+  | 'unreachable';
+
+export type FriendActionResult =
+  | { ok: true; status: FriendshipStatus | 'removed' | 'cancelled' }
+  | { ok: false; reason: FriendActionError };
+
+function toEntry(raw: unknown, fallbackStatus: FriendshipStatus) {
+  // the current endpoint sends bare usernames; the object form is what the
+  // status model needs, and both are read so neither release breaks the other
+  if (typeof raw === 'string') {
+    return raw
+      ? {
+          username: raw,
+          displayName: raw,
+          status: fallbackStatus,
+          createdAt: null,
+          retryAt: null,
+        }
+      : null;
+  }
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const username = typeof r.username === 'string' ? r.username : '';
+  if (!username) return null;
+  const status = normalizeStatus(r.status) ?? fallbackStatus;
+  return {
+    username,
+    displayName:
+      typeof r.displayName === 'string' && r.displayName
+        ? r.displayName
+        : username,
+    status,
+    createdAt: typeof r.createdAt === 'number' ? r.createdAt : null,
+    retryAt: typeof r.retryAt === 'number' ? r.retryAt : null,
+  };
+}
+
+/** `sent` and `declined` are the verbs the endpoint answers in; these are the states */
+function normalizeStatus(raw: unknown): FriendshipStatus | null {
+  if (raw === 'pending' || raw === 'sent') return 'pending';
+  if (raw === 'accepted') return 'accepted';
+  if (raw === 'denied' || raw === 'declined') return 'denied';
+  return null;
+}
+
+function errorFor(status: number, message: string): FriendActionError {
+  if (status === 401) return 'unauthenticated';
+  if (message === "That's you") return 'self';
+  if (message === 'User not found') return 'not-found';
+  if (message === 'Already friends') return 'already-friends';
+  if (message === 'Request already sent') return 'already-sent';
+  if (message === 'No such request') return 'no-such-request';
+  if (message === 'Request recently denied') return 'denied-cooldown';
+  if (message === 'Too many pending requests') return 'too-many-pending';
+  if (message === 'Sending too fast') return 'rate-limited';
+  return 'failed';
+}
+
+/** The whole social graph as this player can see it. null = could not load. */
+export async function fetchFriends(): Promise<FriendsSnapshot | null> {
+  try {
+    const res = await apiFetch('/friends/list');
+    if (!res.ok) return null;
+    const data = await res.json().catch(() => null);
+    if (!data) return null;
+
+    const rawOutgoing = data.outgoing;
+    return {
+      friends: Array.isArray(data.friends)
+        ? (data.friends as FriendSummary[])
+        : [],
+      incoming: (Array.isArray(data.requests) ? data.requests : [])
+        .map((r: unknown) => toEntry(r, 'pending'))
+        .filter(Boolean) as FriendRequestEntry[],
+      outgoing: (Array.isArray(rawOutgoing) ? rawOutgoing : [])
+        .map((r: unknown) => toEntry(r, 'pending'))
+        .filter(Boolean) as FriendRequestEntry[],
+      outgoingSupported: Array.isArray(rawOutgoing),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Send, accept, deny, cancel or remove — the one write this API has.
+ *
+ * `request` can legitimately answer `accepted`: if the target had already
+ * asked you, the server takes your request as taking them up on it, which is
+ * how the both-sent-at-once case resolves without either side being told to
+ * try again. Callers have to handle that, so it is a status and not an error.
+ */
+export async function friendAction(
+  target: string,
+  action: FriendAction
+): Promise<FriendActionResult> {
+  const name = target.trim();
+  if (!name) return { ok: false, reason: 'failed' };
+
+  try {
+    const res = await apiFetch('/friends/action', {
+      body: { target: name, action },
+    });
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      const message = typeof data?.message === 'string' ? data.message : '';
+      return { ok: false, reason: errorFor(res.status, message) };
+    }
+
+    const raw = data?.status;
+    if (raw === 'removed') return { ok: true, status: 'removed' };
+    if (raw === 'cancelled' || raw === 'canceled') {
+      return { ok: true, status: 'cancelled' };
+    }
+    const status = normalizeStatus(raw);
+    // an ok response with an unreadable status still succeeded; report the
+    // state the action asked for rather than inventing a failure
+    if (status) return { ok: true, status };
+    return {
+      ok: true,
+      status: action === 'accept' ? 'accepted' : 'pending',
+    };
+  } catch {
+    return { ok: false, reason: 'unreachable' };
+  }
+}
+
+/**
+ * A friend's presence, tolerant of a server that only knows the boolean.
+ *
+ * `status` is what the current endpoint sends; `online` is what the previous
+ * one sent and is still returned alongside it. Reading both means the screen
+ * is right against either, and stays right during a deploy where the two are
+ * briefly mixed.
+ */
+export function presenceOf(friend: FriendSummary): PresenceStatus {
+  if (friend.status) return friend.status;
+  return friend.online ? 'online' : 'offline';
+}

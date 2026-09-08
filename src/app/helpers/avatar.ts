@@ -2,10 +2,12 @@
 
 /** the avatar string stored in the player's wallet:
  *  - "u|<version>"     uploaded photo, served from the backend
+ *  - "g|<url>"         the picture from a federated (Google) account
  *  - "e|<emoji>|<hue>" legacy emoji avatar (still rendered)
  *  - anything else     initials fallback */
 export type AvatarInfo =
   | { kind: 'upload'; version: string }
+  | { kind: 'remote'; url: string }
   | { kind: 'emoji'; emoji: string; hue: number };
 
 export function decodeAvatar(
@@ -15,6 +17,19 @@ export function decodeAvatar(
   if (avatar.startsWith('u|')) {
     const version = avatar.slice(2);
     return version ? { kind: 'upload', version } : null;
+  }
+  if (avatar.startsWith('g|')) {
+    const url = avatar.slice(2);
+    /*
+     * https only, and checked HERE as well as on the server.
+     *
+     * This value ends up as an <img src> on every screen that shows a player,
+     * and it reaches this client from another player's wallet — not from
+     * anything the reader controls. The server refuses anything else on the
+     * way in; refusing it again on the way out means a row written before that
+     * check existed cannot render either.
+     */
+    return url.startsWith('https://') ? { kind: 'remote', url } : null;
   }
   if (avatar.startsWith('e|')) {
     const [, emoji, hueRaw] = avatar.split('|');

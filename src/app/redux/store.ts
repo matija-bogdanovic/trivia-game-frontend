@@ -1,12 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import avatar from './slicers/avatar_slice';
 import game from './slicers/game_slice';
-import roomOperations from './slicers/room_opeations';
+import invite from './slicers/invite_slice';
+import notifications from './slicers/notification_slice';
+import profile from './slicers/profile_slice';
 
 export const store = configureStore({
   reducer: {
+    avatar,
     game,
-    roomOperations,
+    invite,
+    notifications,
+    profile,
   },
 });
 
