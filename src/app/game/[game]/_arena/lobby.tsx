@@ -7,7 +7,7 @@ import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import HostChangeBanner from './host_change_banner';
-import { fetchFriends, friendAction } from '@/app/helpers/friends';
+import { useFriendship } from '@/app/(arena)/_data/use_friendship';
 import InviteFriends from './invite_friends';
 import {
   CheckIcon,
@@ -43,40 +43,12 @@ export default function ArenaLobby() {
   } = useGame();
   const [inviting, setInviting] = useState(false);
   /*
-   * Who in this room you are already friends with — read once, so the tiles
-   * can offer "Dodaj prijatelja" only to the people it would mean something
-   * for. A failure leaves the set empty, which shows the button to everyone;
-   * the server refuses a duplicate request anyway, so the worst case is one
-   * wasted click rather than a broken lobby.
+   * Who you already know and who you have already asked. This used to be two
+   * local Sets and a fetch right here; the match-history standings now offer
+   * the same button, so it lives in one hook rather than in two copies that
+   * could come to disagree about what "already sent" means.
    */
-  const [friends, setFriends] = useState<Set<string>>(new Set());
-  const [requested, setRequested] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    let live = true;
-    fetchFriends().then((snap) => {
-      if (!live || !snap) return;
-      setFriends(new Set(snap.friends.map((f) => f.username)));
-      // somebody you have already asked is not somebody to ask again
-      setRequested(new Set((snap.outgoing ?? []).map((o) => o.username)));
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  const addFriend = async (target: string) => {
-    setRequested((current) => new Set(current).add(target));
-    const result = await friendAction(target, 'request');
-    // a refusal puts the button back rather than leaving a false "sent"
-    if (!result.ok) {
-      setRequested((current) => {
-        const next = new Set(current);
-        next.delete(target);
-        return next;
-      });
-    }
-  };
+  const { isFriend, isRequested, addFriend } = useFriendship();
 
   const inviteSentTo = useSelector((st: RootState) => st.invite.sent);
   const inviteResult = useSelector((st: RootState) => st.invite.result);
@@ -431,8 +403,8 @@ export default function ArenaLobby() {
                     denial does not leave a false "sent".
                   */}
                   {!isMe &&
-                    !friends.has(player.username) &&
-                    (requested.has(player.username) ? (
+                    !isFriend(player.username) &&
+                    (isRequested(player.username) ? (
                       <div className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-arena-500 py-1.5 text-[10px] tracking-wider text-arena-400 uppercase">
                         <CheckIcon className="h-3 w-3 shrink-0" />
                         {t('game.friendRequested')}
@@ -440,7 +412,7 @@ export default function ArenaLobby() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => addFriend(player.username)}
+                        onClick={() => void addFriend(player.username)}
                         className="mt-3 flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-gold/40 py-1.5 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
                       >
                         <UserPlusIcon className="h-3 w-3 shrink-0" />
