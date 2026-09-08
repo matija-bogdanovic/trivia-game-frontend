@@ -31,6 +31,16 @@ function Delta({ value }: { value: number }) {
  * nothing is recomputed from the roster, which is what kept the old screen
  * disagreeing with the server about who had won what.
  */
+/**
+ * One column per figure shown. Literal classes, because Tailwind cannot
+ * generate a class it never sees in the source.
+ */
+const REVEAL_COLUMNS: Record<number, string> = {
+  1: 'grid-cols-1',
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+};
+
 export default function ArenaReveal() {
   const { t } = useT();
   const { username } = useGame();
@@ -143,34 +153,66 @@ export default function ArenaReveal() {
       )}
 
       {/* ================================================ pot and minting */}
-      <div className="mb-6 grid grid-cols-2 gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-5 sm:grid-cols-3">
-        <div>
-          <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-            {t('arena.game.pot')}
+      {/*
+        As many columns as there are figures, centred.
+
+        This was a fixed grid-cols-2 sm:grid-cols-3, and two of the three cells
+        are conditional — nothing is minted most turns. So the usual case was
+        one figure sitting in the left third of a three-column grid, with the
+        pot pressed against the edge of a wide panel.
+
+        Built as a list first so the count is a real number rather than
+        something to keep in step with three separate conditionals; the same
+        literal-class lookup the wheel uses, for the same reason Tailwind
+        cannot see a computed one.
+      */}
+      {(() => {
+        const figures = [
+          {
+            label: t('arena.game.pot'),
+            value: money(pot),
+            tone: 'text-white',
+          },
+          ...(mintedThisTurn > 0
+            ? [
+                {
+                  label: t('arena.game.mintedThisTurn'),
+                  value: money(mintedThisTurn),
+                  tone: 'text-gold',
+                },
+              ]
+            : []),
+          ...(minted > 0
+            ? [
+                {
+                  label: t('arena.game.mintedTotal'),
+                  value: money(minted),
+                  tone: 'text-arena-200',
+                },
+              ]
+            : []),
+        ];
+        return (
+          <div className="mb-6 rounded-lg border border-white/[0.07] bg-arena-800 p-5">
+            <div
+              className={`mx-auto grid w-fit gap-x-10 gap-y-4 text-center ${
+                REVEAL_COLUMNS[figures.length] ?? 'grid-cols-1'
+              }`}
+            >
+              {figures.map((f) => (
+                <div key={f.label}>
+                  <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
+                    {f.label}
+                  </div>
+                  <div className={`font-bold tabular-nums ${f.tone}`}>
+                    {f.value}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="font-bold text-white tabular-nums">{money(pot)}</div>
-        </div>
-        {mintedThisTurn > 0 && (
-          <div>
-            <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-              {t('arena.game.mintedThisTurn')}
-            </div>
-            <div className="font-bold text-gold tabular-nums">
-              {money(mintedThisTurn)}
-            </div>
-          </div>
-        )}
-        {minted > 0 && (
-          <div>
-            <div className="mb-1 text-[10px] tracking-widest text-arena-300 uppercase">
-              {t('arena.game.mintedTotal')}
-            </div>
-            <div className="font-bold text-arena-200 tabular-nums">
-              {money(minted)}
-            </div>
-          </div>
-        )}
-      </div>
+        );
+      })()}
 
       {eliminated.length > 0 && (
         <div className="rounded-lg border border-gold/30 bg-gold/10 px-4 py-3 text-[11px] tracking-wider text-gold">

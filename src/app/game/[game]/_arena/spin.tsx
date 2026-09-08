@@ -28,6 +28,23 @@ const FRAME_MS = 60;
  * animation, reloading mid-spin needs no special handling. The new page asks
  * the same question of the same numbers and gets the same answer.
  */
+/**
+ * Column counts as literal classes, keyed by how many people are seated.
+ *
+ * Written out because Tailwind cannot generate a class it never sees; a
+ * computed `sm:grid-cols-${n}` produces markup with no matching CSS.
+ */
+const SPIN_COLUMNS: Record<number, string> = {
+  1: 'sm:grid-cols-1',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-3',
+  4: 'sm:grid-cols-4',
+  5: 'sm:grid-cols-5',
+  6: 'sm:grid-cols-6',
+  7: 'sm:grid-cols-7',
+  8: 'sm:grid-cols-8',
+};
+
 export default function ArenaSpin() {
   const { t } = useT();
   const { toClient } = useServerClock();
@@ -72,7 +89,33 @@ export default function ArenaSpin() {
         {t('arena.game.playerSelection')}
       </div>
 
-      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      {/*
+        One column per player, and the whole grid centred.
+
+        It was a fixed grid-cols-2 sm:grid-cols-4, so a room of two left two
+        empty cells on the right and the pair sat off to one side, and a room
+        of three did the same with one. The wheel is the moment everybody is
+        looking at one row of faces; it should be a row of faces, centred.
+
+        ── WHY A LOOKUP AND NOT A TEMPLATE STRING ─────────────────────────────
+        Tailwind only ships utilities it can SEE in the source, so
+        `sm:grid-cols-${n}` compiles to a class that does not exist. The eight
+        literals below are what the scanner needs, and eight is the whole
+        range — createRoom offers two to eight seats and nothing can exceed it.
+
+        Below sm it stays at two: eight columns on a phone is eight thumbnails
+        nobody can tell apart, and the wheel has to be readable more than it
+        has to be one line.
+
+        w-fit with mx-auto is what centres it. The columns size to their
+        content and the block is centred as a whole, rather than a full-width
+        grid distributing empty space and pretending the tiles are placed.
+      */}
+      <div
+        className={`mx-auto mb-10 grid w-fit grid-cols-2 gap-4 ${
+          SPIN_COLUMNS[Math.min(seated.length, 8)] ?? 'sm:grid-cols-4'
+        }`}
+      >
         {seated.map((p, i) => {
           const lit = i === highlight;
           return (
