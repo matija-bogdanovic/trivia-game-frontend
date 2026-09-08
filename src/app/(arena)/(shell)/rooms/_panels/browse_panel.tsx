@@ -89,6 +89,17 @@ const SORT_OPTIONS: { value: RoomSort; labelKey: string }[] = [
 /** What GET /lobbies returns per room. */
 interface Lobby {
   lobbyId: string;
+  /**
+   * Who the room belongs to — the username createRoom recorded from the
+   * verified token.
+   *
+   * Optional because a room written before the field existed has none; the
+   * endpoint falls back to `host`, which is the same person found by scanning
+   * the roster for role "Admin". Nothing renders it yet: it is here so the
+   * client can tell whose room it is without unpacking a nested array, which
+   * is what every reader has had to do until now.
+   */
+  owner?: string | null;
   code: number;
   roomName: string;
   isPrivate: boolean;
