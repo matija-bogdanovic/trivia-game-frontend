@@ -62,7 +62,8 @@ export interface GameActions {
   /** ask a friend into this room; the server reads which room from the socket */
   inviteFriend: (target: string) => void;
   playAgain: () => void;
-  leaveRoom: () => void | Promise<void>;
+  /** free the seat, then go — defaults to the rooms list */
+  leaveRoom: (to?: string) => void | Promise<void>;
 }
 
 const GameContext = createContext<GameActions | null>(null);
@@ -433,34 +434,47 @@ export default function GameProvider({
    * guarantees the durable delete landed; a failure still navigates, since
    * trapping someone in a room they asked to leave is the worse outcome.
    */
-  const leaveRoom = useCallback(async () => {
-    sendJsonMessage({ type: 'leave' });
-    /*
-     * The WS `leave` is now the one that frees the seat — it edits the Lobbies
-     * roster before it broadcasts, so the other players see the seat empty in
-     * the same message that tells them you went.
-     *
-     * This REST call is the belt to that braces: it is what still works when
-     * the socket has already died, and it is idempotent, so running after the
-     * WS handler has already removed the name changes nothing.
-     *
-     * It is no longer SKIPPED when roomCode is null, which is the bug it used
-     * to be. The code arrives with lobby_state; a client that had not received
-     * one yet — a slow join, a reconnect, the eventually-consistent index —
-     * quietly did no durable cleanup at all, and the seat stayed occupied.
-     * The route takes a code, so it is still only called when there is one,
-     * but the WS half no longer depends on it.
-     */
-    if (username && roomCode !== null) {
-      await apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(
-        () => {}
-      );
-    }
-    dispatch(resetGame());
-    // the rooms list, not the dashboard: someone who just left a room is
-    // most likely looking for another one
-    router.push('/rooms');
-  }, [sendJsonMessage, username, roomCode, dispatch, router]);
+  const leaveRoom = useCallback(
+    async (to: string = '/rooms') => {
+      sendJsonMessage({ type: 'leave' });
+      /*
+       * The WS `leave` is now the one that frees the seat — it edits the Lobbies
+       * roster before it broadcasts, so the other players see the seat empty in
+       * the same message that tells them you went.
+       *
+       * This REST call is the belt to that braces: it is what still works when
+       * the socket has already died, and it is idempotent, so running after the
+       * WS handler has already removed the name changes nothing.
+       *
+       * It is no longer SKIPPED when roomCode is null, which is the bug it used
+       * to be. The code arrives with lobby_state; a client that had not received
+       * one yet — a slow join, a reconnect, the eventually-consistent index —
+       * quietly did no durable cleanup at all, and the seat stayed occupied.
+       * The route takes a code, so it is still only called when there is one,
+       * but the WS half no longer depends on it.
+       */
+      if (username && roomCode !== null) {
+        await apiFetch('/leaveRoom', { body: { code: roomCode } }).catch(
+          () => {}
+        );
+      }
+      dispatch(resetGame());
+      /*
+       * WHERE TO, is the caller's business.
+       *
+       * The rooms list is the right default — someone who just left a room is
+       * most likely looking for another one — but it used to be the only
+       * possibility, which is why the end-of-match screen could not use this
+       * function at all. Its three buttons go three different places, so they
+       * were plain links, and a plain link leaves the seat occupied: a
+       * disconnect deliberately does NOT remove anyone from the roster, so
+       * every finished match left its whole table sitting in a dead room, the
+       * host still holding it.
+       */
+      router.push(to);
+    },
+    [sendJsonMessage, username, roomCode, dispatch, router]
+  );
 
   const value = useMemo<GameActions>(
     () => ({

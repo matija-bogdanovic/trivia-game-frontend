@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useT } from '@/app/lib/i18n';
+import { useGame } from '@/app/components/hooks/game/context/game_context';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { money } from '@/app/(arena)/_lib/money';
 import { FlameIcon, StarIcon } from '@/app/(arena)/_components/icons';
@@ -51,6 +51,7 @@ export default function ArenaResults({
   yourPerformance: PerformanceStat[];
 }) {
   const { t } = useT();
+  const { leaveRoom } = useGame();
   const winner = rankings[0];
   if (!winner) return null;
 
@@ -187,26 +188,40 @@ export default function ArenaResults({
         </div>
       </section>
 
-      {/* ============================================================= CTAs */}
+      {/*
+        ============================================================= CTAs
+
+        Buttons, not links, and every one of them LEAVES first.
+
+        All three used to be plain <Link>s. Navigating away only closes the
+        socket, and a disconnect deliberately keeps you on the roster — that is
+        what makes an ordinary refresh survivable. So a finished match ended
+        with its entire table still seated in a room nobody was in, the host
+        still owning it, and the room still listed as joinable. Leaving is the
+        one thing all three of these mean, whichever page they go on to.
+      */}
       <div className="flex flex-wrap gap-3 sm:gap-4">
-        <Link
-          href="/rooms"
-          className="bg-gold px-8 py-4 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        <button
+          type="button"
+          onClick={() => void leaveRoom('/rooms')}
+          className="cursor-pointer bg-gold px-8 py-4 text-[11px] font-bold tracking-[0.2em] text-arena-950 uppercase transition-colors hover:bg-gold-light focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.results.playAgain')}
-        </Link>
-        <Link
-          href="/home"
-          className="rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        </button>
+        <button
+          type="button"
+          onClick={() => void leaveRoom('/home')}
+          className="cursor-pointer rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.results.returnHome')}
-        </Link>
-        <Link
-          href="/rooms/create"
-          className="rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+        </button>
+        <button
+          type="button"
+          onClick={() => void leaveRoom('/rooms/create')}
+          className="cursor-pointer rounded-lg border border-white/20 px-6 py-4 text-[11px] font-bold tracking-[0.15em] text-white uppercase transition-colors hover:bg-arena-700 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
         >
           {t('arena.results.createNew')}
-        </Link>
+        </button>
       </div>
     </div>
   );
