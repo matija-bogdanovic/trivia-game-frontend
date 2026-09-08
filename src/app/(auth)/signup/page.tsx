@@ -116,10 +116,10 @@ export default function SignUp() {
 
   return (
     <>
-      <h1 className="mb-1 text-2xl font-bold tracking-wide">
+      <h1 className="mb-1 text-center text-2xl font-bold tracking-wide">
         {t('auth.signupTitle')}
       </h1>
-      <p className="mb-6 text-[11px] tracking-wider text-arena-200">
+      <p className="mb-6 text-center text-[11px] tracking-wider text-arena-200">
         {t('auth.signupSub')}
       </p>
 
