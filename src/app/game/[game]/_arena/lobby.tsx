@@ -375,10 +375,23 @@ export default function ArenaLobby() {
                       <div className="text-white font-bold truncate">
                         {shown}
                       </div>
-                      <div className="text-flame text-[11px] flex items-center gap-1">
-                        <FlameIcon className="h-3 w-3 shrink-0" />
-                        {player.streak} streak
-                      </div>
+                      {/*
+                        A streak of nought is not a streak. This printed
+                        "0 streak" under every name in the room — a flame, in
+                        the streak colour, saying nothing is burning. The
+                        leaderboard and the profile already went quiet at zero;
+                        this was the last place still announcing it.
+
+                        The line is dropped rather than blanked, so a player
+                        with no run has a name and nothing under it instead of
+                        a gap where a fact used to be.
+                      */}
+                      {player.streak > 0 && (
+                        <div className="text-flame text-[11px] flex items-center gap-1">
+                          <FlameIcon className="h-3 w-3 shrink-0" />
+                          {t('arena.lb.streakCount', { n: player.streak })}
+                        </div>
+                      )}
                     </div>
                   </div>
 
