@@ -525,6 +525,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.invite.none': 'You have no friends to invite yet.',
     'arena.invite.err.offline': '{name} is not online right now.',
     'arena.invite.err.alreadyHere': '{name} is already in this room.',
+    'arena.invite.byName': 'Add a player',
+    'arena.invite.byNameHint':
+      'As the host you can bring in anyone, not only your friends. Type their username — it is unique, so there is no tag to add.',
+    'arena.invite.byNamePlaceholder': 'Username',
+    'arena.invite.add': 'Add',
+    'arena.invite.err.noSuchPlayer': 'Nobody plays under the name {name}.',
     'arena.invite.err.notFriend':
       'You can only invite someone who has accepted you.',
     'arena.invite.err.roomGone': 'This room no longer exists.',
@@ -1408,6 +1414,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.invite.none': 'Još nemaš prijatelje koje bi pozvao.',
     'arena.invite.err.offline': '{name} trenutno nije onlajn.',
     'arena.invite.err.alreadyHere': '{name} je već u ovoj sobi.',
+    'arena.invite.byName': 'Dodaj igrača',
+    'arena.invite.byNameHint':
+      'Kao domaćin možeš da dovedeš bilo koga, ne samo prijatelje. Upiši korisničko ime — jedinstveno je, pa nema oznake da se dodaje.',
+    'arena.invite.byNamePlaceholder': 'Korisničko ime',
+    'arena.invite.add': 'Dodaj',
+    'arena.invite.err.noSuchPlayer': 'Niko ne igra pod imenom {name}.',
     'arena.invite.err.notFriend':
       'Možeš da pozoveš samo nekoga ko te je prihvatio.',
     'arena.invite.err.roomGone': 'Ova soba više ne postoji.',

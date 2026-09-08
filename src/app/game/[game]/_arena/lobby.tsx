@@ -97,6 +97,9 @@ export default function ArenaLobby() {
         return t('arena.invite.err.roomFull');
       case 'not-friend':
         return t('arena.invite.err.notFriend');
+      // only the host's typed-name path can produce this one
+      case 'no-such-player':
+        return t('arena.invite.err.noSuchPlayer', { name });
       case 'room-gone':
         return t('arena.invite.err.roomGone');
       default:
@@ -677,6 +680,7 @@ export default function ArenaLobby() {
         inRoom={players.map((p) => p.username)}
         sent={inviteSentTo}
         notice={inviteNotice}
+        canInviteAnyone={iAmHost}
       />
     </div>
   );
