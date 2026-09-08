@@ -438,6 +438,7 @@ export default function Page() {
                     <Avatar
                       initial={request.displayName.charAt(0).toUpperCase()}
                       username={request.username}
+                      avatar={request.avatar}
                       alt={request.displayName}
                       size="sm"
                     />
@@ -516,6 +517,7 @@ export default function Page() {
                     <Avatar
                       initial={entry.displayName.charAt(0).toUpperCase()}
                       username={entry.username}
+                      avatar={entry.avatar}
                       alt={entry.displayName}
                       size="sm"
                     />
@@ -650,6 +652,7 @@ function FriendRow({
               .charAt(0)
               .toUpperCase()}
             username={friend.username}
+            avatar={friend.avatar}
             alt={friend.displayName || friend.username}
             size="md"
           />

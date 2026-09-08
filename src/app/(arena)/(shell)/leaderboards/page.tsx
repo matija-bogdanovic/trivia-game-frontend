@@ -73,6 +73,8 @@ const PODIUM_BORDER: Record<number, string> = {
 interface LeaderboardApiRow {
   username: string;
   displayName: string;
+  /** their picture, in the usual encoded form; null when they have none */
+  avatar?: string | null;
   wins: number;
   gamesPlayed: number;
   /**
@@ -91,6 +93,7 @@ interface LeaderboardApiRow {
 interface FriendApiRow {
   username: string;
   displayName: string;
+  avatar?: string | null;
   online: boolean;
   points: number;
   currentStreak: number;
@@ -120,6 +123,7 @@ interface Row {
   username: string;
   name: string;
   initial: string;
+  avatar: string | null;
   streak: number;
   wins: number;
   points: number;
@@ -180,6 +184,7 @@ const toRows = (api: LeaderboardApiRow[], me: string | null): Row[] => {
       username: r.username,
       name: r.displayName || r.username,
       initial: (r.displayName || r.username).charAt(0).toUpperCase(),
+      avatar: r.avatar ?? null,
       streak: r.currentStreak,
       wins: r.wins,
       points: r.points,
@@ -271,6 +276,7 @@ export default function Page() {
         global.get(f.username) ?? {
           username: f.username,
           displayName: f.displayName,
+          avatar: f.avatar ?? null,
           wins: f.wins,
           gamesPlayed: 0,
           coins: 0,
@@ -293,6 +299,7 @@ export default function Page() {
         (wallet && {
           username: me,
           displayName: identity?.displayName || me,
+          avatar: wallet.avatar ?? null,
           wins: wallet.wins,
           gamesPlayed: wallet.gamesPlayed,
           coins: wallet.coins,
@@ -523,6 +530,7 @@ export default function Page() {
                   <Avatar
                     initial={slot.row.initial}
                     username={slot.row.username}
+                    avatar={slot.row.avatar}
                     alt={slot.row.name}
                     size={PODIUM_AVATAR[slot.place] ?? 'sm'}
                     accent={slot.place === 1}
@@ -639,6 +647,7 @@ export default function Page() {
                   <Avatar
                     initial={row.initial}
                     username={row.username}
+                    avatar={row.avatar}
                     alt={row.name}
                     size="xs"
                     accent={row.rank === 1}

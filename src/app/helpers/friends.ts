@@ -72,6 +72,13 @@ export interface FriendSummary {
   username: string;
   displayName: string;
   /**
+   * The avatar string this player has, straight from their Players row —
+   * the same "u|<version>" / "g|<url>" / "e|<emoji>" shape everything else
+   * decodes. Optional because a server that predates it sends nothing, in
+   * which case <Avatar> falls back to the store and then to an initial.
+   */
+  avatar?: string | null;
+  /**
    * Richer than `online`, which it supersedes. Absent from a server that
    * predates it, in which case the boolean is all there is — hence the
    * fallback in presenceOf().
@@ -93,6 +100,7 @@ export interface FriendRequestEntry {
   username: string;
   /** falls back to the username, for a server that sends only that */
   displayName: string;
+  avatar?: string | null;
   status: FriendshipStatus;
   /** epoch ms, when the server keeps one */
   createdAt: number | null;
