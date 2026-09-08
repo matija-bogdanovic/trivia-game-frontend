@@ -147,6 +147,15 @@ export interface CurrentPick {
 export interface GameState {
   phase: GamePhase;
   roomName: string;
+  /**
+   * The room changed hands — the host left and somebody inherited it.
+   *
+   * Held until it is dismissed rather than cleared by the next lobby_state,
+   * because a lobby_state arrives immediately after and would wipe the notice
+   * before anyone read it. resetGame clears it on leave, which is the only
+   * other time it stops being true.
+   */
+  hostChanged: { host: string; hostName: string } | null;
   code: number | null;
   /**
    * Seat limits, as sent by the server. Null until the first lobby_state —
@@ -325,6 +334,7 @@ function learnSkew(
 const initialState: GameState = {
   phase: 'connecting',
   roomName: '',
+  hostChanged: null,
   code: null,
   minPlayers: null,
   maxPlayers: null,
@@ -810,6 +820,12 @@ const gameSlice = createSlice({
           state.kickedReason =
             typeof message.reason === 'string' ? message.reason : null;
           break;
+        case 'host_changed':
+          state.hostChanged = {
+            host: String(message.host ?? ''),
+            hostName: String(message.hostName || message.host || ''),
+          };
+          break;
         case 'room_closed':
           state.roomClosed = message.reason ?? 'closed';
           break;
@@ -850,6 +866,9 @@ const gameSlice = createSlice({
       state.notImplemented = null;
     },
     /** one toast, by key — dismissing the front of the queue shows the next */
+    dismissHostChange: (state) => {
+      state.hostChanged = null;
+    },
     dismissAchievementNotice: (state, action: PayloadAction<string>) => {
       state.achievementNotices = state.achievementNotices.filter(
         (n) => n.key !== action.payload
@@ -866,6 +885,7 @@ export const {
   markGuessSubmitted,
   clearError,
   dismissAchievementNotice,
+  dismissHostChange,
   resetGame,
 } = gameSlice.actions;
 export default gameSlice.reducer;
