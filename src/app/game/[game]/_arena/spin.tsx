@@ -34,15 +34,25 @@ const FRAME_MS = 60;
  * Written out because Tailwind cannot generate a class it never sees; a
  * computed `sm:grid-cols-${n}` produces markup with no matching CSS.
  */
+/**
+ * One column per seated player — but only from `lg`, where there is width for
+ * it. Two literal sets, because Tailwind ships the classes it can see and a
+ * computed `lg:grid-cols-${n}` is not one of them.
+ *
+ * Eight columns is one row of faces on a monitor and eight unreadable
+ * thumbnails on a phone, so the count degrades rather than holding: two
+ * columns on a phone, at most four on a tablet, the real number above that.
+ * The wheel has to be legible before it has to be a single line.
+ */
 const SPIN_COLUMNS: Record<number, string> = {
-  1: 'sm:grid-cols-1',
-  2: 'sm:grid-cols-2',
-  3: 'sm:grid-cols-3',
-  4: 'sm:grid-cols-4',
-  5: 'sm:grid-cols-5',
-  6: 'sm:grid-cols-6',
-  7: 'sm:grid-cols-7',
-  8: 'sm:grid-cols-8',
+  1: 'sm:grid-cols-1 lg:grid-cols-1',
+  2: 'sm:grid-cols-2 lg:grid-cols-2',
+  3: 'sm:grid-cols-3 lg:grid-cols-3',
+  4: 'sm:grid-cols-4 lg:grid-cols-4',
+  5: 'sm:grid-cols-3 lg:grid-cols-5',
+  6: 'sm:grid-cols-3 lg:grid-cols-6',
+  7: 'sm:grid-cols-4 lg:grid-cols-7',
+  8: 'sm:grid-cols-4 lg:grid-cols-8',
 };
 
 export default function ArenaSpin() {
@@ -103,16 +113,19 @@ export default function ArenaSpin() {
         literals below are what the scanner needs, and eight is the whole
         range — createRoom offers two to eight seats and nothing can exceed it.
 
-        Below sm it stays at two: eight columns on a phone is eight thumbnails
-        nobody can tell apart, and the wheel has to be readable more than it
-        has to be one line.
+        Below sm it stays at two, and between sm and lg at four at most: eight
+        columns on a phone is eight thumbnails nobody can tell apart, and the
+        wheel has to be readable more than it has to be one line.
 
-        w-fit with mx-auto is what centres it. The columns size to their
+        w-fit with mx-auto is what centres it — the columns size to their
         content and the block is centred as a whole, rather than a full-width
         grid distributing empty space and pretending the tiles are placed.
+        max-w-full is the leash on that: w-fit alone will happily size past
+        the viewport, and a display name can be fifty characters, so without
+        it one long name slides the whole page sideways.
       */}
       <div
-        className={`mx-auto mb-10 grid w-fit grid-cols-2 gap-4 ${
+        className={`mx-auto mb-10 grid w-fit max-w-full grid-cols-2 gap-4 ${
           SPIN_COLUMNS[Math.min(seated.length, 8)] ?? 'sm:grid-cols-4'
         }`}
       >
@@ -137,7 +150,10 @@ export default function ArenaSpin() {
                 />
               </div>
               <div
-                className={`text-[11px] font-bold ${lit ? 'text-gold' : 'text-arena-200'}`}
+                className={`max-w-[6.5rem] truncate text-[11px] font-bold ${
+                  lit ? 'text-gold' : 'text-arena-200'
+                }`}
+                title={p.displayName}
               >
                 {p.displayName}
               </div>

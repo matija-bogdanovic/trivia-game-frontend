@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import PageHeader from '@/app/(arena)/_components/page_header';
+import { useFriendship } from '@/app/(arena)/_data/use_friendship';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
 import { money } from '@/app/(arena)/_lib/money';
@@ -16,6 +17,8 @@ import {
   CalendarXIcon,
   CaretDownIcon,
   SmileyIcon,
+  CheckIcon,
+  UserPlusIcon,
 } from '@/app/(arena)/_components/icons';
 
 type HistoryFilter = 'all' | 'wins' | 'losses';
@@ -312,6 +315,7 @@ function MatchDetailBody({
   me: string | null;
 }) {
   const { t } = useT();
+  const { isFriend, isRequested, addFriend } = useFriendship();
   const standings = [...match.standings].sort(
     (a, b) => a.placement - b.placement
   );
@@ -391,6 +395,33 @@ function MatchDetailBody({
               >
                 {money(row.money)}
               </span>
+
+              {/*
+                Ask someone you just played to be a friend.
+                
+                Only where it would mean something: never on your own row,
+                never on someone you already know. Somebody already asked
+                reads "Poslato" rather than offering a second click that
+                would get the same answer from the server.
+              */}
+              {!isYou &&
+                !isFriend(row.username) &&
+                (isRequested(row.username) ? (
+                  <span className="flex shrink-0 items-center gap-1 text-[10px] tracking-wider text-arena-400 uppercase">
+                    <CheckIcon className="h-3 w-3 shrink-0" />
+                    {t('game.friendRequested')}
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void addFriend(row.username)}
+                    title={t('game.addFriend')}
+                    className="flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-gold/40 px-2 py-1 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+                  >
+                    <UserPlusIcon className="h-3 w-3 shrink-0" />
+                    {t('game.addFriend')}
+                  </button>
+                ))}
             </li>
           );
         })}

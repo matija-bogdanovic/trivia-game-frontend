@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
@@ -56,6 +56,29 @@ export default function ArenaPicking() {
   const chosen = target ? priceFor(target) : undefined;
   const pickerName = displayNameOf(players, picker);
 
+  /*
+   * HEADS-UP: THERE IS NOTHING TO CHOOSE, SO IT IS CHOSEN.
+   *
+   * With two players left the picker has exactly one possible target, and the
+   * server knows it — afterReveal keeps the picking phase anyway, because the
+   * decision that matters heads-up is not WHO but CHALLENGE-or-DUEL. The
+   * screen did not follow: it still made you click the only person you could
+   * click before the mode buttons would light up, against a 20-second clock.
+   *
+   * Keyed on the joined list rather than on length, so a new pick with a
+   * different single target replaces the old one instead of keeping it.
+   */
+  const soleTarget = choices.length === 1 ? choices[0] : null;
+  const choiceKey = choices.join('|');
+  useEffect(() => {
+    setSide(null);
+    setAmount(minBet);
+    setTarget(soleTarget);
+    // minBet is the room's floor and does not change mid-match; re-running on
+    // it would clear a wager the picker is in the middle of sizing
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [choiceKey, soleTarget]);
+
   if (!iAmPicker) {
     return (
       <div className="w-full max-w-lg text-center">
@@ -79,7 +102,11 @@ export default function ArenaPicking() {
           {t('arena.pick.yourChoice')}
         </div>
         <h1 className="text-2xl font-bold tracking-wide text-white">
-          {t('arena.pick.title')}
+          {soleTarget
+            ? t('arena.pick.titleHeadsUp', {
+                name: displayNameOf(players, soleTarget),
+              })
+            : t('arena.pick.title')}
         </h1>
         <div
           className="mt-2 text-2xl font-bold text-gold tabular-nums"
@@ -90,7 +117,13 @@ export default function ArenaPicking() {
       </div>
 
       {/* ========================================================== targets */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div
+        className={`mb-8 grid gap-4 ${
+          soleTarget
+            ? 'mx-auto max-w-xs grid-cols-1'
+            : 'grid-cols-1 sm:grid-cols-3'
+        }`}
+      >
         {choices.map((u) => {
           const p = players.find((x) => x.username === u);
           const price = priceFor(u);
@@ -99,12 +132,19 @@ export default function ArenaPicking() {
             <button
               key={u}
               type="button"
-              onClick={() => setTarget(u)}
+              // the only target is not a choice: it is already made, and a
+              // control that cannot change anything should not invite a click
+              onClick={() => !soleTarget && setTarget(u)}
+              disabled={Boolean(soleTarget)}
               aria-pressed={selected}
-              className={`cursor-pointer rounded-lg border p-5 text-center transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
-                selected
-                  ? 'border-gold/60 bg-gold/10'
-                  : 'border-white/[0.07] bg-arena-800 hover:border-gold/30 hover:bg-arena-750'
+              // min-w-0: a grid item sizes to its content too, so one long
+              // name would widen its whole column and push the row sideways
+              className={`min-w-0 rounded-lg border p-5 text-center transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                soleTarget
+                  ? 'cursor-default border-gold/60 bg-gold/10'
+                  : selected
+                    ? 'cursor-pointer border-gold/60 bg-gold/10'
+                    : 'cursor-pointer border-white/[0.07] bg-arena-800 hover:border-gold/30 hover:bg-arena-750'
               }`}
             >
               <div className="mb-3 flex justify-center">
@@ -116,7 +156,10 @@ export default function ArenaPicking() {
                   size="lg"
                 />
               </div>
-              <div className="mb-1 font-bold text-white">
+              <div
+                className="mb-1 truncate font-bold text-white"
+                title={p?.displayName ?? u}
+              >
                 {p?.displayName ?? u}
               </div>
               {(p?.streak ?? 0) > 0 && (

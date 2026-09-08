@@ -123,7 +123,13 @@ export default function ArenaDuel() {
                 </div>
               )}
               <div
-                className={`flex-1 rounded-lg border bg-arena-800 p-4 text-center sm:p-6 ${
+                /*
+                  min-w-0 is load-bearing. A flex item will not shrink below
+                  its content by default, so a long display name — they are
+                  allowed fifty characters — widened the card, and two of
+                  those either side of the VS pushed the duel off a phone.
+                */
+                className={`min-w-0 flex-1 rounded-lg border bg-arena-800 p-4 text-center sm:p-6 ${
                   isMe ? 'border-gold/30' : 'border-white/10'
                 }`}
               >
@@ -136,7 +142,10 @@ export default function ArenaDuel() {
                     size="xl"
                   />
                 </div>
-                <div className="text-lg font-bold text-white">
+                <div
+                  className="truncate text-lg font-bold text-white"
+                  title={p?.displayName ?? u}
+                >
                   {p?.displayName ?? u}
                 </div>
                 <div

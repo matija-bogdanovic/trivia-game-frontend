@@ -60,12 +60,20 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.duel.wonAlone': '{winner} answered in {fast} s; {loser} never did.',
     'arena.duel.stake': 'Ante {amount} each · winner collects {payout}',
     // picking the next answerer
+    'arena.pick.titleHeadsUp': 'How do you take {name}?',
     'arena.pick.title': 'Choose who answers next',
     'arena.pick.yourChoice': 'Your call',
     'arena.pick.waiting': 'Waiting',
     'arena.pick.chooses': '{name} is choosing',
     'arena.pick.noTargets': 'Nobody left to choose.',
     'arena.pick.odds': 'Correct {correct}× · wrong {wrong}×',
+    'arena.pick.skipped.funds':
+      'Your stake did not go on — you were below the minimum. The pick stands.',
+    'arena.pick.skipped.target':
+      'The pick fell through, so nothing was staked.',
+    'arena.pick.skipped.ante':
+      'Neither of you could cover an ante, so the duel is being played for nothing.',
+    'arena.pick.skipped.generic': 'No stake went on this one.',
     'arena.pick.ante': 'Ante {amount}',
     'arena.pick.backIt': 'Back your call (optional)',
     'arena.pick.blind':
@@ -77,6 +85,13 @@ const dict: Record<Lang, Record<string, string>> = {
     // the book
     'arena.bet.title': 'Place your bet',
     'arena.bet.question': 'Will {name} answer correctly?',
+    'arena.bet.denied.tooLate': 'Too slow — the book had already closed.',
+    'arena.bet.denied.tooPoor': 'You need at least {min} to stake.',
+    'arena.bet.denied.already': 'You have already declared this turn.',
+    'arena.bet.denied.eliminated': 'You are out of the game.',
+    'arena.bet.denied.self': 'You cannot bet on your own answer.',
+    'arena.bet.denied.closed': 'The book is not open on this question.',
+    'arena.bet.denied.generic': 'The stake did not go through. Try again.',
     'arena.bet.stake': 'Stake',
     'arena.bet.allIn': 'All in',
     'arena.bet.right': 'Correct',
@@ -413,7 +428,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'friends.sent': 'Request sent!',
     'friends.accepted': 'You are now friends!',
     'game.addFriend': 'Add friend',
-    'game.friendRequested': 'Requested',
+    'game.friendRequested': 'Sent',
     'game.achUnlocked': '🏅 {name} unlocked: {items}',
     // stats & achievements
     'home.points': '{n} pts',
@@ -525,6 +540,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.invite.none': 'You have no friends to invite yet.',
     'arena.invite.err.offline': '{name} is not online right now.',
     'arena.invite.err.alreadyHere': '{name} is already in this room.',
+    'arena.invite.byName': 'Add a player',
+    'arena.invite.byNameHint':
+      'As the host you can bring in anyone, not only your friends. Type their username — it is unique, so there is no tag to add.',
+    'arena.invite.byNamePlaceholder': 'Username',
+    'arena.invite.add': 'Add',
+    'arena.invite.err.noSuchPlayer': 'Nobody plays under the name {name}.',
     'arena.invite.err.notFriend':
       'You can only invite someone who has accepted you.',
     'arena.invite.err.roomGone': 'This room no longer exists.',
@@ -970,12 +991,19 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.duel.wonAlone': '{winner} je odgovorio za {fast} s; {loser} nije.',
     'arena.duel.stake': 'Ulog {amount} po igraču · pobednik uzima {payout}',
     // biranje sledećeg igrača
+    'arena.pick.titleHeadsUp': 'Kako ideš na {name}?',
     'arena.pick.title': 'Izaberi ko sledeći odgovara',
     'arena.pick.yourChoice': 'Tvoj izbor',
     'arena.pick.waiting': 'Čekanje',
     'arena.pick.chooses': '{name} bira',
     'arena.pick.noTargets': 'Nema više nikoga za izbor.',
     'arena.pick.odds': 'Tačno {correct}× · netačno {wrong}×',
+    'arena.pick.skipped.funds':
+      'Ulog nije prošao — bio si ispod minimuma. Izbor ostaje.',
+    'arena.pick.skipped.target': 'Izbor je propao, pa ništa nije uloženo.',
+    'arena.pick.skipped.ante':
+      'Nijedan nije mogao da pokrije ulog, pa se dvoboj igra bez uloga.',
+    'arena.pick.skipped.generic': 'Na ovaj nije išao ulog.',
     'arena.pick.ante': 'Ulog {amount}',
     'arena.pick.backIt': 'Podrži svoj izbor (opciono)',
     'arena.pick.blind':
@@ -987,6 +1015,13 @@ const dict: Record<Lang, Record<string, string>> = {
     // ulozi
     'arena.bet.title': 'Uloži',
     'arena.bet.question': 'Da li će {name} odgovoriti tačno?',
+    'arena.bet.denied.tooLate': 'Prekasno — knjiga je već zatvorena.',
+    'arena.bet.denied.tooPoor': 'Treba ti bar {min} da bi uložio.',
+    'arena.bet.denied.already': 'Već si se izjasnio ove runde.',
+    'arena.bet.denied.eliminated': 'Ispao si iz igre.',
+    'arena.bet.denied.self': 'Ne možeš da se kladiš na svoj odgovor.',
+    'arena.bet.denied.closed': 'Knjiga nije otvorena na ovom pitanju.',
+    'arena.bet.denied.generic': 'Ulog nije prošao. Probaj ponovo.',
     'arena.bet.stake': 'Ulog',
     'arena.bet.allIn': 'Sve',
     'arena.bet.right': 'Tačno',
@@ -1299,7 +1334,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'friends.sent': 'Zahtev poslat!',
     'friends.accepted': 'Sada ste prijatelji!',
     'game.addFriend': 'Dodaj prijatelja',
-    'game.friendRequested': 'Zahtev poslat',
+    'game.friendRequested': 'Poslato',
     'game.achUnlocked': '🏅 {name} je otključao/la: {items}',
     'home.points': '{n} poena',
     'profile.points': 'Poeni na rang listi',
@@ -1408,6 +1443,12 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.invite.none': 'Još nemaš prijatelje koje bi pozvao.',
     'arena.invite.err.offline': '{name} trenutno nije onlajn.',
     'arena.invite.err.alreadyHere': '{name} je već u ovoj sobi.',
+    'arena.invite.byName': 'Dodaj igrača',
+    'arena.invite.byNameHint':
+      'Kao domaćin možeš da dovedeš bilo koga, ne samo prijatelje. Upiši korisničko ime — jedinstveno je, pa nema oznake da se dodaje.',
+    'arena.invite.byNamePlaceholder': 'Korisničko ime',
+    'arena.invite.add': 'Dodaj',
+    'arena.invite.err.noSuchPlayer': 'Niko ne igra pod imenom {name}.',
     'arena.invite.err.notFriend':
       'Možeš da pozoveš samo nekoga ko te je prihvatio.',
     'arena.invite.err.roomGone': 'Ova soba više ne postoji.',
