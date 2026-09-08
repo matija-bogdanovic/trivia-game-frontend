@@ -13,6 +13,7 @@
  */
 import type { ReactNode } from 'react';
 import {
+  BookOpenIcon,
   CalendarIcon,
   DoorIcon,
   GearIcon,
@@ -35,7 +36,7 @@ export interface NavItem {
 }
 
 /*
- * Seven entries.
+ * Eight entries.
  *
  * Browse, create and join are ONE screen now — rooms/_panels/rooms_shell.tsx
  * — so they are one nav row: Sobe, wearing the door. Three rows pointing at
@@ -62,5 +63,11 @@ export const navItems: NavItem[] = [
   { href: '/friends', labelKey: 'arena.nav.friends', icon: <UsersIcon /> },
   { href: '/history', labelKey: 'arena.nav.history', icon: <CalendarIcon /> },
   { href: '/profile', labelKey: 'arena.nav.profile', icon: <UserCircleIcon /> },
+  /*
+   * Below Settings rather than up with Home: the rules are read once or
+   * twice and then referred back to, so they belong at the quiet end of the
+   * rail, not competing with the things a returning player clicks daily.
+   */
+  { href: '/rules', labelKey: 'arena.nav.rules', icon: <BookOpenIcon /> },
   { href: '/settings', labelKey: 'arena.nav.settings', icon: <GearIcon /> },
 ];
