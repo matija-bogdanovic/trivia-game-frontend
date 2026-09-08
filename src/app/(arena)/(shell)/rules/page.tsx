@@ -84,7 +84,13 @@ export default function RulesPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
-    <div className="mx-auto max-w-3xl">
+    /*
+      The same p-4 sm:p-6 lg:p-8 every other screen in the shell wears. The
+      shell's <main> carries no padding of its own — each page owns its own
+      inset — and this one shipped without any, so its heading sat flush
+      against the top and the left edge while every neighbour stood off them.
+    */
+    <div className="mx-auto max-w-3xl p-4 sm:p-6 lg:p-8">
       <PageHeader eyebrow={t('arena.rules.eyebrow')} title={content.title} />
 
       <div className="mb-8 flex items-start gap-4 rounded-lg border border-white/[0.07] bg-arena-800 p-5">
