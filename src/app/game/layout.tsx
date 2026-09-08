@@ -1,4 +1,5 @@
 import GameProvider from '../components/hooks/game/context/game_context';
+import AuthGate from '../(arena)/_components/auth_gate';
 import InviteBanner from '../(arena)/_components/invite_banner';
 import UnreadIndicator from '../(arena)/_components/unread_indicator';
 
@@ -14,18 +15,25 @@ export default function GameLayout({
 }>) {
   return (
     <GameProvider>
-      <div className="arena-root h-screen overflow-hidden">
-        {children}
-        {/*
+      {/*
+        A match is protected too — the middleware guards /game, and this is
+        the same second check the arena shell gets, for the same three reasons
+        it needs one.
+      */}
+      <AuthGate>
+        <div className="arena-root h-screen overflow-hidden">
+          {children}
+          {/*
           An invite can land while you are already in a lobby — a second friend
           asking you somewhere else — and the answer is the same one the shell
           offers. No PresenceProvider here: GameProvider already holds the
           socket, and it dispatches room_invite into the same slice.
         */}
-        <InviteBanner />
-        {/* the tab keeps counting while you are in a match */}
-        <UnreadIndicator />
-      </div>
+          <InviteBanner />
+          {/* the tab keeps counting while you are in a match */}
+          <UnreadIndicator />
+        </div>
+      </AuthGate>
     </GameProvider>
   );
 }

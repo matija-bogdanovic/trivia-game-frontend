@@ -1,3 +1,4 @@
+import AuthGate from '../_components/auth_gate';
 import InviteBanner from '../_components/invite_banner';
 import PresenceProvider from '../_components/presence_provider';
 import ReconnectBanner from '../_components/reconnect_banner';
@@ -20,14 +21,24 @@ export default function ShellLayout({
       all — nothing could be pushed to them, and friendsList had no row to
       read, which is why "online" was a status almost nobody ever wore.
     */
+    /*
+      AuthGate is INSIDE PresenceProvider, not outside it.
+
+      The provider owns the socket, and a socket is worth opening for anybody
+      the middleware let through — it is what makes `hello` land and presence
+      work. What must not render without a session is the CHROME: the sidebar
+      with somebody's name on it, the bell, the pages themselves.
+    */
     <PresenceProvider>
-      <div className="flex h-dvh flex-col overflow-hidden bg-arena-900 text-white lg:flex-row">
-        <Sidebar />
-        <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
-        <ReconnectBanner />
-        <InviteBanner />
-        <UnreadIndicator />
-      </div>
+      <AuthGate>
+        <div className="flex h-dvh flex-col overflow-hidden bg-arena-900 text-white lg:flex-row">
+          <Sidebar />
+          <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
+          <ReconnectBanner />
+          <InviteBanner />
+          <UnreadIndicator />
+        </div>
+      </AuthGate>
     </PresenceProvider>
   );
 }
