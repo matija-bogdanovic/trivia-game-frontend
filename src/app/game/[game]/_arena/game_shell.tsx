@@ -8,6 +8,7 @@ import { money } from '@/app/(arena)/_lib/money';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useT } from '@/app/lib/i18n';
 import { FlameIcon } from '@/app/(arena)/_components/icons';
+import HostChangeBanner from './host_change_banner';
 
 /**
  * The frame every play phase sits in: top bar, players rail, bottom HUD.
@@ -104,6 +105,23 @@ export default function GameShell({
           </button>
         </div>
       </header>
+
+      {/*
+        A handover can happen mid-match too — a host who closes their tab
+        during a round hands the room on exactly as one who walks out of the
+        lobby does, and until now the only trace was a line in chat.
+
+        Under the top bar and across the full width, ABOVE the split into rail
+        and play area: it belongs to the room rather than to either column, and
+        putting it inside one would push a question or a player list sideways
+        while it showed.
+
+        compact, so it is one line here. The lobby has room to explain why the
+        host changed; a match does not, and mid-round the useful half is who is
+        in charge now — the reason can wait for the chat line that also
+        recorded it.
+      */}
+      <HostChangeBanner compact className="mx-3 mt-3 shrink-0" />
 
       <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
         {/* ================================================= players rail */}

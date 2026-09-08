@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useGame } from '@/app/components/hooks/game/context/game_context';
-import type { AppDispatch, RootState } from '@/app/redux/store';
-import { dismissHostChange } from '@/app/redux/slicers/game_slice';
+import type { RootState } from '@/app/redux/store';
 import Avatar from '@/app/(arena)/_components/avatar';
 import { useT } from '@/app/lib/i18n';
+import HostChangeBanner from './host_change_banner';
 import InviteFriends from './invite_friends';
 import {
   CheckIcon,
@@ -42,25 +42,7 @@ export default function ArenaLobby() {
     leaveRoom,
   } = useGame();
   const [inviting, setInviting] = useState(false);
-  const dispatch = useDispatch<AppDispatch>();
-  const hostChanged = useSelector((st: RootState) => st.game.hostChanged);
 
-  /*
-   * The notice goes after ten seconds, or when it is dismissed.
-   *
-   * Long enough to be read by somebody who was looking elsewhere, short enough
-   * not to sit over a lobby for the rest of the wait. It is news, not a
-   * question — nothing is owed in reply, so nothing has to persist until it is
-   * answered.
-   *
-   * Keyed on the host, so a SECOND handover restarts the timer instead of
-   * inheriting the remains of the first one's.
-   */
-  useEffect(() => {
-    if (!hostChanged) return;
-    const timer = setTimeout(() => dispatch(dismissHostChange()), 10000);
-    return () => clearTimeout(timer);
-  }, [hostChanged, dispatch]);
   const inviteSentTo = useSelector((st: RootState) => st.invite.sent);
   const inviteResult = useSelector((st: RootState) => st.invite.result);
   /*
@@ -259,48 +241,15 @@ export default function ArenaLobby() {
       </div>
 
       {/*
-        The room changed hands.
+        The room changed hands. The banner itself is shared with the match
+        screen — see host_change_banner — because a handover can happen in
+        either, and two copies would drift.
 
-        Above the roster rather than inside it, because it is about the room
-        and not about a seat — and because the thing it explains, the START
-        button appearing or vanishing, is what the reader is about to notice
-        anyway.
-
-        It says something different to the person who inherited it. "You are
-        the host now" is an instruction; "{name} is the host now" is news, and
-        telling the new host the second one would bury the only part that asks
-        anything of them.
-
-        role="status" and not "alert": nobody is in danger and nothing is
-        owed in reply, so it should be announced without interrupting.
+        Above the roster rather than inside it: it is about the room and not
+        about a seat, and it explains the thing the reader is about to notice
+        anyway, which is the START button appearing or vanishing.
       */}
-      {hostChanged && (
-        <div
-          className="mb-4 flex items-center gap-3 rounded-lg border border-gold/40 bg-gold/10 px-4 py-3"
-          role="status"
-        >
-          <UserPlusIcon className="h-4 w-4 shrink-0 text-gold" />
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[12px] font-bold text-gold">
-              {hostChanged.host === username
-                ? t('arena.lobby.hostChangedYou')
-                : t('arena.lobby.hostChanged', { name: hostChanged.hostName })}
-            </div>
-            <div className="text-[10px] tracking-wider text-arena-200">
-              {t('arena.lobby.hostLeftWhy')}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => dispatch(dismissHostChange())}
-            aria-label={t('arena.common.close')}
-            title={t('arena.common.close')}
-            className="shrink-0 cursor-pointer p-1 text-arena-300 transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-          >
-            <XIcon className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+      <HostChangeBanner className="mb-4" />
 
       <div className="flex min-h-0 flex-1 flex-col gap-6 xl:flex-row">
         {/* Player grid */}
