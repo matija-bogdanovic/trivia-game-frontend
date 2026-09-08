@@ -10,6 +10,12 @@ import { signOut, updateUserAttributes } from 'aws-amplify/auth';
 import Avatar from '@/app/(arena)/_components/avatar';
 import PageHeader from '@/app/(arena)/_components/page_header';
 import ToggleSwitch from '@/app/(arena)/_components/toggle_switch';
+import {
+  disablePush,
+  enablePush,
+  pushState,
+  type PushState,
+} from '@/app/helpers/push';
 import DeleteAccountDialog from '@/app/(arena)/_components/delete_account_dialog';
 import ChangePasswordDialog from '@/app/(arena)/_components/change_password_dialog';
 import { difficultyOptions } from '@/app/(arena)/_mock/progress';
@@ -55,7 +61,7 @@ function sameName(a: string, b: string): boolean {
 export default function Page() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const { t } = useT();
+  const { t, lang } = useT();
   const { identity, wallet, loading, signedIn } = useWallet();
   const storedName = useSelector((s: RootState) => s.profile.displayName);
   const showSignInPrompt = !loading && !signedIn;
@@ -63,6 +69,41 @@ export default function Page() {
   const [email, setEmail] = useState('');
   const [defaultDifficulty, setDefaultDifficulty] = useState('Medium');
   const [notifications, setNotifications] = useState(true);
+
+  /*
+   * OS NOTIFICATIONS — the one switch here that is not a preference.
+   *
+   * Everything else in this panel is a stored setting. This one asks the
+   * BROWSER for a permission, and a browser grants it once: refuse, and the
+   * prompt never appears again on this site. So it must never be asked for on
+   * load — only from this control, which says what it is about to do.
+   *
+   * It is also per-browser rather than per-account, which is why the state is
+   * read from the browser each time this screen opens rather than from the
+   * server: the same person on a phone and a laptop is genuinely two answers.
+   */
+  const [push, setPush] = useState<PushState | null>(null);
+  const [pushBusy, setPushBusy] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    pushState().then((state) => {
+      if (live) setPush(state);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const togglePush = async () => {
+    if (pushBusy || push === 'unsupported' || push === 'denied') return;
+    setPushBusy(true);
+    try {
+      setPush(push === 'on' ? await disablePush() : await enablePush(lang));
+    } finally {
+      setPushBusy(false);
+    }
+  };
   const [profileVisible, setProfileVisible] = useState(true);
   const [friendRequests, setFriendRequests] = useState(true);
   const [roomInvites, setRoomInvites] = useState(true);
@@ -634,6 +675,26 @@ export default function Page() {
             checked={roomInvites}
             onToggle={() => setRoomInvites((v) => !v)}
           />
+
+          {/*
+            Hidden entirely where it cannot work — an older browser, or iOS
+            Safari outside an installed home-screen app. A dead switch invites
+            the reader to wonder what they did wrong.
+          */}
+          {push !== null && push !== 'unsupported' && (
+            <ToggleSwitch
+              label={t('arena.settings.osPush')}
+              description={
+                push === 'denied'
+                  ? t('arena.settings.osPushBlocked')
+                  : t('arena.settings.osPushDesc')
+              }
+              labelId="toggle-push"
+              checked={push === 'on'}
+              disabled={push === 'denied' || pushBusy}
+              onToggle={() => void togglePush()}
+            />
+          )}
         </div>
       </section>
 

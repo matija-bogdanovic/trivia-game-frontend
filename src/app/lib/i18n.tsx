@@ -769,6 +769,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.friendRequests': 'Friend Requests',
     'arena.settings.friendRequestsDesc':
       'Allow others to send you friend requests',
+    'arena.settings.osPush': 'Device notifications',
+    'arena.settings.osPushDesc':
+      'Reach me when the site is closed. This browser only.',
+    'arena.settings.osPushBlocked':
+      'Your browser refused this. Allow notifications for the site in its settings.',
     'arena.settings.roomInvites': 'Room Invitations',
     'arena.settings.roomInvitesDesc':
       'Allow friends to invite you to their rooms',
@@ -1674,6 +1679,11 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.settings.friendRequests': 'Zahtevi za prijateljstvo',
     'arena.settings.friendRequestsDesc':
       'Dozvoli drugima da ti šalju zahteve za prijateljstvo',
+    'arena.settings.osPush': 'Obaveštenja na uređaju',
+    'arena.settings.osPushDesc':
+      'Javi mi i kad je sajt zatvoren. Važi samo za ovaj pregledač.',
+    'arena.settings.osPushBlocked':
+      'Pregledač je ovo odbio. Uključi obaveštenja za sajt u podešavanjima pregledača.',
     'arena.settings.roomInvites': 'Pozivi u sobe',
     'arena.settings.roomInvitesDesc':
       'Dozvoli prijateljima da te pozovu u svoje sobe',

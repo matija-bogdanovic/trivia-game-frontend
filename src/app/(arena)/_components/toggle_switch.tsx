@@ -13,12 +13,20 @@ export default function ToggleSwitch({
   checked,
   labelId,
   onToggle,
+  /**
+   * For a switch that CANNOT be moved rather than one that is merely off —
+   * a permission the browser has already refused, or a change still in
+   * flight. Kept visible and announced, because hiding it would leave the
+   * reader wondering where the setting went.
+   */
+  disabled = false,
 }: {
   label: string;
   description?: string;
   checked: boolean;
   labelId: string;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1">
@@ -34,9 +42,10 @@ export default function ToggleSwitch({
         aria-checked={checked}
         aria-labelledby={labelId}
         onClick={onToggle}
-        className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
-          checked ? 'bg-gold' : 'bg-arena-600'
-        }`}
+        disabled={disabled}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-arena-800 focus-visible:outline-none ${
+          disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
+        } ${checked ? 'bg-gold' : 'bg-arena-600'}`}
       >
         {/*
           left-0 is not decoration. The knob is absolutely positioned with only
