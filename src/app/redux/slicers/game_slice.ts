@@ -225,6 +225,15 @@ export interface GameState {
   /** 'open' when the wheel landed on them, 'challenge' when a picker aimed it */
   turnMode: 'open' | 'challenge';
   challengeBet: { username: string; amount: number; quota: number } | null;
+  /**
+   * Why the picker's wager did NOT go on, when they asked for one.
+   *
+   * pick_accepted has always carried this and nothing read it, so a picker
+   * who staked more than they held — or whose target fell through — watched
+   * the challenge start with no bet on it and no word about why. Set for the
+   * picker alone; the rest of the table never asked for a wager.
+   */
+  pickBetSkipped: string | null;
   /** whether the answerer has already submitted, per the server */
   hasAnswered: boolean;
   /**
@@ -390,6 +399,7 @@ const initialState: GameState = {
   currentPick: null,
   turnMode: 'open',
   challengeBet: null,
+  pickBetSkipped: null,
   hasAnswered: false,
   playersAlive: 0,
   introEndsAt: null,
@@ -675,6 +685,15 @@ const gameSlice = createSlice({
           state.answerEndsAt = null;
           state.betEndsAt = null;
           break;
+        /*
+         * The server's answer to pick_player: what it accepted, and what it
+         * quietly did not. The stake itself reaches everyone through
+         * turn_question's challengeBet; this is the private half — the reason
+         * there is no stake to show.
+         */
+        case 'pick_accepted':
+          state.pickBetSkipped = message.betSkipped ?? null;
+          break;
         case 'turn_question':
           learnSkew(state, message.answerTimeMs, receivedAt);
           // a challenge is the same screen with a banner: who aimed it, and
@@ -812,6 +831,7 @@ const gameSlice = createSlice({
           state.phase = 'picking';
           state.picker = message.picker ?? null;
           state.pickChoices = message.choices ?? [];
+          state.pickBetSkipped = null;
           state.pickDurationMs = message.pickTimeMs ?? 0;
           state.pickEndsAt =
             typeof message.pickTimeMs === 'number'

@@ -60,12 +60,20 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.duel.wonAlone': '{winner} answered in {fast} s; {loser} never did.',
     'arena.duel.stake': 'Ante {amount} each · winner collects {payout}',
     // picking the next answerer
+    'arena.pick.titleHeadsUp': 'How do you take {name}?',
     'arena.pick.title': 'Choose who answers next',
     'arena.pick.yourChoice': 'Your call',
     'arena.pick.waiting': 'Waiting',
     'arena.pick.chooses': '{name} is choosing',
     'arena.pick.noTargets': 'Nobody left to choose.',
     'arena.pick.odds': 'Correct {correct}× · wrong {wrong}×',
+    'arena.pick.skipped.funds':
+      'Your stake did not go on — you were below the minimum. The pick stands.',
+    'arena.pick.skipped.target':
+      'The pick fell through, so nothing was staked.',
+    'arena.pick.skipped.ante':
+      'Neither of you could cover an ante, so the duel is being played for nothing.',
+    'arena.pick.skipped.generic': 'No stake went on this one.',
     'arena.pick.ante': 'Ante {amount}',
     'arena.pick.backIt': 'Back your call (optional)',
     'arena.pick.blind':
@@ -420,7 +428,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'friends.sent': 'Request sent!',
     'friends.accepted': 'You are now friends!',
     'game.addFriend': 'Add friend',
-    'game.friendRequested': 'Requested',
+    'game.friendRequested': 'Sent',
     'game.achUnlocked': '🏅 {name} unlocked: {items}',
     // stats & achievements
     'home.points': '{n} pts',
@@ -983,12 +991,19 @@ const dict: Record<Lang, Record<string, string>> = {
     'arena.duel.wonAlone': '{winner} je odgovorio za {fast} s; {loser} nije.',
     'arena.duel.stake': 'Ulog {amount} po igraču · pobednik uzima {payout}',
     // biranje sledećeg igrača
+    'arena.pick.titleHeadsUp': 'Kako ideš na {name}?',
     'arena.pick.title': 'Izaberi ko sledeći odgovara',
     'arena.pick.yourChoice': 'Tvoj izbor',
     'arena.pick.waiting': 'Čekanje',
     'arena.pick.chooses': '{name} bira',
     'arena.pick.noTargets': 'Nema više nikoga za izbor.',
     'arena.pick.odds': 'Tačno {correct}× · netačno {wrong}×',
+    'arena.pick.skipped.funds':
+      'Ulog nije prošao — bio si ispod minimuma. Izbor ostaje.',
+    'arena.pick.skipped.target': 'Izbor je propao, pa ništa nije uloženo.',
+    'arena.pick.skipped.ante':
+      'Nijedan nije mogao da pokrije ulog, pa se dvoboj igra bez uloga.',
+    'arena.pick.skipped.generic': 'Na ovaj nije išao ulog.',
     'arena.pick.ante': 'Ulog {amount}',
     'arena.pick.backIt': 'Podrži svoj izbor (opciono)',
     'arena.pick.blind':
@@ -1319,7 +1334,7 @@ const dict: Record<Lang, Record<string, string>> = {
     'friends.sent': 'Zahtev poslat!',
     'friends.accepted': 'Sada ste prijatelji!',
     'game.addFriend': 'Dodaj prijatelja',
-    'game.friendRequested': 'Zahtev poslat',
+    'game.friendRequested': 'Poslato',
     'game.achUnlocked': '🏅 {name} je otključao/la: {items}',
     'home.points': '{n} poena',
     'profile.points': 'Poeni na rang listi',

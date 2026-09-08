@@ -41,6 +41,8 @@ export default function ArenaQuestion() {
     difficulty,
     turnMode,
     challengeBet,
+    pickBetSkipped,
+    picker,
     quotas,
   } = useSelector((s: RootState) => s.game);
 
@@ -102,6 +104,24 @@ export default function ArenaQuestion() {
                 amount: money(challengeBet.amount),
               })
             : t('arena.game.challengeBannerPlain')}
+        </div>
+      )}
+
+      {/*
+        Only the picker sees this, and only when they ASKED for a wager that
+        did not go on. Without it the challenge simply started with no stake
+        and no explanation, which is indistinguishable from having forgotten
+        to place one.
+      */}
+      {pickBetSkipped && picker === username && (
+        <div className="mb-4 rounded-lg border border-white/10 bg-arena-800 px-4 py-3 text-[11px] tracking-wider text-arena-200">
+          {pickBetSkipped === 'insufficient_funds'
+            ? t('arena.pick.skipped.funds')
+            : pickBetSkipped === 'target_unavailable'
+              ? t('arena.pick.skipped.target')
+              : pickBetSkipped === 'no_funds_either_side'
+                ? t('arena.pick.skipped.ante')
+                : t('arena.pick.skipped.generic')}
         </div>
       )}
 
