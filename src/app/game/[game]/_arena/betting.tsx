@@ -41,6 +41,7 @@ export default function ArenaBetting() {
     betDurationMs,
     answerEndsAt,
     answerDurationMs,
+    betDenied,
     phase,
   } = useSelector((s: RootState) => s.game);
 
@@ -67,6 +68,35 @@ export default function ArenaBetting() {
   );
   const deadline = inPause ? betEndsAt : answerEndsAt;
   const urgent = deadline !== null && seconds <= 3;
+
+  /*
+    A refusal, worded. The server names each one distinctly so this can say
+    what happened rather than "failed" — and the one people will actually
+    meet is `too-late`, because the clock on this panel is the client's and
+    the server's is the one that decides.
+  */
+  const deniedNotice = (() => {
+    switch (betDenied) {
+      case null:
+      case undefined:
+        return null;
+      case 'too-late':
+        return t('arena.bet.denied.tooLate');
+      case 'too-poor':
+        return t('arena.bet.denied.tooPoor', { min: money(MIN_BET) });
+      case 'already':
+        return t('arena.bet.denied.already');
+      case 'eliminated':
+        return t('arena.bet.denied.eliminated');
+      case 'self':
+        return t('arena.bet.denied.self');
+      case 'not-open':
+      case 'challenge':
+        return t('arena.bet.denied.closed');
+      default:
+        return t('arena.bet.denied.generic');
+    }
+  })();
 
   const me = (players ?? []).find((p) => p.username === username);
   const myMoney = me?.money ?? 0;
@@ -99,6 +129,22 @@ export default function ArenaBetting() {
       <p className="mb-4 text-[11px] text-arena-200">
         {t('arena.bet.question', { name: answererName })}
       </p>
+
+      {/*
+        Why the last stake did not stand. Every one of these used to be
+        silent, and the panel went on showing a bet the server had refused.
+        Missing the deadline is the common one — the clock here is the
+        client's, and the server's is the one that decides.
+      */}
+      {deniedNotice && (
+        <p
+          className="mb-4 rounded-lg border border-blood/40 bg-blood/[0.08] p-3 text-[11px] leading-relaxed text-white"
+          role="status"
+          aria-live="polite"
+        >
+          {deniedNotice}
+        </p>
+      )}
 
       {/* the pot everything pays out of */}
       <div className="mb-4 rounded-lg border border-white/[0.07] bg-arena-750 p-3 text-center">

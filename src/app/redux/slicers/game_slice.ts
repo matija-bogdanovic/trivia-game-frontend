@@ -196,6 +196,8 @@ export interface GameState {
   betEndsAt: number | null;
   betDurationMs: number;
   myBet: MyBet | null;
+  /** why the last stake was refused, null once a new turn begins */
+  betDenied: string | null;
   betCount: number;
   // reveal
   correctAnswer: string | null;
@@ -367,6 +369,7 @@ const initialState: GameState = {
   betEndsAt: null,
   betDurationMs: 0,
   myBet: null,
+  betDenied: null,
   betCount: 0,
   correctAnswer: null,
   lastAnswer: null,
@@ -484,6 +487,7 @@ const gameSlice = createSlice({
             state.answering = null;
             state.picker = null;
             state.myBet = null;
+            state.betDenied = null;
             state.betOutcomes = [];
             state.eliminatedNow = [];
           }
@@ -592,6 +596,7 @@ const gameSlice = createSlice({
           state.betOutcomes = [];
           state.eliminatedNow = [];
           state.myBet = null;
+          state.betDenied = null;
           break;
         }
         case 'spin':
@@ -606,6 +611,7 @@ const gameSlice = createSlice({
           state.options = [];
           state.correctAnswer = null;
           state.myBet = null;
+          state.betDenied = null;
           break;
         /*
          * The duel the server actually sends. This reducer listened for
@@ -699,6 +705,7 @@ const gameSlice = createSlice({
           state.lastCorrect = null;
           state.timedOut = false;
           state.myBet = null;
+          state.betDenied = null;
           state.betCount = 0;
           state.betOutcomes = [];
           state.eliminatedNow = [];
@@ -733,6 +740,45 @@ const gameSlice = createSlice({
           break;
         case 'player_bet':
           state.betCount = message.betCount;
+          /*
+           * The pot moves the moment somebody stakes, and this message has
+           * always carried the new figure — it was simply dropped. So the
+           * number people sized their own stake against only ever caught up
+           * at the reveal, by which point it was the previous turn's.
+           */
+          if (typeof message.pot === 'number') state.pot = message.pot;
+          break;
+
+        /*
+         * WHAT THE BOOK ACTUALLY TOOK.
+         *
+         * placeBet writes myBet optimistically so the panel answers the click
+         * at once, but the server clamps a stake to the bettor's bankroll and
+         * floors it at the minimum — ask for 9999 holding 400 and 400 is what
+         * moves. The optimistic value was never corrected, so the panel could
+         * report a stake nobody had made.
+         */
+        case 'bet_accepted':
+          state.myBet =
+            message.side === 'neutral'
+              ? { kind: 'neutral' }
+              : {
+                  kind: 'placed',
+                  bet: message.side,
+                  amount: Number(message.amount ?? 0),
+                };
+          break;
+
+        /*
+         * And when it took nothing. Every refusal used to be silent, which
+         * left the optimistic myBet standing over a bet the server had thrown
+         * away — no money gone, nothing to settle, and a panel insisting
+         * otherwise. Clearing it puts the form back so the bet can be made
+         * again while there is still time.
+         */
+        case 'bet_denied':
+          state.myBet = null;
+          state.betDenied = message.reason ?? 'generic';
           break;
         case 'round_result':
           state.phase = 'reveal';
