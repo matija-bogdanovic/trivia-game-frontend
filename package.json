@@ -27,6 +27,8 @@
     "ws": "^8.18.2"
   },
   "devDependencies": {
+    "@aws-amplify/backend": "^1.24.1",
+    "@aws-amplify/backend-cli": "^1.9.1",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^20",
