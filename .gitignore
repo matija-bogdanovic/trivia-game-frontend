@@ -43,8 +43,16 @@ yarn-error.log*
 next-env.d.ts
 
 # amplify
-# dead Gen2 scaffolding; files are root-owned so they need `sudo rm -rf amplify`
-/amplify
+#
+# amplify/ is TRACKED. It was ignored while it held the untouched `npm create
+# amplify` scaffold — a Todo model and a defineAuth that nothing deployed and
+# nothing imported. It now holds the real backend definition, and Amplify
+# Hosting builds from this repository, so a definition it cannot see is a
+# definition that does not exist.
+#
+# What stays ignored is everything GENERATED from it: the sandbox's build
+# directory and the outputs file, which carries deployment-specific endpoint
+# ids and would conflict between one person's sandbox and the next.
 .amplify
 amplify_outputs*
 amplifyconfiguration*
