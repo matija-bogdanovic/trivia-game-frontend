@@ -122,8 +122,6 @@ export default function ArenaBetting() {
     myMoney,
     Math.max(MIN_BET, Number.isFinite(typed) ? typed : MIN_BET)
   );
-  /** nudging by a fixed step is useless at 2000 and fiddly at 20 */
-  const step = myMoney >= 1000 ? 100 : myMoney >= 300 ? 50 : 10;
   const nudge = (by: number) =>
     setDraft(String(Math.min(myMoney, Math.max(MIN_BET, stake + by))));
   const payoutFor = (side: 'correct' | 'wrong') =>
@@ -221,43 +219,64 @@ export default function ArenaBetting() {
             number spinners this replaced are invisible on a phone, which is
             where most of this game is played.
           */}
-          <div className="mb-2 flex items-stretch gap-2">
-            <button
-              type="button"
-              onClick={() => nudge(-step)}
-              disabled={stake <= MIN_BET}
-              aria-label={t('arena.bet.less')}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-arena-750 text-lg font-bold text-white transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:text-arena-500"
-            >
-              −
-            </button>
-            <input
-              id="bet-amount"
-              // text, not number: `type="number"` rejects an empty value in
-              // some browsers before onChange ever sees it
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
-              // clamped when the field is left, not while it is being typed
-              onBlur={() => setDraft(String(stake))}
-              onFocus={(e) => e.currentTarget.select()}
-              className="h-11 w-full min-w-0 rounded-lg border border-white/10 bg-arena-750 px-3 text-center text-base text-white tabular-nums outline-none focus:border-gold/40"
-            />
-            <button
-              type="button"
-              onClick={() => nudge(step)}
-              disabled={stake >= myMoney}
-              aria-label={t('arena.bet.more')}
-              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-arena-750 text-lg font-bold text-white transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:text-arena-500"
-            >
-              +
-            </button>
+          <input
+            id="bet-amount"
+            /*
+              type="text" with inputMode="numeric", not type="number".
+
+              type="number" rejects an empty value in some browsers before
+              onChange ever sees it, which is what made the field impossible
+              to clear and retype. inputMode is what actually summons the
+              digits-only keypad on a phone; pattern is the older iOS spelling
+              of the same request and costs nothing to keep. The onChange
+              strips anything that is not a digit, so a hardware keyboard
+              cannot get letters in either.
+            */
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="off"
+            enterKeyHint="done"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
+            // clamped when the field is left, not while it is being typed
+            onBlur={() => setDraft(String(stake))}
+            onFocus={(e) => e.currentTarget.select()}
+            className="mb-2 h-12 w-full min-w-0 rounded-lg border border-white/10 bg-arena-750 px-3 text-center text-lg font-bold text-white tabular-nums outline-none focus:border-gold/40"
+          />
+
+          {/*
+            Fixed steps rather than a single clever one.
+
+            A step that scales with the stack sounds better and is worse to
+            use: the same button moves the figure by a different amount every
+            round, so it can never be pressed without reading it first. Ten
+            and a hundred always mean ten and a hundred.
+
+            Each is 44px tall, which is the smallest target a thumb hits
+            reliably, and disabled rather than hidden when it would do nothing
+            — a control that appears and disappears is harder to aim at than
+            one that greys out.
+          */}
+          <div className="mb-2 grid grid-cols-4 gap-1.5">
+            {([-100, -10, 10, 100] as const).map((by) => {
+              const next = stake + by;
+              const possible = next >= MIN_BET && next <= myMoney;
+              return (
+                <button
+                  key={by}
+                  type="button"
+                  onClick={() => nudge(by)}
+                  disabled={!possible}
+                  className="h-11 cursor-pointer rounded-lg border border-white/10 bg-arena-750 text-[13px] font-bold text-white tabular-nums transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:border-arena-600 disabled:text-arena-500"
+                >
+                  {by > 0 ? `+${by}` : by}
+                </button>
+              );
+            })}
           </div>
 
-          {/* fractions of what you hold, which is how people actually bet */}
-          <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="mb-4 grid grid-cols-3 gap-1.5">
             {(
               [
                 ['¼', Math.floor(myMoney / 4)],
