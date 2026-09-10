@@ -88,7 +88,10 @@ export default function ArenaPicking() {
         <div className="mb-6 text-2xl font-bold tracking-wide text-white">
           {t('arena.pick.chooses', { name: pickerName })}
         </div>
-        <div className="text-4xl font-bold text-gold tabular-nums" role="timer">
+        <div
+          className="text-3xl font-bold text-gold tabular-nums sm:text-4xl"
+          role="timer"
+        >
           {seconds}
         </div>
       </div>
@@ -109,7 +112,7 @@ export default function ArenaPicking() {
             : t('arena.pick.title')}
         </h1>
         <div
-          className="mt-2 text-2xl font-bold text-gold tabular-nums"
+          className="mt-2 text-2xl font-bold text-gold tabular-nums sm:text-3xl"
           role="timer"
         >
           {seconds}
