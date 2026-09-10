@@ -52,6 +52,7 @@ const SR: RulesContent = {
   facts: [
     { label: 'Igrača', value: '2–6' },
     { label: 'Početni novac', value: '500–2500' },
+    { label: 'Tačan odgovor', value: '+100 iz kase' },
     { label: 'Pogrešan odgovor', value: '−100' },
     { label: 'Najmanja opklada', value: '10' },
   ],
@@ -84,7 +85,16 @@ const SR: RulesContent = {
           ],
         },
         {
-          text: 'Ako je odgovorio tačno, on bira ko ide sledeći — i na koji način. Ako je pogrešio, plaća 100 i točak se okreće ponovo iz početka.',
+          text: 'Ako je odgovorio tačno, uzima 100 iz kase i bira ko ide sledeći — i na koji način. Ako je pogrešio, plaća 100 u kasu i točak se okreće ponovo iz početka.',
+        },
+        {
+          text: 'Tačan odgovor nosi 100, i još 25 za svaki nastavak lanca — pitanje osmo po redu je teže od prvog, pa i vredi više.',
+        },
+        {
+          text: 'Taj novac dolazi ISKLJUČIVO iz kase, a kasu pune tuđi promašaji: pogrešni odgovori, izgubljene opklade, propali ulozi u dvoboju. Dobijaš ono što su drugi izgubili — ništa se ne izmišlja, pa ukupna količina novca u igri ostaje ista.',
+        },
+        {
+          text: 'Zato prazna kasa ne donosi ništa. Rano u partiji niko još nije ništa izgubio, pa nema ni šta da se dobije. Opklade se isplaćuju prve i uvek u punom iznosu; odgovarač uzima ono što posle njih ostane.',
         },
       ],
     },
@@ -209,6 +219,7 @@ const EN: RulesContent = {
   facts: [
     { label: 'Players', value: '2–6' },
     { label: 'Starting money', value: '500–2500' },
+    { label: 'Correct answer', value: '+100 from the pot' },
     { label: 'Wrong answer', value: '−100' },
     { label: 'Minimum bet', value: '10' },
   ],
