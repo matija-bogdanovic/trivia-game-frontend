@@ -63,24 +63,63 @@ export default function ArenaReveal() {
   const bets = betOutcomes ?? [];
   const eliminated = eliminatedNow ?? [];
 
-  const headline = lastCorrect
+  const verdict = lastCorrect
     ? t('arena.game.correct')
     : timedOut
       ? t('arena.game.timeOut')
       : t('arena.game.incorrect');
 
+  /*
+    ── WHAT HAPPENED TO YOU, FIRST ─────────────────────────────────────────
+    This screen led with the ANSWERER's verdict — "Tačno" or "Netačno" — and
+    left the reader's own result in a list further down. But the answerer's
+    verdict is not the reader's outcome: back the wrong side and "Tačno" is
+    the moment you lost a hundred, announced in gold.
+
+    So the headline is now the reader's own money when they had any on the
+    turn — their stake settled, or their own answer's cost — and the
+    answerer's verdict drops to the line beneath it, which is where a fact
+    about somebody else belongs.
+  */
+  const myBet = bets.find(
+    (b) => b.username === username && b.side !== 'neutral'
+  );
+  const iAnswered = answering === username;
+  const myDelta = myBet ? myBet.net : iAnswered ? answererDelta : null;
+
+  const headline =
+    myDelta === null
+      ? verdict
+      : myDelta > 0
+        ? t('arena.game.youWon', { amount: money(myDelta) })
+        : myDelta < 0
+          ? t('arena.game.youLost', { amount: money(Math.abs(myDelta)) })
+          : verdict;
+
   return (
     <div className="w-full max-w-2xl text-center">
       <div
-        className={`mb-3 text-4xl font-bold tracking-widest sm:text-5xl ${
-          lastCorrect ? 'text-gold' : 'text-arena-300'
+        className={`mb-2 text-3xl font-bold tracking-widest sm:text-5xl ${
+          myDelta === null
+            ? lastCorrect
+              ? 'text-gold'
+              : 'text-arena-300'
+            : myDelta > 0
+              ? 'text-gold'
+              : myDelta < 0
+                ? 'text-blood'
+                : 'text-arena-300'
         }`}
         aria-live="polite"
       >
         {headline}
       </div>
 
-      <p className="mb-8 text-sm text-arena-200">
+      {/* the answerer's verdict: still stated, no longer mistaken for yours */}
+      <p className="mb-6 text-sm text-arena-200 sm:mb-8">
+        {myDelta !== null && (
+          <span className="mr-1 font-bold text-white">{verdict}.</span>
+        )}
         {lastCorrect
           ? t('arena.game.answeredCorrectly', { name: answererName })
           : t('arena.game.theCorrectAnswerWas')}
@@ -88,7 +127,7 @@ export default function ArenaReveal() {
 
       {/* the answer the server states — never inferred from the options */}
       <div
-        className={`mb-6 rounded-lg border bg-arena-800 p-6 ${lastCorrect ? 'border-gold/20' : 'border-white/[0.07]'}`}
+        className={`mb-4 rounded-lg border bg-arena-800 p-4 sm:mb-6 sm:p-6 ${lastCorrect ? 'border-gold/20' : 'border-white/[0.07]'}`}
       >
         <div className="mb-2 text-[10px] tracking-widest text-arena-300 uppercase">
           {t('arena.game.correctAnswer')}
@@ -96,11 +135,28 @@ export default function ArenaReveal() {
         <div className="font-bold text-white">{correctAnswer ?? '—'}</div>
       </div>
 
-      <div
-        className={`mb-8 text-4xl font-bold ${answererDelta >= 0 ? 'text-gold' : 'text-arena-300'}`}
-      >
-        <Delta value={answererDelta} />
-      </div>
+      {/*
+        The answerer's own delta, and only when it is not already the
+        headline. For the answerer it now IS the headline — printing the same
+        figure twice, once at 4xl and once at 4xl again, is most of why this
+        screen read as cluttered. Everyone else still needs it: it says what
+        the turn cost the person who played it.
+
+        Zero is not drawn at all. A correct answer earns nothing, and a large
+        gold nought announcing that is worse than silence.
+      */}
+      {!iAnswered && answererDelta !== 0 && (
+        <div
+          className={`mb-6 text-2xl font-bold sm:mb-8 sm:text-3xl ${
+            answererDelta > 0 ? 'text-gold' : 'text-blood'
+          }`}
+        >
+          <span className="mr-2 align-middle text-[10px] tracking-widest text-arena-300 uppercase">
+            {answererName}
+          </span>
+          <Delta value={answererDelta} />
+        </div>
+      )}
 
       {/* ================================================= settled bets */}
       {bets.length > 0 && (

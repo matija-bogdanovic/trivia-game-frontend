@@ -39,6 +39,7 @@ export default function ArenaQuestion() {
     answerEndsAt,
     answerDurationMs,
     difficulty,
+    round,
     turnMode,
     challengeBet,
     pickBetSkipped,
@@ -68,12 +69,24 @@ export default function ArenaQuestion() {
           <div className="mb-1 truncate text-[10px] tracking-[0.3em] text-gold uppercase">
             {t('arena.game.isAnswering', { name: answererName })}
           </div>
-          <div className="text-[10px] tracking-widest text-arena-200 uppercase">
-            {t('arena.game.difficulty', { n: difficulty })}
+          {/*
+            The round belongs here, beside the clock somebody is actually
+            watching. It existed only in the shell's footer at ten pixels,
+            where "does the UI even track rounds" is a fair question to ask
+            of it.
+          */}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] tracking-widest text-arena-200 uppercase">
+            <span className="font-bold text-white">
+              {t('arena.game.round', { n: round })}
+            </span>
+            <span aria-hidden="true" className="text-arena-500">
+              ·
+            </span>
+            <span>{t('arena.game.difficulty', { n: difficulty })}</span>
           </div>
         </div>
         <div
-          className={`text-4xl font-bold tabular-nums transition-colors ${
+          className={`shrink-0 text-3xl font-bold tabular-nums transition-colors sm:text-4xl ${
             urgent ? 'animate-pulse text-gold' : 'text-white'
           }`}
           role="timer"

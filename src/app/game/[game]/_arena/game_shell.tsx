@@ -181,7 +181,23 @@ export default function GameShell({
         </aside>
 
         {/* =========================================================== stage */}
-        <main className="flex flex-1 flex-col items-center justify-center overflow-y-auto p-6 sm:p-8">
+        {/*
+          pb-[60dvh] when the book is open, and nothing at all when it is not.
+
+          The betting panel is fixed to the bottom of a phone, so without this
+          the last of the question sits underneath it — reachable only by
+          scrolling past content that is covered. The reserve is a little more
+          than the sheet's own 55dvh cap so the bottom of the stage clears it.
+
+          p-4 rather than p-6 on the smallest screens: forty-eight pixels of
+          padding out of three hundred and seventy-five is a wide margin for a
+          screen that has none to spare.
+        */}
+        <main
+          className={`flex flex-1 flex-col items-center justify-center overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+            aside ? 'pb-[60dvh] lg:pb-8' : ''
+          }`}
+        >
           {children}
         </main>
 

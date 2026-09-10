@@ -45,7 +45,22 @@ export default function ArenaBetting() {
     phase,
   } = useSelector((s: RootState) => s.game);
 
-  const [amount, setAmount] = useState(50);
+  /*
+    THE STAKE IS HELD AS TEXT, and that is the whole fix.
+
+    This was a number, coerced on every keystroke with
+    `Number(e.target.value) || MIN_BET`. Clearing the field to type a fresh
+    figure gave `Number("") === 0`, which is falsy, which snapped it straight
+    back to 10 — so there was no way to type an exact sum at all. You could
+    only nudge the value that was already there, and on a phone the native
+    number spinners do not render, so there was nothing to nudge it with
+    either.
+
+    Text while editing, coerced only when it is used. Empty is a legal
+    intermediate state; it is not a legal bet, and `stake` is what the buttons
+    actually send.
+  */
+  const [draft, setDraft] = useState('50');
 
   /*
     THE CLOCK THIS PANEL SHOWS.
@@ -102,14 +117,35 @@ export default function ArenaBetting() {
   const myMoney = me?.money ?? 0;
   const declared = myBet !== null;
 
-  const stake = Math.min(myMoney, Math.max(MIN_BET, amount));
+  const typed = Number(draft.replace(/[^0-9]/g, ''));
+  const stake = Math.min(
+    myMoney,
+    Math.max(MIN_BET, Number.isFinite(typed) ? typed : MIN_BET)
+  );
+  /** nudging by a fixed step is useless at 2000 and fiddly at 20 */
+  const step = myMoney >= 1000 ? 100 : myMoney >= 300 ? 50 : 10;
+  const nudge = (by: number) =>
+    setDraft(String(Math.min(myMoney, Math.max(MIN_BET, stake + by))));
   const payoutFor = (side: 'correct' | 'wrong') =>
     quotas ? Math.round(stake * quotas[side]) : null;
 
   const answererName = displayNameOf(players, answering);
 
   return (
-    <aside className="flex shrink-0 flex-col border-t border-white/[0.07] bg-arena-800 p-5 lg:w-64 lg:border-t-0 lg:border-l">
+    /*
+      A BOTTOM SHEET ON A PHONE, a column on a desktop.
+
+      It used to be an aside that simply stacked under the stage, which on a
+      375px screen put it below the fold — so the betting window, which is
+      often ten seconds and sometimes all of it, opened somewhere the player
+      could not see without scrolling for it.
+
+      Fixed to the bottom it is always in reach, capped at 55vh so the
+      question it is a bet ON stays visible above it, and it scrolls
+      internally when the content is taller. From lg up none of that applies
+      and it goes back to being the right-hand column.
+    */
+    <aside className="fixed inset-x-0 bottom-0 z-30 flex max-h-[55dvh] shrink-0 flex-col overflow-y-auto border-t border-white/[0.07] bg-arena-800 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-12px_24px_-12px_rgba(0,0,0,0.7)] lg:static lg:max-h-none lg:w-64 lg:overflow-visible lg:border-t-0 lg:border-l lg:p-5 lg:pb-5 lg:shadow-none">
       <div className="mb-1 flex items-baseline justify-between">
         <div className="text-[10px] tracking-[0.25em] text-arena-200 uppercase">
           {t('arena.bet.title')}
@@ -146,13 +182,27 @@ export default function ArenaBetting() {
         </p>
       )}
 
-      {/* the pot everything pays out of */}
-      <div className="mb-4 rounded-lg border border-white/[0.07] bg-arena-750 p-3 text-center">
-        <div className="text-[10px] tracking-wider text-arena-300 uppercase">
-          {t('arena.game.pot')}
+      {/*
+        The pot and your own money, side by side on a phone and stacked on a
+        desktop. They are the two numbers a stake is decided against, so on a
+        small screen they belong on one line rather than costing two.
+      */}
+      <div className="mb-3 grid grid-cols-2 gap-2 lg:mb-4 lg:grid-cols-1">
+        <div className="rounded-lg border border-white/[0.07] bg-arena-750 p-2.5 text-center">
+          <div className="text-[10px] tracking-wider text-arena-300 uppercase">
+            {t('arena.game.pot')}
+          </div>
+          <div className="text-base font-bold text-gold tabular-nums lg:text-lg">
+            {money(pot)}
+          </div>
         </div>
-        <div className="text-lg font-bold text-gold tabular-nums">
-          {money(pot)}
+        <div className="rounded-lg border border-white/[0.07] bg-arena-750 p-2.5 text-center lg:hidden">
+          <div className="text-[10px] tracking-wider text-arena-300 uppercase">
+            {t('arena.bet.yourMoney')}
+          </div>
+          <div className="text-base font-bold text-gold tabular-nums">
+            {money(myMoney)}
+          </div>
         </div>
       </div>
 
@@ -165,35 +215,77 @@ export default function ArenaBetting() {
           >
             {t('arena.bet.stake')}
           </label>
-          <div className="mb-4 flex gap-2">
+          {/*
+            Minus, the figure, plus — and every one of them at least 44px,
+            which is the smallest thing a thumb hits reliably. The native
+            number spinners this replaced are invisible on a phone, which is
+            where most of this game is played.
+          */}
+          <div className="mb-2 flex items-stretch gap-2">
+            <button
+              type="button"
+              onClick={() => nudge(-step)}
+              disabled={stake <= MIN_BET}
+              aria-label={t('arena.bet.less')}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-arena-750 text-lg font-bold text-white transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:text-arena-500"
+            >
+              −
+            </button>
             <input
               id="bet-amount"
-              type="number"
-              min={MIN_BET}
-              max={Math.max(MIN_BET, myMoney)}
-              step={10}
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value) || MIN_BET)}
-              className="w-full rounded-lg border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
+              // text, not number: `type="number"` rejects an empty value in
+              // some browsers before onChange ever sees it
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
+              // clamped when the field is left, not while it is being typed
+              onBlur={() => setDraft(String(stake))}
+              onFocus={(e) => e.currentTarget.select()}
+              className="h-11 w-full min-w-0 rounded-lg border border-white/10 bg-arena-750 px-3 text-center text-base text-white tabular-nums outline-none focus:border-gold/40"
             />
             <button
               type="button"
-              onClick={() => setAmount(myMoney)}
-              disabled={myMoney < MIN_BET}
-              className="shrink-0 cursor-pointer rounded-lg border border-gold/40 px-3 text-[10px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:border-arena-500 disabled:text-arena-500"
+              onClick={() => nudge(step)}
+              disabled={stake >= myMoney}
+              aria-label={t('arena.bet.more')}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-white/10 bg-arena-750 text-lg font-bold text-white transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:text-arena-500"
             >
-              {t('arena.bet.allIn')}
+              +
             </button>
           </div>
 
-          <div className="mb-6 grid gap-3">
+          {/* fractions of what you hold, which is how people actually bet */}
+          <div className="mb-4 grid grid-cols-3 gap-2">
+            {(
+              [
+                ['¼', Math.floor(myMoney / 4)],
+                ['½', Math.floor(myMoney / 2)],
+                [t('arena.bet.allIn'), myMoney],
+              ] as const
+            ).map(([label, value]) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setDraft(String(Math.max(MIN_BET, value)))}
+                disabled={myMoney < MIN_BET}
+                className="h-9 cursor-pointer rounded-lg border border-gold/30 text-[11px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:border-arena-500 disabled:text-arena-500"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* two across on a phone so both are inside thumb reach at once */}
+          <div className="mb-3 grid grid-cols-2 gap-2 lg:mb-6 lg:grid-cols-1 lg:gap-3">
             {(['correct', 'wrong'] as const).map((side) => (
               <button
                 key={side}
                 type="button"
                 onClick={() => placeBet(side, stake, stake >= myMoney)}
                 disabled={myMoney < MIN_BET}
-                className={`w-full rounded-lg border py-3 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+                className={`w-full rounded-lg border py-3.5 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   myMoney < MIN_BET
                     ? 'cursor-not-allowed border-arena-500 text-arena-500'
                     : side === 'correct'
@@ -262,7 +354,7 @@ export default function ArenaBetting() {
         </div>
       )}
 
-      <div className="mt-auto border-t border-white/[0.07] pt-4">
+      <div className="mt-auto hidden border-t border-white/[0.07] pt-4 lg:block">
         <div className="mb-1 text-[10px] tracking-wider text-arena-300 uppercase">
           {t('arena.bet.yourMoney')}
         </div>
