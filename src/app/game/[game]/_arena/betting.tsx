@@ -8,6 +8,7 @@ import { useGame } from '@/app/components/hooks/game/context/game_context';
 import { useCountdown } from '@/app/components/hooks/game/use_server_clock';
 import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useT } from '@/app/lib/i18n';
+import StakeControl from './stake_control';
 
 /** the server's floor; a stake below it is rejected outright */
 const MIN_BET = 10;
@@ -46,21 +47,12 @@ export default function ArenaBetting() {
   } = useSelector((s: RootState) => s.game);
 
   /*
-    THE STAKE IS HELD AS TEXT, and that is the whole fix.
-
-    This was a number, coerced on every keystroke with
-    `Number(e.target.value) || MIN_BET`. Clearing the field to type a fresh
-    figure gave `Number("") === 0`, which is falsy, which snapped it straight
-    back to 10 — so there was no way to type an exact sum at all. You could
-    only nudge the value that was already there, and on a phone the native
-    number spinners do not render, so there was nothing to nudge it with
-    either.
-
-    Text while editing, coerced only when it is used. Empty is a legal
-    intermediate state; it is not a legal bet, and `stake` is what the buttons
-    actually send.
+    The figure the side buttons send. HOW it is entered — typing, the ±10 and
+    ±100 nudges, the fractions — lives in StakeControl, shared with the
+    picking screen. The two used to carry separate copies of the same input
+    with the same bug, and when one was fixed the other was not.
   */
-  const [draft, setDraft] = useState('50');
+  const [stake, setStake] = useState(50);
 
   /*
     THE CLOCK THIS PANEL SHOWS.
@@ -117,15 +109,10 @@ export default function ArenaBetting() {
   const myMoney = me?.money ?? 0;
   const declared = myBet !== null;
 
-  const typed = Number(draft.replace(/[^0-9]/g, ''));
-  const stake = Math.min(
-    myMoney,
-    Math.max(MIN_BET, Number.isFinite(typed) ? typed : MIN_BET)
-  );
-  const nudge = (by: number) =>
-    setDraft(String(Math.min(myMoney, Math.max(MIN_BET, stake + by))));
   const payoutFor = (side: 'correct' | 'wrong') =>
-    quotas ? Math.round(stake * quotas[side]) : null;
+    quotas
+      ? Math.round(Math.min(myMoney, Math.max(MIN_BET, stake)) * quotas[side])
+      : null;
 
   const answererName = displayNameOf(players, answering);
 
@@ -219,82 +206,14 @@ export default function ArenaBetting() {
             number spinners this replaced are invisible on a phone, which is
             where most of this game is played.
           */}
-          <input
+          <StakeControl
             id="bet-amount"
-            /*
-              type="text" with inputMode="numeric", not type="number".
-
-              type="number" rejects an empty value in some browsers before
-              onChange ever sees it, which is what made the field impossible
-              to clear and retype. inputMode is what actually summons the
-              digits-only keypad on a phone; pattern is the older iOS spelling
-              of the same request and costs nothing to keep. The onChange
-              strips anything that is not a digit, so a hardware keyboard
-              cannot get letters in either.
-            */
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            autoComplete="off"
-            enterKeyHint="done"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value.replace(/[^0-9]/g, ''))}
-            // clamped when the field is left, not while it is being typed
-            onBlur={() => setDraft(String(stake))}
-            onFocus={(e) => e.currentTarget.select()}
-            className="mb-2 h-12 w-full min-w-0 rounded-lg border border-white/10 bg-arena-750 px-3 text-center text-lg font-bold text-white tabular-nums outline-none focus:border-gold/40"
+            min={MIN_BET}
+            max={myMoney}
+            value={Math.min(myMoney, Math.max(MIN_BET, stake))}
+            onChange={setStake}
+            compact
           />
-
-          {/*
-            Fixed steps rather than a single clever one.
-
-            A step that scales with the stack sounds better and is worse to
-            use: the same button moves the figure by a different amount every
-            round, so it can never be pressed without reading it first. Ten
-            and a hundred always mean ten and a hundred.
-
-            Each is 44px tall, which is the smallest target a thumb hits
-            reliably, and disabled rather than hidden when it would do nothing
-            — a control that appears and disappears is harder to aim at than
-            one that greys out.
-          */}
-          <div className="mb-2 grid grid-cols-4 gap-1.5">
-            {([-100, -10, 10, 100] as const).map((by) => {
-              const next = stake + by;
-              const possible = next >= MIN_BET && next <= myMoney;
-              return (
-                <button
-                  key={by}
-                  type="button"
-                  onClick={() => nudge(by)}
-                  disabled={!possible}
-                  className="h-11 cursor-pointer rounded-lg border border-white/10 bg-arena-750 text-[13px] font-bold text-white tabular-nums transition-colors hover:border-gold/40 disabled:cursor-not-allowed disabled:border-arena-600 disabled:text-arena-500"
-                >
-                  {by > 0 ? `+${by}` : by}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mb-4 grid grid-cols-3 gap-1.5">
-            {(
-              [
-                ['¼', Math.floor(myMoney / 4)],
-                ['½', Math.floor(myMoney / 2)],
-                [t('arena.bet.allIn'), myMoney],
-              ] as const
-            ).map(([label, value]) => (
-              <button
-                key={label}
-                type="button"
-                onClick={() => setDraft(String(Math.max(MIN_BET, value)))}
-                disabled={myMoney < MIN_BET}
-                className="h-9 cursor-pointer rounded-lg border border-gold/30 text-[11px] font-bold tracking-wider text-gold uppercase transition-colors hover:bg-gold/10 disabled:cursor-not-allowed disabled:border-arena-500 disabled:text-arena-500"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
 
           {/* two across on a phone so both are inside thumb reach at once */}
           <div className="mb-3 grid grid-cols-2 gap-2 lg:mb-6 lg:grid-cols-1 lg:gap-3">
@@ -302,7 +221,10 @@ export default function ArenaBetting() {
               <button
                 key={side}
                 type="button"
-                onClick={() => placeBet(side, stake, stake >= myMoney)}
+                onClick={() => {
+                  const wager = Math.min(myMoney, Math.max(MIN_BET, stake));
+                  placeBet(side, wager, wager >= myMoney);
+                }}
                 disabled={myMoney < MIN_BET}
                 className={`w-full rounded-lg border py-3.5 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
                   myMoney < MIN_BET
