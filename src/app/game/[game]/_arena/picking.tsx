@@ -10,6 +10,7 @@ import { useCountdown } from '@/app/components/hooks/game/use_server_clock';
 import { displayNameOf } from '@/app/redux/slicers/game_slice';
 import { useT } from '@/app/lib/i18n';
 import { FlameIcon, SwordIcon } from '@/app/(arena)/_components/icons';
+import StakeControl from './stake_control';
 
 /**
  * Choosing who answers next, and how.
@@ -142,7 +143,9 @@ export default function ArenaPicking() {
               aria-pressed={selected}
               // min-w-0: a grid item sizes to its content too, so one long
               // name would widen its whole column and push the row sideways
-              className={`min-w-0 rounded-lg border p-5 text-center transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
+              // a row on a phone — avatar beside the name rather than above
+              // it — so a list of targets costs a third of the height it did
+              className={`flex min-w-0 items-center gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:flex-col sm:p-5 sm:text-center ${
                 soleTarget
                   ? 'cursor-default border-gold/60 bg-gold/10'
                   : selected
@@ -150,7 +153,7 @@ export default function ArenaPicking() {
                     : 'cursor-pointer border-white/[0.07] bg-arena-800 hover:border-gold/30 hover:bg-arena-750'
               }`}
             >
-              <div className="mb-3 flex justify-center">
+              <div className="shrink-0 sm:mb-3 sm:flex sm:justify-center">
                 <Avatar
                   name={p?.displayName ?? u}
                   username={u}
@@ -159,35 +162,38 @@ export default function ArenaPicking() {
                   size="lg"
                 />
               </div>
-              <div
-                className="mb-1 truncate font-bold text-white"
-                title={p?.displayName ?? u}
-              >
-                {p?.displayName ?? u}
-              </div>
-              {(p?.streak ?? 0) > 0 && (
-                <div className="mb-1 flex items-center justify-center gap-1 text-sm text-flame">
-                  <FlameIcon className="h-3.5 w-3.5 shrink-0" />
-                  {p?.streak}
+              {/* one column beside the avatar; min-w-0 lets the name truncate */}
+              <div className="min-w-0 flex-1 sm:w-full">
+                <div
+                  className="mb-1 truncate font-bold text-white"
+                  title={p?.displayName ?? u}
+                >
+                  {p?.displayName ?? u}
                 </div>
-              )}
-              <div className="text-[11px] text-arena-200 tabular-nums">
-                {money(p?.money ?? 0)}
-              </div>
-              {/* the server's price on this person, both ways */}
-              {price && (
-                <div className="mt-2 border-t border-white/[0.07] pt-2 text-[10px] text-arena-300">
-                  <div className="tabular-nums">
-                    {t('arena.pick.odds', {
-                      correct: price.quotas?.correct?.toFixed(2) ?? '—',
-                      wrong: price.quotas?.wrong?.toFixed(2) ?? '—',
-                    })}
+                {(p?.streak ?? 0) > 0 && (
+                  <div className="mb-1 flex items-center gap-1 text-sm text-flame sm:justify-center">
+                    <FlameIcon className="h-3.5 w-3.5 shrink-0" />
+                    {p?.streak}
                   </div>
-                  <div className="tabular-nums">
-                    {t('arena.pick.ante', { amount: money(price.duelAnte) })}
-                  </div>
+                )}
+                <div className="text-[11px] text-arena-200 tabular-nums">
+                  {money(p?.money ?? 0)}
                 </div>
-              )}
+                {/* the server's price on this person, both ways */}
+                {price && (
+                  <div className="mt-2 border-t border-white/[0.07] pt-2 text-[10px] text-arena-300">
+                    <div className="tabular-nums">
+                      {t('arena.pick.odds', {
+                        correct: price.quotas?.correct?.toFixed(2) ?? '—',
+                        wrong: price.quotas?.wrong?.toFixed(2) ?? '—',
+                      })}
+                    </div>
+                    <div className="tabular-nums">
+                      {t('arena.pick.ante', { amount: money(price.duelAnte) })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </button>
           );
         })}
@@ -231,71 +237,93 @@ export default function ArenaPicking() {
             ))}
           </div>
           {side && (
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
+            <>
+              {/*
+                The same control the betting panel uses. This used to be a
+                second, hand-rolled number input with the same coercion bug
+                the panel had — and when the panel was fixed, this was not,
+                because nobody remembered it existed.
+              */}
+              <StakeControl
+                id="pick-stake"
                 min={minBet}
-                max={Math.max(minBet, myMoney)}
-                step={10}
+                max={myMoney}
                 value={amount}
-                onChange={(e) => setAmount(Number(e.target.value) || minBet)}
-                aria-label={t('arena.bet.stake')}
-                className="w-full rounded-lg border border-white/10 bg-arena-750 px-3 py-2 text-sm text-white tabular-nums outline-none focus:border-gold/40"
+                onChange={setAmount}
+                compact
               />
-              <span className="shrink-0 text-[10px] tracking-wider text-arena-300 uppercase">
+              <div className="text-[10px] tracking-wider text-arena-300 uppercase">
                 {t('arena.pick.ofYours', { amount: money(myMoney) })}
-              </span>
-            </div>
+              </div>
+            </>
           )}
         </div>
       )}
 
       {/* ============================================================ modes */}
-      <div className="mb-4 text-center text-[11px] tracking-wider text-arena-200 uppercase">
-        {t('arena.pick.howTitle')}
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() =>
-            target &&
-            pickPlayer(
-              target,
-              'challenge',
-              side
-                ? { side, amount: Math.min(myMoney, Math.max(minBet, amount)) }
-                : undefined
-            )
-          }
-          className={`rounded-lg border py-5 font-bold tracking-widest uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
-            target
-              ? 'cursor-pointer border-white/20 text-white hover:bg-arena-700'
-              : 'cursor-not-allowed border-arena-500 text-arena-500'
-          }`}
-        >
-          {t('arena.pick.challenge')}
-        </button>
-        <button
-          type="button"
-          disabled={!target}
-          onClick={() => target && pickPlayer(target, 'duel')}
-          className={`py-5 text-lg font-bold tracking-widest uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none ${
-            target
-              ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
-              : 'cursor-not-allowed bg-arena-700 text-arena-400'
-          }`}
-        >
-          <span className="inline-flex items-center justify-center gap-2">
-            <SwordIcon className="h-5 w-5 shrink-0" />
-            {t('arena.pick.duel')}
-          </span>
-          {chosen && (
-            <span className="mt-1 block text-[10px] font-normal tracking-normal normal-case opacity-80">
-              {t('arena.pick.ante', { amount: money(chosen.duelAnte) })}
+      {/*
+        STICKY TO THE BOTTOM ON A PHONE.
+
+        These two buttons are the decision, and they sat last in a column
+        that — with two targets and a wager open — ran to twice the height
+        of a phone screen. A picker under a twenty-five-second clock had to
+        scroll to find the button that ends the phase, and the sole target
+        being pre-selected made it worse: the screen looked ready, and the
+        thing to press was off it.
+
+        Pinned they are always in reach. From sm up the column fits and they
+        go back to being the last thing in it.
+      */}
+      <div className="sticky bottom-0 z-20 -mx-4 mt-2 border-t border-white/[0.07] bg-arena-900/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+        <div className="mb-3 text-center text-[11px] tracking-wider text-arena-200 uppercase sm:mb-4">
+          {t('arena.pick.howTitle')}
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          <button
+            type="button"
+            disabled={!target}
+            onClick={() =>
+              target &&
+              pickPlayer(
+                target,
+                'challenge',
+                side
+                  ? {
+                      side,
+                      amount: Math.min(myMoney, Math.max(minBet, amount)),
+                    }
+                  : undefined
+              )
+            }
+            className={`min-h-[52px] rounded-lg border px-2 text-[12px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:text-sm sm:tracking-widest ${
+              target
+                ? 'cursor-pointer border-white/20 text-white hover:bg-arena-700'
+                : 'cursor-not-allowed border-arena-500 text-arena-500'
+            }`}
+          >
+            {t('arena.pick.challenge')}
+          </button>
+          <button
+            type="button"
+            disabled={!target}
+            onClick={() => target && pickPlayer(target, 'duel')}
+            className={`min-h-[52px] rounded-lg px-2 text-[13px] font-bold tracking-[0.15em] uppercase transition-colors focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none sm:text-lg sm:tracking-widest ${
+              target
+                ? 'cursor-pointer bg-gold text-arena-950 hover:bg-gold-light'
+                : 'cursor-not-allowed bg-arena-700 text-arena-400'
+            }`}
+          >
+            <span className="inline-flex items-center justify-center gap-2">
+              <SwordIcon className="h-5 w-5 shrink-0" />
+              {t('arena.pick.duel')}
             </span>
-          )}
-        </button>
+            {chosen && (
+              <span className="mt-1 block text-[10px] font-normal tracking-normal normal-case opacity-80">
+                {t('arena.pick.ante', { amount: money(chosen.duelAnte) })}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
